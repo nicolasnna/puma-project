@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find control_dir)/launch/control_dir.launch" />
+    <include file="$(find interface_joy)/launch/interface_joy.launch" />
+</launch>
