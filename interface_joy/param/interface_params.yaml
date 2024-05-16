@@ -2,8 +2,8 @@ joy_topic: "joy"
 
 # --- Params for brake controller --- #
 brake_topic: "brake_controller/data_control"
-pos_min: 40
-pos_max: 4000
+pos_min: 0
+pos_max: 1000
 
 # --- params for dir controller --- #
 dir_topic: "control_dir/dir_data"

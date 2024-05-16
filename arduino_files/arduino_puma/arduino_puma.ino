@@ -37,6 +37,7 @@ const int acceleratorPin = 5;
 const int minAcceleratorValue = 43;
 const int maxAcceleratorValue = 169;
 int acceleratorValue = minAcceleratorValue;
+int newAcceleratorValue = 0;
 bool enableAccelerator = false;
 
 // Variables ROS
@@ -113,6 +114,7 @@ void publishMsgStatus() {
   status_msg.enable_accel = enableAccelerator;
   status_msg.pwm_accel = acceleratorValue;
   status_msg.voltage_accel = (acceleratorValue/255.0) * 5.0;
+  arduinoStatusPub.publish(&status_msg);
 }
 
 void accelController(){
@@ -179,11 +181,12 @@ void brakeController(){
 }
 
 void accelCallback( const std_msgs::Int16& data_received ) {
-  if (data_received.data >= minAcceleratorValue && data_received.data < maxAcceleratorValue){
-    acceleratorValue = data_received.data + minAcceleratorValue;
+  newAcceleratorValue = data_received.data + minAcceleratorValue;
+  if (newAcceleratorValue>= minAcceleratorValue && newAcceleratorValue < maxAcceleratorValue){
+    acceleratorValue = newAcceleratorValue;
     enableAccelerator = true;
-    //accelStatus.valuePwm = pwmValue;
-    //accelStatus.outVoltage = accelStatus.valuePwm/255.0 * 5.0;
+    nh.loginfo(acceleratorValue);
+    nh.loginfo(data_received.data);
   } else {
     enableAccelerator = false;
     nh.logwarn("Valor de acceleracion recibida invalida");
