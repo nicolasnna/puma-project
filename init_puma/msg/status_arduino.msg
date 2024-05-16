@@ -7,5 +7,6 @@ string topic_dir
     bool is_limit_right_dir
     bool is_limit_left_dir
 string topic_accel
+    bool enable_accel
     int16 pwm_accel
     float32 voltage_accel

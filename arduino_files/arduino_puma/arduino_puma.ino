@@ -2,6 +2,7 @@
 #include <brake_controller_msgs/brake_control.h>
 #include <control_dir_msgs/dir_data.h>
 #include <std_msgs/Int16.h>
+#include <init_puma/status_arduino.h>
 
 // Variables freno
 const int MS[3] = {51,49,47};
@@ -50,8 +51,8 @@ ros::Subscriber<control_dir_msgs::dir_data> dir_sub("control_dir/dir_data", dirC
 void accelCallback( const std_msgs::Int16& data_received );
 ros::Subscriber<std_msgs::Int16> accel_sub("accel_puma/value", accelCallback);
 
-std_msgs::Int16 brake_status;
-ros::Publisher brake_pub("brake_controller/status", &brake_status);
+init_puma::status_arduino status_msg;
+ros::Publisher arduinoStatusPub("arduino_puma/status", &status_msg);
 
 
 void setup() {
@@ -59,8 +60,8 @@ void setup() {
   nh.initNode();
   nh.subscribe(brake_sub);
   nh.subscribe(dir_sub);
-  nh.advertise(brake_pub);
   nh.subscribe(accel_sub);
+  nh.advertise(arduinoStatusPub);
   nh.loginfo("Inicializando Arduino");
   // Config pinMode brake
   pinMode(DIR_MPP1, OUTPUT);
@@ -82,6 +83,11 @@ void setup() {
   digitalWrite(enableDirPin, LOW);
   // Config pinMode accel
   pinMode(acceleratorPin, OUTPUT);
+
+  // Write topics to msg status
+  status_msg.topic_brake = "brake_controller/data_control";
+  status_msg.topic_dir = "control_dir/dir_data";
+  status_msg.topic_accel = "accel_puma/value";
 }
 
 void loop() {
@@ -89,10 +95,24 @@ void loop() {
   dirController();
   brakeController();
   // Publish msg
-  brake_status.data = positionCurrent;
-  brake_pub.publish( &brake_status );
+  publishMsgStatus();
   nh.spinOnce();
   delay(20);
+}
+
+void publishMsgStatus() {
+  // Brake info
+  status_msg.position_brake = positionCurrent;
+  status_msg.is_move_brake = moveBrake;
+  // Dir info
+  status_msg.current_position_dir = sensorPositionValue;
+  status_msg.enable_dir = enablePinDirection;
+  status_msg.is_limit_right_dir = stop_dir_right;
+  status_msg.is_limit_left_dir = stop_dir_left;
+  // Accel info
+  status_msg.enable_accel = enableAccelerator;
+  status_msg.pwm_accel = acceleratorValue;
+  status_msg.voltage_accel = (acceleratorValue/255.0) * 5.0;
 }
 
 void accelController(){
@@ -100,6 +120,7 @@ void accelController(){
     analogWrite(acceleratorPin, acceleratorValue);
   } else {
     analogWrite(acceleratorPin, minAcceleratorValue);
+    acceleratorValue = minAcceleratorValue;
   }
 }
 
