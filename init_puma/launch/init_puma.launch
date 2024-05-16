@@ -1,8 +1,7 @@
 <launch>
     <include file="$(find control_dir)/launch/control_dir.launch" />
-    <include file="$(find brake_controller_i2c)/launch/brake_controller.launch" />
     <include file="$(find interface_joy)/launch/interface_joy.launch" />
-    <node name="arduino_node" pkg="rosserial_python" type="serial_node.py">
+    <node name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen">
         <param name="port" value="/dev/ttyUSB0"/>
         <param name="baud" value="57600" />
     </node>

@@ -3,15 +3,19 @@ import rospy
 import Jetson.GPIO as GPIO #Jetson's GPIO Lib
 import time
 from control_dir_msgs.msg import dir_data
+from std_msgs.msg import Int16
+
 
 class ControlDir():
     '''
     Class for direction controler for servo motor with PWM 
     '''
+    
     def __init__(self):
         # Configure ros
         rospy.init_node('control_dir', anonymous=True)
         rospy.Subscriber('control_dir/dir_data', dir_data, self.__dirDataCallback)
+        rospy.Subscriber('dir_puma/status', Int16, self.__statusDirCallback)
       
         # Params from rosparam
         #12sg
@@ -32,10 +36,25 @@ class ControlDir():
         self.__current_range = 0
         self.__activate_control = False
         self.__finish_calibration = False
+        self.__stop_dir_right = True
+        self.__stop_dir_left = True
         
         # PINES DE SALIDA
         GPIO.setup(self.__right_pin, GPIO.OUT, initial=False)
         GPIO.setup(self.__left_pin, GPIO.OUT, initial=False)
+    
+        self.i = 30
+        self.i_max = 30
+        
+    def __statusDirCallback(self,data_received):
+        if data_received.data >=300:
+            self.__stop_dir_right = False
+        else:
+            self.__stop_dir_right = True
+        if data_received.data <= 450:
+            self.__stop_dir_left = False
+        else:
+            self.__stop_dir_left = True
     
     def __dirDataCallback(self,data_received):
         '''
@@ -56,53 +75,64 @@ class ControlDir():
         '''
         Calibrate direction
         '''
-        rospy.loginfo("# --- En modo calibracion de direccion --- #")
+        if self.i >= self.i_max:
+            rospy.loginfo("# --- En modo calibracion de direccion --- #")
         if self.__activate_control:
-            if self.__range > 0:
-                rospy.loginfo("# --- Calibrando direccion a la izquierda --- #")
-                for i in range( 0, int(self.total_loop/2) ):
-                    GPIO.output(self.__left_pin, True)
-                    time.sleep(self.time_high)
-                    GPIO.output(self.__left_pin, False)
-                    time.sleep(self.time_low)
+            if not self.__stop_dir_left:
+                if self.__range > 0:
+                    rospy.loginfo("# --- Calibrando direccion a la izquierda --- #")
+                    for i in range( 0, int(self.total_loop/2) ):
+                        GPIO.output(self.__left_pin, True)
+                        time.sleep(self.time_high)
+                        GPIO.output(self.__left_pin, False)
+                        time.sleep(self.time_low)
                 
-            elif self.__range < 0:
-                rospy.loginfo("# --- Calibrando direccion a la derecha --- #")
-                for i in range( 0, int(self.total_loop/2) ):
-                    GPIO.output(self.__right_pin, True)
-                    time.sleep(self.time_high)
-                    GPIO.output(self.__right_pin, False)
-                    time.sleep(self.time_low)
+            if not self.__stop_dir_right:
+                if self.__range < 0:
+                    rospy.loginfo("# --- Calibrando direccion a la derecha --- #")
+                    for i in range( 0, int(self.total_loop/2) ):
+                        GPIO.output(self.__right_pin, True)
+                        time.sleep(self.time_high)
+                        GPIO.output(self.__right_pin, False)
+                        time.sleep(self.time_low)
             
         else: 
-            rospy.loginfo("# --- Presionar B para terminar la calibracion --- #")
+            if self.i >= self.i_max:
+                rospy.loginfo("# --- Presionar B para terminar la calibracion --- #")
+        # Evitar spam de log info
+        self.i +=1
+        if self.i>self.i_max:
+            self.i = 0
+            
     
     def controlDirection(self):
         '''
         Generate PWM for control direction
         '''
-        if self.__activate_control and self.__range!=self.__current_range:
-            rospy.loginfo("#--- PWM direccion activado ---#")
+        if self.__activate_control and self.__range!=self.__current_range and not self.__stop_dir:
+            #rospy.loginfo("#--- PWM direccion activado ---#")
             
-            if self.__range > 0 and self.__current_range >-self.val_max:
-                for i in range(0,self.total_loop):
-                    GPIO.output(self.__left_pin, True)
-                    time.sleep(self.time_high)
-                    GPIO.output(self.__left_pin, False)
-                    time.sleep(self.time_low)
-                self.__current_range -= self.total_loop
+            if not self.__stop_dir_left:
+                if self.__range > 0 and self.__current_range >-self.val_max:
+                    for i in range(0,self.total_loop):
+                        GPIO.output(self.__left_pin, True)
+                        time.sleep(self.time_high)
+                        GPIO.output(self.__left_pin, False)
+                        time.sleep(self.time_low)
+                    self.__current_range -= self.total_loop
+                    
+            if not self.__stop_dir_right:
+                if self.__range < 0 and self.__current_range <self.val_max:
                 
-            elif self.__range < 0 and self.__current_range <self.val_max:
-               
-                for i in range(0,self.total_loop):
-                    GPIO.output(self.__right_pin, True)
-                    time.sleep(self.time_high)
-                    GPIO.output(self.__right_pin, False)
-                    time.sleep(self.time_low)
-                self.__current_range += self.total_loop
-            else:
+                    for i in range(0,self.total_loop):
+                        GPIO.output(self.__right_pin, True)
+                        time.sleep(self.time_high)
+                        GPIO.output(self.__right_pin, False)
+                        time.sleep(self.time_low)
+                    self.__current_range += self.total_loop
+            if self.__stop_dir_left or self.__stop_dir_right:
                 rospy.logerr("Direccion maxima alcanzada")
-            rospy.loginfo("Valor de la direccion actual: %s",self.__current_range)
+            #rospy.loginfo("Valor de la direccion actual: %s",self.__current_range)
             
-        else: 
-            rospy.loginfo("# --- PWM direccion desactivado - direccion actual: %s --- #", self.__current_range)
+       # else: 
+            #rospy.loginfo("# --- PWM direccion desactivado - direccion actual: %s --- #", self.__current_range)

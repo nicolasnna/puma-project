@@ -51,7 +51,9 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>interface_joy</build_depend>
   <build_depend>control_dir</build_depend>
-  <build_depend>brake_controller_i2c</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_export_depend>message_generation</build_export_depend>
+  <exec_depend>message_runtime</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

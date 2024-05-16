@@ -25,6 +25,7 @@ class InterfaceJoy():
     Y_button = False
     LB_button = False 
     RB_button = False
+    start_button = False
     
     state_transform = {"0": False, "1": True}
     def __init__(self) -> None:
@@ -53,6 +54,7 @@ class InterfaceJoy():
         self.__Y_BUTTON_INDEX = rospy.get_param('y_button_index', 3)
         self.__LB_BUTTON_INDEX = rospy.get_param('lb_button_index', 4)
         self.__RB_BUTTON_INDEX = rospy.get_param('rb_button_index', 5)
+        self.__START_BUTTON_INDEX = rospy.get_param('start_button_index', 7)
         
         # Create topics
         rospy.Subscriber(self.__sub_topic, Joy, self.__subCallBack)
@@ -63,6 +65,7 @@ class InterfaceJoy():
         self.msg_send_brake = brake_control()
         self.msg_send_dir = dir_data()
         self.msg_send_accel_puma = Int16()
+        self.msg_send_accel_puma.data = 0 
         
     def __subCallBack(self, data_received):
         '''
@@ -86,6 +89,8 @@ class InterfaceJoy():
         self.Y_button = self.state_transform[str(data_received.buttons[self.__Y_BUTTON_INDEX])]
         self.LB_button = self.state_transform[str(data_received.buttons[self.__LB_BUTTON_INDEX])]
         self.RB_button = self.state_transform[str(data_received.buttons[self.__RB_BUTTON_INDEX])]
+        if  self.state_transform[str(data_received.buttons[self.__START_BUTTON_INDEX])]:
+            self.start_button = True
         
     def __convertTriggerToRange(self,trigger_value, value_min, value_max):
         '''
@@ -98,17 +103,27 @@ class InterfaceJoy():
         '''
         Publish control data and dir data
         '''
-        # --- Control brake --- #
-        self.msg_send_brake.position = self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1])
-        self.msg_send_brake.button_repeat = self.LB_button
-        self._publisher_brake.publish(self.msg_send_brake)
-        
-        # --- Control direction --- #
-        self.msg_send_dir.range = int(self.x_left*100)
-        self.msg_send_dir.activate = self.A_button
-        self.msg_send_dir.finish_calibration = self.B_button
-        self._publisher_dir.publish(self.msg_send_dir)
-        
-        # --- Control Accelerator puma --- #
-        self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
-        self._publisher_accel_puma.publish(self.msg_send_accel_puma)
+        try: 
+            # --- Control brake --- #
+            self.msg_send_brake.position = self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1])
+            self.msg_send_brake.button_repeat = self.LB_button
+                
+            # --- Control direction --- #
+            self.msg_send_dir.range = int(self.x_left*100)
+            self.msg_send_dir.activate = self.A_button
+            self.msg_send_dir.finish_calibration = self.B_button
+            
+            # --- Control Accelerator puma --- #
+            self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
+                
+        except: 
+            # Cierre
+            self.msg_send_brake.position = 40
+            self.msg_send_brake.button_repeat = True
+            self.msg_send_dir.activate = False
+            self.msg_send_accel_puma.data = 0
+        finally: 
+            self._publisher_brake.publish(self.msg_send_brake)
+            self._publisher_dir.publish(self.msg_send_dir)
+            if self.start_button:
+                self._publisher_accel_puma.publish(self.msg_send_accel_puma)
