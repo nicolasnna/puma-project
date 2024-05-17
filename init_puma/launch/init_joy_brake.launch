@@ -1,6 +1,0 @@
-<launch>
-
-    <include file="$(find brake_controller_i2c)/launch/brake_controller.launch" />
-    <include file="$(find interface_joy)/launch/interface_joy.launch" />
-
-</launch>

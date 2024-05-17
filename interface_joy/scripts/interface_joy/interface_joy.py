@@ -65,6 +65,7 @@ class InterfaceJoy():
         self._publisher_dir = rospy.Publisher(self.__pub_topic_dir, dir_data, queue_size=5)
         self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
         self._publisher_reverse = rospy.Publisher('control_reverse/activate', Bool, queue_size=5)
+        self._publisher_brake_electric = rospy.Publisher('control_brake_electric/activate', Bool, queue_size=5)
         
         # Create variable to send
         self.msg_send_brake = brake_control()
@@ -74,6 +75,9 @@ class InterfaceJoy():
         
         self.msg_send_reverse = Bool()
         self.msg_send_reverse.data = False
+        
+        self.msg_send_brake_electric = Bool()
+        self.msg_send_brake_electric.data = False
         
     def __subCallBack(self, data_received):
         '''
@@ -100,9 +104,15 @@ class InterfaceJoy():
         self.start_button = self.state_transform[str(data_received.buttons[self.__START_BUTTON_INDEX])]
         self.back_button = self.state_transform[str(data_received.buttons[self.__BACK_BUTTON_INDEX])]
         
+        # Brake electric status
+        if self.LB_button and self.RB_button:
+            self.msg_send_brake_electric.data = not self.msg_send_brake_electric.data
+        
+        # Reverse status
         if self.back_button and self.start_button:
             self.msg_send_reverse.data = not self.msg_send_reverse.data
         
+        # Accelerator status
         if self.start_button:
             self.ready_send_accel = True
             
@@ -144,3 +154,4 @@ class InterfaceJoy():
             if self.ready_send_accel:
                 self._publisher_accel_puma.publish(self.msg_send_accel_puma)
             self._publisher_reverse.publish(self.msg_send_reverse)
+            self._publisher_brake_electric.publish(self.msg_send_brake_electric)

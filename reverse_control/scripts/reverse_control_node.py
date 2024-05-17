@@ -16,7 +16,7 @@ class ControlReverse():
         
         self._reversePin = 13
         self._stateReverse = False
-        GPIO.setup(self._reversePin, GPIO.out, initial=False)
+        GPIO.setup(self._reversePin, GPIO.OUT, initial=False)
         
         
     def _reverseCallback(self, data_received):
