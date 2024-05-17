@@ -32,7 +32,7 @@ class ControlReverse():
         
 if __name__ == "__main__":
     control_reverse = ControlReverse()
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(1)
     
     try:
         while not rospy.is_shutdown():

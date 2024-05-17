@@ -30,7 +30,7 @@ class ControlBrakeElectric():
 
 if __name__ == "__main__":
     brake_control = ControlBrakeElectric()
-    rate = rospy.Rate(15)
+    rate = rospy.Rate(1)
     
     try:
         while not rospy.is_shutdown():
