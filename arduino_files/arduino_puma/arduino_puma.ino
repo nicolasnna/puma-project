@@ -3,6 +3,7 @@
 #include <control_dir_msgs/dir_data.h>
 #include <std_msgs/Int16.h>
 #include <init_puma/status_arduino.h>
+const int pin5v = 12;
 
 // Variables freno
 const int MS[3] = {51,49,47};
@@ -89,6 +90,9 @@ void setup() {
   status_msg.topic_brake = "brake_controller/data_control";
   status_msg.topic_dir = "control_dir/dir_data";
   status_msg.topic_accel = "accel_puma/value";
+
+  pinMode(pin5v, OUTPUT);
+  digitalWrite(pin5v, HIGH);
 }
 
 void loop() {
@@ -98,7 +102,7 @@ void loop() {
   // Publish msg
   publishMsgStatus();
   nh.spinOnce();
-  delay(20);
+  delay(1);
 }
 
 void publishMsgStatus() {
@@ -129,23 +133,25 @@ void accelController(){
 void dirController(){
   sensorPositionValue = analogRead(sensorPositionPin);
   // Checking if can turn on direction
-  if(sensorPositionValue >= limit_min){
+  if(sensorPositionValue > limit_min){
     stop_dir_right = false;
   } else {
+    nh.logwarn("Direccion a la derecha maxima alcanzada");
     stop_dir_right = true;
   }
-  if(sensorPositionValue <= limit_max){
+  if(sensorPositionValue < limit_max){
     stop_dir_left = false;
   } else {
+    nh.logwarn("Direccion a la derecha maxima alcanzada");
     stop_dir_left = true;
   }
 
-  if (stop_dir_right == false && valueDirection > 0 && enablePinDirection){
+  if (stop_dir_right == false && valueDirection < 0 && enablePinDirection){
     analogWrite(right_dir,255);
   } else {
     analogWrite(right_dir,0);
   }
-  if (stop_dir_left == false && valueDirection < 0 && enablePinDirection){
+  if (stop_dir_left == false && valueDirection > 0 && enablePinDirection){
     analogWrite(left_dir,255);
   } else {
     analogWrite(left_dir,0);
@@ -185,8 +191,6 @@ void accelCallback( const std_msgs::Int16& data_received ) {
   if (newAcceleratorValue>= minAcceleratorValue && newAcceleratorValue < maxAcceleratorValue){
     acceleratorValue = newAcceleratorValue;
     enableAccelerator = true;
-    nh.loginfo(acceleratorValue);
-    nh.loginfo(data_received.data);
   } else {
     enableAccelerator = false;
     nh.logwarn("Valor de acceleracion recibida invalida");

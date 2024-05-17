@@ -2,7 +2,7 @@
 import rospy
 from brake_controller_msgs.msg import brake_control
 from control_dir_msgs.msg import dir_data
-from std_msgs.msg import Int16
+from std_msgs.msg import Int16, Bool
 from sensor_msgs.msg import Joy
 
 class InterfaceJoy():
@@ -25,7 +25,9 @@ class InterfaceJoy():
     Y_button = False
     LB_button = False 
     RB_button = False
+    back_button = False
     start_button = False
+    ready_send_accel = False
     
     state_transform = {"0": False, "1": True}
     def __init__(self) -> None:
@@ -54,6 +56,7 @@ class InterfaceJoy():
         self.__Y_BUTTON_INDEX = rospy.get_param('y_button_index', 3)
         self.__LB_BUTTON_INDEX = rospy.get_param('lb_button_index', 4)
         self.__RB_BUTTON_INDEX = rospy.get_param('rb_button_index', 5)
+        self.__BACK_BUTTON_INDEX = rospy.get_param('back_button_index', 6)
         self.__START_BUTTON_INDEX = rospy.get_param('start_button_index', 7)
         
         # Create topics
@@ -61,11 +64,16 @@ class InterfaceJoy():
         self._publisher_brake = rospy.Publisher(self.__pub_topic_brake, brake_control, queue_size=5)  # Is modifly
         self._publisher_dir = rospy.Publisher(self.__pub_topic_dir, dir_data, queue_size=5)
         self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
+        self._publisher_reverse = rospy.Publisher('control_reverse/activate', Bool, queue_size=5)
+        
         # Create variable to send
         self.msg_send_brake = brake_control()
         self.msg_send_dir = dir_data()
         self.msg_send_accel_puma = Int16()
         self.msg_send_accel_puma.data = 0 
+        
+        self.msg_send_reverse = Bool()
+        self.msg_send_reverse.data = False
         
     def __subCallBack(self, data_received):
         '''
@@ -89,8 +97,16 @@ class InterfaceJoy():
         self.Y_button = self.state_transform[str(data_received.buttons[self.__Y_BUTTON_INDEX])]
         self.LB_button = self.state_transform[str(data_received.buttons[self.__LB_BUTTON_INDEX])]
         self.RB_button = self.state_transform[str(data_received.buttons[self.__RB_BUTTON_INDEX])]
-        if  self.state_transform[str(data_received.buttons[self.__START_BUTTON_INDEX])]:
-            self.start_button = True
+        self.start_button = self.state_transform[str(data_received.buttons[self.__START_BUTTON_INDEX])]
+        self.back_button = self.state_transform[str(data_received.buttons[self.__BACK_BUTTON_INDEX])]
+        
+        if self.back_button and self.start_button:
+            self.msg_send_reverse.data = not self.msg_send_reverse.data
+        
+        if self.start_button:
+            self.ready_send_accel = True
+            
+        
         
     def __convertTriggerToRange(self,trigger_value, value_min, value_max):
         '''
@@ -125,5 +141,6 @@ class InterfaceJoy():
         finally: 
             self._publisher_brake.publish(self.msg_send_brake)
             self._publisher_dir.publish(self.msg_send_dir)
-            if self.start_button:
+            if self.ready_send_accel:
                 self._publisher_accel_puma.publish(self.msg_send_accel_puma)
+            self._publisher_reverse.publish(self.msg_send_reverse)
