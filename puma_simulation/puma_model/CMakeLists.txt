@@ -5,6 +5,7 @@ project(puma_model)
 find_package(catkin REQUIRED COMPONENTS
   urdf
   xacro
+  hector_gazebo_plugins
 )
 
 catkin_package(

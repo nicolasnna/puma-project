@@ -1,10 +1,45 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="puma_model_sim">
+ 
   <gazebo>
+    <!-- Plugin ros gazebo controller -->
     <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
       <robotNamespace>/</robotNamespace>
     </plugin>
+    <!-- Plugin Gps simulate (requires hector gazebo plugins) -->
+    <plugin name="gps_controller" filename="libhector_gazebo_ros_gps.so">
+      <alwayson>true</alwayson>
+      <updaterate>1.0</updaterate>
+      <bodyName>gps_link</bodyName>
+      <frameId>/world</frameId>
+      <topicName>/fix_gps</topicName>
+      <referenceLatitude>-33.42196309675523</referenceLatitude>
+      <referenceLongitude>-70.5818018059048</referenceLongitude>
+      <referenceAltitude>570</referenceAltitude>
+      <velocitytopicname>/fix_velocity</velocitytopicname>
+      <drift>5.0 5.0 5.0</drift>
+      <gaussiannoise>0.1 0.1 0.1</gaussiannoise>
+      <velocitydrift>0 0 0</velocitydrift>
+      <velocitygaussiannoise>0.1 0.1 0.1</velocitygaussiannoise>
+    </plugin>
+    <!-- Plugin IMU 1 -->
+    <plugin name="imu1_controller" filename="libhector_gazebo_ros_imu.so">
+      <updateRate>60</updateRate>
+      <bodyName>imu1_link</bodyName>
+      <topicName>/imu1</topicName>
+      <frameId>imu1_link</frameId>
+      <gaussianNoise>0.1 0.1 0.1</gaussianNoise>
+    </plugin>
+    <!-- Plugin IMU 2  -->
+    <plugin name="imu1_controller" filename="libhector_gazebo_ros_imu.so">
+      <updateRate>60</updateRate>
+      <bodyName>imu2_link</bodyName>
+      <topicName>/imu2</topicName>
+      <frameId>imu2_link</frameId>
+      <gaussianNoise>0.1 0.1 0.1</gaussianNoise>
+    </plugin>
   </gazebo>
+
 
 
   <!-- Transmisión para la rueda trasera derecha -->

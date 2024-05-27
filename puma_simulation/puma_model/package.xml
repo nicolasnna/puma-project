@@ -17,6 +17,7 @@ for puma_model robot</p>
   <depend>gazebo</depend>
   <depend>urdf</depend>
   <depend>xacro</depend>
+  <depend>hector_gazebo_plugins</depend>
   <export>
     <architecture_independent />
   </export>
