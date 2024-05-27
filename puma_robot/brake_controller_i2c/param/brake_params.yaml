@@ -1,0 +1,4 @@
+vel_motor: 800
+acel_motor: 220
+pos_max_motor: 3000
+step_res: "1/8"
