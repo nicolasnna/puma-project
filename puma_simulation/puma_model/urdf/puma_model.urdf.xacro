@@ -150,6 +150,8 @@
       link="wheel_right_front_link" />
     <axis
       xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="dir_left_link">
@@ -256,6 +258,8 @@
       link="wheel_left_front_link" />
     <axis
       xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="wheel_right_back_link">
@@ -309,6 +313,8 @@
       link="wheel_right_back_link" />
     <axis
       xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="wheel_left_back_link">
@@ -362,6 +368,8 @@
       link="wheel_left_back_link" />
     <axis
       xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="base_component_link">

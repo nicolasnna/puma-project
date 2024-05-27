@@ -6,54 +6,86 @@
     </plugin>
   </gazebo>
 
-   <!-- Transmisión para la rueda trasera derecha -->
-<transmission name="wheel_back_right">
-  <type>transmission_interface/SimpleTransmission</type>
-  <joint name="wheel_right_back_joint">
-    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
-  </joint>
-  <actuator name="wheel_right_actuator">
-    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
-    <mechanicalReduction>1</mechanicalReduction>
-  </actuator>
-</transmission>
 
-<!-- Transmisión para la rueda trasera izquierda -->
-<transmission name="wheel_back_left">
-  <type>transmission_interface/SimpleTransmission</type>
-  <joint name="wheel_left_back_joint">
-    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
-  </joint>
-  <actuator name="wheel_left_actuator">
-    <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
-    <mechanicalReduction>1</mechanicalReduction>
-  </actuator>
-</transmission>
+  <!-- Transmisión para la rueda trasera derecha -->
+  <transmission name="wheel_back_right">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_right_back_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_right_actuator">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
 
-<!-- Transmisión para la dirección izquierda -->
-<transmission name="direction_left">
-  <type>transmission_interface/SimpleTransmission</type>
-  <joint name="dir_left_joint">
+  <!-- Transmisión para la rueda trasera izquierda -->
+  <transmission name="wheel_back_left">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_left_back_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_left_actuator">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- Transmisión para la dirección izquierda -->
+  <transmission name="direction_left">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dir_left_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="direction_motor_left">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- Transmisión para la dirección derecha -->
+  <transmission name="direction_right">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dir_right_joint">
     <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-  </joint>
-  <actuator name="direction_motor_left">
-    <hardwareInterface>PositionJointInterface</hardwareInterface>
-    <mechanicalReduction>1</mechanicalReduction>
-  </actuator>
-</transmission>
+    </joint>
+    <actuator name="direction_motor_right">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
 
-<!-- Transmisión para la dirección derecha -->
-<transmission name="direction_right">
-  <type>transmission_interface/SimpleTransmission</type>
-  <joint name="dir_right_joint">
-   <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-  </joint>
-  <actuator name="direction_motor_right">
-    <hardwareInterface>PositionJointInterface</hardwareInterface>
-    <mechanicalReduction>1</mechanicalReduction>
-  </actuator>
-</transmission>
+  <!-- Configuracion de links -->
+  <gazebo reference="wheel_right_front_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material> Gazebo/Grey </material>
+  </gazebo>
 
+  <gazebo reference="wheel_left_front_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material> Gazebo/Grey </material>
+  </gazebo>
 
+  <gazebo reference="wheel_right_back_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material> Gazebo/Grey </material>
+  </gazebo>
+
+  <gazebo reference="wheel_left_back_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/ZincYellow</material> 
+  </gazebo>
 
 </robot>

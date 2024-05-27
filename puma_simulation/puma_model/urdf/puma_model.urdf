@@ -415,17 +415,4 @@
       xyz="0 0 0" />
   </joint>
   
-  <!-- CONTROL -->
-  <transmission name="direction">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="dir_right_joint">
-      <hardwareInterface>PositionJointInterface</hardwareInterface>
-    </joint>
-    <joint name="dir_left_joint">
-      <hardwareInterface>PositionJointInterface</hardwareInterface>
-    </joint>    
-    <actuator name="direction_motor">
-       <hardwareInterface>PositionJointInterface</hardwareInterface>
-    </actuator>
-  </transmission>
 </robot>

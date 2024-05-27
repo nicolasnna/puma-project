@@ -29,6 +29,7 @@ class InterfaceJoy():
     start_button = False
     ready_send_accel = False
     
+    init_send = 0
     state_transform = {"0": False, "1": True}
     def __init__(self) -> None:
         
@@ -141,7 +142,7 @@ class InterfaceJoy():
             
             # --- Control Accelerator puma --- #
             self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
-                
+
         except: 
             # Cierre
             self.msg_send_brake.position = 40
