@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot name="puma_model">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.000318371260688873 2.58258248245213E-07 0.367218886964779"
+        rpy="0 0 0" />
+      <mass
+        value="137.364583550566" />
+      <inertia
+        ixx="3.48024888119141"
+        ixy="-1.35770833137747E-06"
+        ixz="1.25278348088499"
+        iyy="16.4664872890134"
+        iyz="8.1493916197498E-06"
+        izz="16.8109813346284" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.988235294117647 0.737254901960784 0.517647058823529 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="dir_right_link">
+    <inertial>
+      <origin
+        xyz="3.3307E-16 -0.047021 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.45023" />
+      <inertia
+        ixx="0.00045293"
+        ixy="-2.0835E-20"
+        ixz="-1.9343E-21"
+        iyy="0.00050737"
+        iyz="3.9521E-20"
+        izz="0.00046079" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/dir_right_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.82353 0.82353 0.82353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/dir_right_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="dir_right_joint"
+    type="continuous">
+    <origin
+      xyz="0.526726734803658 -0.353 0.265"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="dir_right_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="wheel_right_front_link">
+    <inertial>
+      <origin
+        xyz="0 -1.1102E-16 0.07"
+        rpy="0 0 0" />
+      <mass
+        value="32.018" />
+      <inertia
+        ixx="0.59867"
+        ixy="-3.3873E-32"
+        ixz="3.9787E-17"
+        iyy="0.59867"
+        iyz="-1.4091E-18"
+        izz="1.0783" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_right_front_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_right_front_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_right_front_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.0779999999999998 0"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="dir_right_link" />
+    <child
+      link="wheel_right_front_link" />
+    <axis
+      xyz="0 0 -1" />
+  </joint>
+  <link
+    name="dir_left_link">
+    <inertial>
+      <origin
+        xyz="4.4409E-16 0.047021 1.1102E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.45023" />
+      <inertia
+        ixx="0.00045293"
+        ixy="-7.2925E-21"
+        ixz="-1.6378E-21"
+        iyy="0.00050737"
+        iyz="1.6016E-20"
+        izz="0.00046079" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/dir_left_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.82353 0.82353 0.82353 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/dir_left_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="dir_left_joint"
+    type="continuous">
+    <origin
+      xyz="0.526726734803658 0.353 0.265"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="dir_left_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="wheel_left_front_link">
+    <inertial>
+      <origin
+        xyz="0 1.1102E-16 0.07"
+        rpy="0 0 0" />
+      <mass
+        value="32.018" />
+      <inertia
+        ixx="0.59867"
+        ixy="-1.4193E-32"
+        ixz="-3.1297E-17"
+        iyy="0.59867"
+        iyz="-1.7836E-17"
+        izz="1.0783" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_left_front_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.75294 0.75294 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_left_front_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_left_front_joint"
+    type="continuous">
+    <origin
+      xyz="0 0.078 0"
+      rpy="1.5707963267949 0 -3.14159265358979" />
+    <parent
+      link="dir_left_link" />
+    <child
+      link="wheel_left_front_link" />
+    <axis
+      xyz="0 0 -1" />
+  </joint>
+  <link
+    name="wheel_right_back_link">
+    <inertial>
+      <origin
+        xyz="1.4432899320127E-15 -1.55431223447522E-15 0.1"
+        rpy="0 0 0" />
+      <mass
+        value="39.8759403950152" />
+      <inertia
+        ixx="0.738004078739411"
+        ixy="-2.40636772622452E-32"
+        ixz="5.01473497824115E-17"
+        iyy="0.738004078739411"
+        iyz="-2.10536971222048E-16"
+        izz="1.18405631579549" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_right_back_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.666666666666667 0.666666666666667 0.666666666666667 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_right_back_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_right_back_joint"
+    type="continuous">
+    <origin
+      xyz="-0.523273265196343 -0.275 0.250000000000001"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="wheel_right_back_link" />
+    <axis
+      xyz="0 0 -1" />
+  </joint>
+  <link
+    name="wheel_left_back_link">
+    <inertial>
+      <origin
+        xyz="3.33066907387547E-16 -1.11022302462516E-16 0.0999999999999998"
+        rpy="0 0 0" />
+      <mass
+        value="39.8759403950152" />
+      <inertia
+        ixx="0.738004078739411"
+        ixy="-6.00424777087413E-33"
+        ixz="5.78644975246967E-19"
+        iyy="0.73800407873941"
+        iyz="7.25303828077831E-18"
+        izz="1.18405631579549" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_left_back_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.666666666666667 0.666666666666667 0.666666666666667 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/wheel_left_back_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_left_back_joint"
+    type="continuous">
+    <origin
+      xyz="-0.523273265196342 0.275 0.249999999999999"
+      rpy="-1.5707963267949 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="wheel_left_back_link" />
+    <axis
+      xyz="0 0 -1" />
+  </joint>
+  <link
+    name="base_component_link">
+    <inertial>
+      <origin
+        xyz="0 -1.38777878078145E-17 0"
+        rpy="0 0 0" />
+      <mass
+        value="26.928" />
+      <inertia
+        ixx="0.399432"
+        ixy="5.25749814054658E-17"
+        ixz="-1.90310730137829E-18"
+        iyy="0.368016"
+        iyz="5.64237288394698E-34"
+        izz="0.5502288" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/base_component_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.752941176470588 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/base_component_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="base_component_joint"
+    type="fixed">
+    <origin
+      xyz="0.0767267348036579 0 0.63"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="base_component_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  
+  <!-- CONTROL -->
+  <transmission name="direction">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dir_right_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>
+    <joint name="dir_left_joint">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </joint>    
+    <actuator name="direction_motor">
+       <hardwareInterface>PositionJointInterface</hardwareInterface>
+    </actuator>
+  </transmission>
+</robot>
