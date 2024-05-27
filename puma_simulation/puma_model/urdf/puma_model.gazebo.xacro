@@ -88,4 +88,8 @@
     <material>Gazebo/ZincYellow</material> 
   </gazebo>
 
+  <gazebo reference="base_component_link">
+    <material>Gazebo/Turquoise  </material> 
+  </gazebo>
+
 </robot>

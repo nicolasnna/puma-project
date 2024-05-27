@@ -1,9 +1,0 @@
-<launch>
-
-    <node 
-        name="brake_electric_control" 
-        pkg="brake_electric_control" 
-        type="brake_electric_control_node.py" 
-        output="screen"/>
-
-</launch>
