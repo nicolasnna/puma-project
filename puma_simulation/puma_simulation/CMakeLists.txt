@@ -10,7 +10,7 @@ project(puma_simulation)
 find_package(catkin REQUIRED COMPONENTS
 	robot_localization
 	puma_model
-	puma_controller)
+	puma_gazebo)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

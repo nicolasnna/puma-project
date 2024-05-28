@@ -23,6 +23,8 @@ class WheelController():
     self._activate_brake_electric = False
     self._activate_brake = False
     
+    self.accel_value = 0.0
+    
   def __brake_callback(self, data_received):
     '''
     set brake
@@ -48,6 +50,7 @@ class WheelController():
     '''
     Value received from interface joy about acceleration
     '''
+    self.accel_value = data_received.data
     if not self._activate_brake_electric and not self._activate_brake:
       if self._activate_reverse:
         self.wheel_value[0].data = data_received.data*1.0/10.0

@@ -89,10 +89,10 @@ class InterfaceJoy():
         self.rt_right = data_received.axes[self.__RT_RIGHT_INDEX]
         
         
-        self.x_left = data_received.axes[self.__X_LEFT_INDEX]
+        self.x_left = data_received.axes[self.__X_LEFT_INDEX]*-1
         self.y_left = data_received.axes[self.__Y_LEFT_INDEX]
         
-        self.x_right = data_received.axes[self.__X_RIGHT_INDEX]
+        self.x_right = data_received.axes[self.__X_RIGHT_INDEX]*-1
         self.y_right = data_received.axes[self.__Y_RIGHT_INDEX]
         
         #--- Convert from 0-1 to False-True ---#

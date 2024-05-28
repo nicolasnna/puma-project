@@ -146,12 +146,12 @@ void dirController(){
     stop_dir_left = true;
   }
 
-  if (stop_dir_right == false && valueDirection < 0 && enablePinDirection){
+  if (stop_dir_right == false && valueDirection > 0 && enablePinDirection){
     analogWrite(right_dir,255);
   } else {
     analogWrite(right_dir,0);
   }
-  if (stop_dir_left == false && valueDirection > 0 && enablePinDirection){
+  if (stop_dir_left == false && valueDirection < 0 && enablePinDirection){
     analogWrite(left_dir,255);
   } else {
     analogWrite(left_dir,0);
