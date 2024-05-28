@@ -24,19 +24,21 @@
     </plugin>
     <!-- Plugin IMU 1 -->
     <plugin name="imu1_controller" filename="libhector_gazebo_ros_imu.so">
-      <updateRate>60</updateRate>
+      <updateRate>30</updateRate>
       <bodyName>imu1_link</bodyName>
       <topicName>/imu1</topicName>
       <frameId>imu1_link</frameId>
-      <gaussianNoise>0.1 0.1 0.1</gaussianNoise>
+      <gaussianNoise>0 0 0</gaussianNoise>
+      <rpyOffsets>0 0 0</rpyOffsets>
     </plugin>
     <!-- Plugin IMU 2  -->
-    <plugin name="imu1_controller" filename="libhector_gazebo_ros_imu.so">
-      <updateRate>60</updateRate>
+    <plugin name="imu2_controller" filename="libhector_gazebo_ros_imu.so">
+      <updateRate>30</updateRate>
       <bodyName>imu2_link</bodyName>
       <topicName>/imu2</topicName>
       <frameId>imu2_link</frameId>
-      <gaussianNoise>0.1 0.1 0.1</gaussianNoise>
+      <gaussianNoise>0 0 0</gaussianNoise>
+      <rpyOffsets>0 0 0</rpyOffsets>
     </plugin>
   </gazebo>
 
