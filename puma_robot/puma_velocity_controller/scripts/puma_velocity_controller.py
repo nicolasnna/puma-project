@@ -2,19 +2,20 @@
 import rospy
 import math
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Int16
+from std_msgs.msg import Int16, Bool
 from control_dir_msgs.msg import dir_data
 from init_puma.msg import status_arduino
+from brake_controller_msgs.msg import brake_control
 
 class PumaVelocityController():
   def __init__(self):
-    self.name = ''
     
     rospy.init_node('puma_vel_control')
     
     # Params
     self.cmd_vel_topic = rospy.get_param('cmd_vel_topic', 'cmd_vel')
-    self.max_steering_angle = rospy.get_param('max_steering_angle', 0.7854) # En rad
+    self.angle_limit = rospy.get_param('angle_limit', 30.0) # Grados
+    self.max_steering_angle = self.angle_limit/180 * math.pi
     self.status_topic = rospy.get_param('status_arduino', 'status_arduino')
     self.wheel_base = rospy.get_param('wheel_base', 1.15)
     
@@ -22,22 +23,27 @@ class PumaVelocityController():
     rospy.Subscriber(self.status_topic, status_arduino, self._status_arduino_callback)
     
     # Publishers
-    self.rear_wheels_pub = rospy.Publisher(self.name +'/accel_puma/value', Int16, queue_size=5)
-    self.steering_front_pub = rospy.Publisher(self.name + '/control_dir/dir_data', dir_data, queue_size=5)
+    self.rear_wheels_pub = rospy.Publisher('/accel_puma/value', Int16, queue_size=5)
+    self.steering_front_pub = rospy.Publisher('/control_dir/dir_data', dir_data, queue_size=5)
+    self.brake_wheels_pub = rospy.Publisher('brake_controller/data_control', brake_control, queue_size=4)
+    self.reverse_pub = rospy.Publisher('control_reverse/activate', Bool, queue_size=5)
     
     self.rear_wheels_msg = Int16()
     self.steering_msg = dir_data()
+    self.brake_wheels_msg = brake_control()
+    self.reverse_msg = Bool()
     # Variable
-    self.CONST_VEL_TRANSFORM = 100.0 / 10.0 # Transform m/s to analog read to pwm
+    self.CONST_VEL_TRANSFORM = rospy.get_param('const_vel_transform',100.0 / 10.0) # Transform m/s to analog read to pwm
     self.position_steering = float("nan")
-    self.ready_accel = False
-    self.ZERO_POSITION_VALUE = 392
     self.CONST_RAD_VALUE = 2*math.pi/1024 
-    #self.RIGHT_LIMIT_VALUE = 263 
-    #self.LEFT_LIMIT_VALUE = 521
-    self.RIGHT_LIMIT_VALUE = 392 - 87
-    self.LEFT_LIMIT_VALUE = 392 + 87
+    self.ZERO_POSITION_VALUE = rospy.get_param('zero_position_sensor',392)
+    self.DIF_LIMIT_VALUE = int(self.angle_limit/360 * 1024)
+    self.RIGHT_LIMIT_VALUE = self.ZERO_POSITION_VALUE - self.DIF_LIMIT_VALUE
+    self.LEFT_LIMIT_VALUE = self.ZERO_POSITION_VALUE + self.DIF_LIMIT_VALUE
 
+    self.range_extra_value = 3
+    
+    self.change_steering = False
     self.steering_angle = 0
     self.input_wheels = 0
 
@@ -46,6 +52,12 @@ class PumaVelocityController():
     Processing data from status arduino
     '''
     self.position_steering = status_received.current_position_dir
+    # Evaluate if need change steering
+    angle_value = int(self.steering_angle/self.CONST_RAD_VALUE) + self.ZERO_POSITION_VALUE
+    if (self.position_steering < angle_value - self.range_extra_value) or (self.position_steering > angle_value + self.range_extra_value):
+      self.change_steering = True
+    else: 
+      self.change_steering = False
     
   def _cmd_vel_callback(self, data_received):
     '''
@@ -53,27 +65,43 @@ class PumaVelocityController():
     '''
     linear_velocity = data_received.linear.x
     angular_velocity = data_received.angular.z
-    if linear_velocity >= 0:
+    if linear_velocity > 0:
       self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
+      self.brake_wheels_msg.position = 0
+      if self.reverse_msg.data:
+        rospy.loginfo("Quitando modo reversa!!")
+      self.reverse_msg.data = False
+    elif linear_velocity == 0:
+      self.brake_wheels_msg.position = 1000
+      if self.reverse_msg.data:
+        rospy.loginfo("Quitando modo reversa!!")
+      self.reverse_msg.data = False
     else:
-      rospy.logwarn("El robot no esta configurado para ir hacia atras")
+      self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
+      self.brake_wheels_msg.position = 0
+      if not self.reverse_msg.data:
+        rospy.loginfo("Cambiando a modo reversa!!")
+      self.reverse_msg.data = True
       
-  def control_wheels(self, input_wheels):
+  def control_wheels(self):
     '''
     Control wheels
     '''
-    if self.ready_accel:
-      self.rear_wheels_msg.data = int(input_wheels)
-      self.rear_wheels_pub.publish(self.rear_wheels_msg)
+    # Change velocity if have changes in steering angle
+    if not self.change_steering:
+      self.rear_wheels_msg.data = int(self.input_wheels)
+    else: 
+      self.rear_wheels_msg.data = int(5)
+    self.rear_wheels_pub.publish(self.rear_wheels_msg)
   
-  def control_steering(self, steering_angle):
+  def control_steering(self):
     '''
     Control steering angle 
     '''
     self.steering_msg.finish_calibration = True
     
     # Convert rad to int 1024
-    angle_value = int(steering_angle/self.CONST_RAD_VALUE) + self.ZERO_POSITION_VALUE
+    angle_value = int(self.steering_angle/self.CONST_RAD_VALUE) + self.ZERO_POSITION_VALUE
     # Evaluate value
     if angle_value > self.LEFT_LIMIT_VALUE:
       angle_value = self.LEFT_LIMIT_VALUE
@@ -82,44 +110,49 @@ class PumaVelocityController():
 
     # Comparate with current position
     if not math.isnan(self.position_steering):
-      if angle_value < self.position_steering-3:
+      if angle_value < self.position_steering-self.range_extra_value:
         self.steering_msg.range = -10
         self.steering_msg.activate = True
         self.steering_front_pub.publish(self.steering_msg)
-      elif angle_value > self.position_steering+3:
+      elif angle_value > self.position_steering+self.range_extra_value:
         self.steering_msg.range = 10
         self.steering_msg.activate = True
-        self.ready_accel = False
         self.steering_front_pub.publish(self.steering_msg)
       else:
         self.steering_msg.activate = False
         self.steering_front_pub.publish(self.steering_msg)
-        self.ready_accel = True
+       
     
   def calculate_angles_velocities_output(self, linear_velocity, angular_velocity):
     '''
     Calculate steering angle and input wheels
     '''
+    # Calculate radius
     if angular_velocity == 0 or linear_velocity == 0:
       radius = float('inf')
     else:
       radius = linear_velocity / angular_velocity  
       
     steering_angle = math.atan(self.wheel_base / radius)
-    
-    
+    # Limit angle max
     if steering_angle > self.max_steering_angle:
       steering_angle = self.max_steering_angle
     elif steering_angle < -self.max_steering_angle:
       steering_angle = -self.max_steering_angle
   
-    input_wheels = linear_velocity * self.CONST_VEL_TRANSFORM
+    # Calculate inputs in wheels
+    input_wheels = abs(linear_velocity * self.CONST_VEL_TRANSFORM) 
     
     return steering_angle, input_wheels
   
-  def publish_msg(self):
-    self.control_steering(self.steering_angle)
-    self.control_wheels(self.input_wheels)
+  def control_puma(self):
+    '''
+    Publish control periodically
+    '''
+    self.control_steering()
+    self.control_wheels()
+    self.brake_wheels_pub.publish(self.brake_wheels_msg)
+    self.reverse_pub.publish(self.reverse_msg)
   
 try: 
   if __name__ == "__main__":
@@ -127,7 +160,7 @@ try:
     rate = rospy.Rate(30)
     while not rospy.is_shutdown():
       
-      puma_velocity_control.publish_msg()
+      puma_velocity_control.control_puma()
       rate.sleep()
 except:
   rospy.logerr("Nodo 'puma_vel_control' desactivado!!!")

@@ -1,0 +1,5 @@
+<launch>
+  <rosparam file="$(find puma_velocity_controller)/config/puma_velocity_params.yaml" command="load"/>
+
+  <node pkg="puma_velocity_controller" name="puma_velocity_controller" type="puma_velocity_controller.py" output="screen"/>
+</launch>
