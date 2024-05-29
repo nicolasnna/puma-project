@@ -2,22 +2,23 @@
 <!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
      Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
      For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
-<robot name="puma_model">
+<robot
+  name="puma_model">
   <link
     name="base_link">
     <inertial>
       <origin
-        xyz="0.000318371260688873 2.58258248245213E-07 0.367218886964779"
+        xyz="0.016828 2.5244E-07 0.36947"
         rpy="0 0 0" />
       <mass
-        value="137.364583550566" />
+        value="154.38" />
       <inertia
-        ixx="3.48024888119141"
-        ixy="-1.35770833137747E-06"
-        ixz="1.25278348088499"
-        iyy="16.4664872890134"
-        iyz="8.1493916197498E-06"
-        izz="16.8109813346284" />
+        ixx="3.8644"
+        ixy="-9.5023E-07"
+        ixz="1.1536"
+        iyy="22.232"
+        iyz="9.0131E-06"
+        izz="22.651" />
     </inertial>
     <visual>
       <origin
@@ -30,7 +31,7 @@
       <material
         name="">
         <color
-          rgba="0.988235294117647 0.737254901960784 0.517647058823529 1" />
+          rgba="0.98824 0.73725 0.51765 1" />
       </material>
     </visual>
     <collision>
@@ -47,17 +48,17 @@
     name="dir_right_link">
     <inertial>
       <origin
-        xyz="3.3307E-16 -0.047021 0"
+        xyz="-2.2204E-16 -0.029478 0"
         rpy="0 0 0" />
       <mass
-        value="0.45023" />
+        value="0.21461" />
       <inertia
-        ixx="0.00045293"
-        ixy="-2.0835E-20"
-        ixz="-1.9343E-21"
-        iyy="0.00050737"
-        iyz="3.9521E-20"
-        izz="0.00046079" />
+        ixx="0.00016179"
+        ixy="-1.2567E-20"
+        ixz="-1.7214E-21"
+        iyy="0.00021284"
+        iyz="1.1854E-20"
+        izz="0.00016965" />
     </inertial>
     <visual>
       <origin
@@ -87,7 +88,7 @@
     name="dir_right_joint"
     type="continuous">
     <origin
-      xyz="0.526726734803658 -0.353 0.265"
+      xyz="0.57673 -0.337 0.265"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -95,22 +96,27 @@
       link="dir_right_link" />
     <axis
       xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
   </joint>
   <link
     name="wheel_right_front_link">
     <inertial>
       <origin
-        xyz="0 -1.1102E-16 0.07"
+        xyz="0 1.1102E-16 0.07"
         rpy="0 0 0" />
       <mass
-        value="32.018" />
+        value="33.833" />
       <inertia
-        ixx="0.59867"
-        ixy="-3.3873E-32"
-        ixz="3.9787E-17"
-        iyy="0.59867"
-        iyz="-1.4091E-18"
-        izz="1.0783" />
+        ixx="0.66317"
+        ixy="1.746E-32"
+        ixz="4.5149E-17"
+        iyy="0.66317"
+        iyz="1.0774E-17"
+        izz="1.1919" />
     </inertial>
     <visual>
       <origin
@@ -140,30 +146,37 @@
     name="wheel_right_front_joint"
     type="continuous">
     <origin
-      xyz="0 -0.0779999999999998 0"
-      rpy="1.5707963267949 0 0" />
+      xyz="0 -0.048 0"
+      rpy="1.5708 0 0" />
     <parent
       link="dir_right_link" />
     <child
       link="wheel_right_front_link" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="dir_left_link">
     <inertial>
       <origin
-        xyz="4.4409E-16 0.047021 1.1102E-16"
+        xyz="0 0.0294777193153578 1.11022302462516E-16"
         rpy="0 0 0" />
       <mass
-        value="0.45023" />
+        value="0.214607285846125" />
       <inertia
-        ixx="0.00045293"
-        ixy="-7.2925E-21"
-        ixz="-1.6378E-21"
-        iyy="0.00050737"
-        iyz="1.6016E-20"
-        izz="0.00046079" />
+        ixx="0.000161787233745492"
+        ixy="1.7829483231954E-21"
+        ixz="-2.5363205724219E-21"
+        iyy="0.000212842937751498"
+        iyz="3.89270928347116E-20"
+        izz="0.000169651482672632" />
     </inertial>
     <visual>
       <origin
@@ -176,7 +189,7 @@
       <material
         name="">
         <color
-          rgba="0.82353 0.82353 0.82353 1" />
+          rgba="0.823529411764706 0.823529411764706 0.823529411764706 1" />
       </material>
     </visual>
     <collision>
@@ -193,7 +206,7 @@
     name="dir_left_joint"
     type="continuous">
     <origin
-      xyz="0.526726734803658 0.353 0.265"
+      xyz="0.576729916214884 0.337 0.265"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -201,22 +214,27 @@
       link="dir_left_link" />
     <axis
       xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
   </joint>
   <link
     name="wheel_left_front_link">
     <inertial>
       <origin
-        xyz="0 1.1102E-16 0.07"
+        xyz="0 0 0.0699999999999999"
         rpy="0 0 0" />
       <mass
-        value="32.018" />
+        value="33.8332405777372" />
       <inertia
-        ixx="0.59867"
-        ixy="-1.4193E-32"
-        ixz="-3.1297E-17"
-        iyy="0.59867"
-        iyz="-1.7836E-17"
-        izz="1.0783" />
+        ixx="0.663166940004142"
+        ixy="3.62902943280336E-32"
+        ixz="-3.47625364951278E-17"
+        iyy="0.663166940004142"
+        iyz="1.01566182105979E-18"
+        izz="1.19194782788173" />
     </inertial>
     <visual>
       <origin
@@ -229,7 +247,7 @@
       <material
         name="">
         <color
-          rgba="1 0.75294 0.75294 1" />
+          rgba="1 0.752941176470588 0.752941176470588 1" />
       </material>
     </visual>
     <collision>
@@ -246,30 +264,37 @@
     name="wheel_left_front_joint"
     type="continuous">
     <origin
-      xyz="0 0.078 0"
-      rpy="1.5707963267949 0 -3.14159265358979" />
+      xyz="0 0.048 0"
+      rpy="1.5708 0 -3.1416" />
     <parent
       link="dir_left_link" />
     <child
       link="wheel_left_front_link" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="wheel_right_back_link">
     <inertial>
       <origin
-        xyz="1.4432899320127E-15 -1.55431223447522E-15 0.1"
+        xyz="0 1.11022302462516E-16 0.1"
         rpy="0 0 0" />
       <mass
-        value="39.8759403950152" />
+        value="42.8421975932662" />
       <inertia
-        ixx="0.738004078739411"
-        ixy="-2.40636772622452E-32"
-        ixz="5.01473497824115E-17"
-        iyy="0.738004078739411"
-        iyz="-2.10536971222048E-16"
-        izz="1.18405631579549" />
+        ixx="0.843504879614984"
+        ixy="-2.17897005442215E-32"
+        ixz="6.01287397790473E-17"
+        iyy="0.843504879614984"
+        iyz="-2.51058847467066E-16"
+        izz="1.34196583325215" />
     </inertial>
     <visual>
       <origin
@@ -299,30 +324,37 @@
     name="wheel_right_back_joint"
     type="continuous">
     <origin
-      xyz="-0.523273265196343 -0.275 0.250000000000001"
-      rpy="1.5707963267949 0 0" />
+      xyz="-0.57327 -0.275 0.25"
+      rpy="1.5708 0 0" />
     <parent
       link="base_link" />
     <child
       link="wheel_right_back_link" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="wheel_left_back_link">
     <inertial>
       <origin
-        xyz="3.33066907387547E-16 -1.11022302462516E-16 0.0999999999999998"
+        xyz="1.11022302462516E-16 1.11022302462516E-16 0.1"
         rpy="0 0 0" />
       <mass
-        value="39.8759403950152" />
+        value="42.8421975932662" />
       <inertia
-        ixx="0.738004078739411"
-        ixy="-6.00424777087413E-33"
-        ixz="5.78644975246967E-19"
-        iyy="0.73800407873941"
-        iyz="7.25303828077831E-18"
-        izz="1.18405631579549" />
+        ixx="0.843504879614984"
+        ixy="-4.06685460585996E-33"
+        ixz="-3.69567293190446E-18"
+        iyy="0.843504879614984"
+        iyz="1.64612942139347E-17"
+        izz="1.34196583325215" />
     </inertial>
     <visual>
       <origin
@@ -352,29 +384,36 @@
     name="wheel_left_back_joint"
     type="continuous">
     <origin
-      xyz="-0.523273265196342 0.275 0.249999999999999"
-      rpy="-1.5707963267949 0 0" />
+      xyz="-0.57327 0.275 0.25"
+      rpy="-1.5708 0 0" />
     <parent
       link="base_link" />
     <child
       link="wheel_left_back_link" />
     <axis
       xyz="0 0 -1" />
+    <limit
+      lower="0"
+      upper="0"
+      effort="0"
+      velocity="0" />
+    <dynamics
+      friction="1" />
   </joint>
   <link
     name="base_component_link">
     <inertial>
       <origin
-        xyz="0 -1.38777878078145E-17 0"
+        xyz="-1.38777878078145E-17 -1.38777878078145E-17 0"
         rpy="0 0 0" />
       <mass
         value="26.928" />
       <inertia
         ixx="0.399432"
-        ixy="5.25749814054658E-17"
-        ixz="-1.90310730137829E-18"
+        ixy="1.53695574785691E-18"
+        ixz="-1.04083408558608E-17"
         iyy="0.368016"
-        iyz="5.64237288394698E-34"
+        iyz="1.04083408558608E-17"
         izz="0.5502288" />
     </inertial>
     <visual>
@@ -405,7 +444,7 @@
     name="base_component_joint"
     type="fixed">
     <origin
-      xyz="0.0767267348036579 0 0.63"
+      xyz="0.12673 0 0.63"
       rpy="0 0 0" />
     <parent
       link="base_link" />
@@ -414,5 +453,163 @@
     <axis
       xyz="0 0 0" />
   </joint>
-  
+  <link
+    name="gps_link">
+    <inertial>
+      <origin
+        xyz="0 -1.38777878078145E-17 -0.01"
+        rpy="0 0 0" />
+      <mass
+        value="0.1" />
+      <inertia
+        ixx="8.66666666666668E-05"
+        ixy="7.16025184745641E-22"
+        ixz="-2.70628567440132E-38"
+        iyy="2.41666666666667E-05"
+        iyz="-4.35487872615009E-22"
+        izz="0.000104166666666667" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/gps_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.623529411764706 1 0.76078431372549 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/gps_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="gps_joint"
+    type="fixed">
+    <origin
+      xyz="0.27173 0 0.76"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="gps_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="imu1_link">
+    <inertial>
+      <origin
+        xyz="0.01 -1.38777878078145E-17 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.1" />
+      <inertia
+        ixx="0.000104166666666667"
+        ixy="1.2202921326777E-21"
+        ixz="7.05860789378583E-22"
+        iyy="8.6666666666667E-05"
+        iyz="-1.12757025938493E-20"
+        izz="2.41666666666667E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/imu1_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/imu1_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="imu1_link"
+    type="fixed">
+    <origin
+      xyz="-0.74327 0 0.57"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="imu1_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="imu2_link">
+    <inertial>
+      <origin
+        xyz="-0.01 0 -1.11022302462516E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.1" />
+      <inertia
+        ixx="0.000104166666666667"
+        ixy="-1.73472347597681E-22"
+        ixz="1.75866627395253E-21"
+        iyy="8.66666666666669E-05"
+        iyz="2.31296463463575E-21"
+        izz="2.41666666666667E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/imu2_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model/meshes/imu2_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="imu2_joint"
+    type="fixed">
+    <origin
+      xyz="0.646729916214884 0 0.37"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="imu2_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
 </robot>
