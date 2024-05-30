@@ -4,6 +4,8 @@ from brake_controller_msgs.msg import brake_control
 from control_dir_msgs.msg import dir_data
 from std_msgs.msg import Int16, Bool
 from sensor_msgs.msg import Joy
+from diagnostic_msgs.msg import DiagnosticArray
+import time
 
 class InterfaceJoy():
     '''
@@ -62,6 +64,7 @@ class InterfaceJoy():
         
         # Create topics
         rospy.Subscriber(self.__sub_topic, Joy, self.__subCallBack)
+        rospy.Subscriber('diagnostics', DiagnosticArray, self._diagnostic_callback)
         self._publisher_brake = rospy.Publisher(self.__pub_topic_brake, brake_control, queue_size=5)  # Is modifly
         self._publisher_dir = rospy.Publisher(self.__pub_topic_dir, dir_data, queue_size=5)
         self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
@@ -79,6 +82,9 @@ class InterfaceJoy():
         
         self.msg_send_brake_electric = Bool()
         self.msg_send_brake_electric.data = False
+        
+        self.level = 2
+        
         
     def __subCallBack(self, data_received):
         '''
@@ -116,8 +122,14 @@ class InterfaceJoy():
         # Accelerator status
         if self.start_button:
             self.ready_send_accel = True
-            
-        
+
+    def _diagnostic_callback(self, data_received):
+        status = data_received.status
+        for elements in status:
+            if elements.name == 'joy_puma: Joystick Driver Status':
+                self.level = elements.level
+                
+        rospy.loginfo("level of joy: %s", self.level)
         
     def __convertTriggerToRange(self,trigger_value, value_min, value_max):
         '''
@@ -142,10 +154,13 @@ class InterfaceJoy():
             
             # --- Control Accelerator puma --- #
             self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
-
+            
+            if self.level != 0:
+                self.msg_send_accel_puma.data = 0
+            
         except: 
             # Cierre
-            self.msg_send_brake.position = 40
+            self.msg_send_brake.position = 0
             self.msg_send_brake.button_repeat = True
             self.msg_send_dir.activate = False
             self.msg_send_accel_puma.data = 0

@@ -3,10 +3,10 @@
     <rosparam command="load" file="$(find puma_simulation)/config/navsat_transform.yaml" />
 
       <!-- Placeholders for input remapping. Set your topic names as the "to" values.
-      <remap from="imu/data" to=""/>
-      <remap from="odometry/filtered" to=""/>
-      <remap from="gps/fix" to=""/>
       -->
+      <remap from="imu/data" to="imu2"/>
+      <!-- <remap from="odometry/filtered" to="odom"/> -->
+      <remap from="gps/fix" to="gps"/>
 
   </node> 
 </launch>

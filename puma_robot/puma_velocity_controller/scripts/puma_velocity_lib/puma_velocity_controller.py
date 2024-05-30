@@ -10,8 +10,6 @@ from brake_controller_msgs.msg import brake_control
 class PumaVelocityController():
   def __init__(self):
     
-    rospy.init_node('puma_vel_control')
-    
     # Params
     self.cmd_vel_topic = rospy.get_param('cmd_vel_topic', 'cmd_vel')
     self.angle_limit = rospy.get_param('angle_limit', 30.0) # Grados
@@ -153,14 +151,3 @@ class PumaVelocityController():
     self.control_wheels()
     self.brake_wheels_pub.publish(self.brake_wheels_msg)
     self.reverse_pub.publish(self.reverse_msg)
-  
-try: 
-  if __name__ == "__main__":
-    puma_velocity_control = PumaVelocityController()
-    rate = rospy.Rate(30)
-    while not rospy.is_shutdown():
-      
-      puma_velocity_control.control_puma()
-      rate.sleep()
-except:
-  rospy.logerr("Nodo 'puma_vel_control' desactivado!!!")
