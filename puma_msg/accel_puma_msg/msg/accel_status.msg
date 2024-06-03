@@ -1,2 +1,0 @@
-int16 valuePwm
-float32 outVoltage

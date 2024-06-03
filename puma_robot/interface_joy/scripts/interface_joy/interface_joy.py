@@ -5,7 +5,6 @@ from control_dir_msgs.msg import dir_data
 from std_msgs.msg import Int16, Bool
 from sensor_msgs.msg import Joy
 from diagnostic_msgs.msg import DiagnosticArray
-import time
 
 class InterfaceJoy():
     '''

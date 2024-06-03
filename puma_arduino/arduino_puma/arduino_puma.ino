@@ -1,9 +1,9 @@
 #include <ros.h>
-#include <brake_controller_msgs/brake_control.h>
-#include <control_dir_msgs/dir_data.h>
+#include <puma_brake_msgs/BrakeCmd.h>
+#include <puma_direction_msgs/DirectionCmd.h>
+#include <puma_arduino_msgs/StatusArduino.h>
+#include <puma_arduino_msgs/StatusTacometer.h>
 #include <std_msgs/Int16.h>
-#include <arduino_msgs/StatusArduino.h>
-#include <arduino_msgs/StatusTacometer.h>
 
 // Variables freno
 const int MS[3] = {51,49,47};
@@ -50,20 +50,20 @@ int limit_time = 500;
 // Variables ROS
 ros::NodeHandle nh;
 
-void brakeCallback( const brake_controller_msgs::brake_control& data_received );
-ros::Subscriber<brake_controller_msgs::brake_control> brake_sub("brake_controller/data_control", brakeCallback);
+void brakeCallback( const puma_brake_msgs::BrakeCmd& data_received );
+ros::Subscriber<puma_brake_msgs::BrakeCmd> brake_sub("puma/arduino/brake/command", brakeCallback);
 
-void dirCallback( const control_dir_msgs::dir_data& data_received);
-ros::Subscriber<control_dir_msgs::dir_data> dir_sub("control_dir/dir_data", dirCallback);
+void dirCallback( const puma_direction_msgs::DirectionCmd& data_received);
+ros::Subscriber<puma_direction_msgs::DirectionCmd> dir_sub("puma/arduino/direction/command", dirCallback);
 
 void accelCallback( const std_msgs::Int16& data_received );
-ros::Subscriber<std_msgs::Int16> accel_sub("accel_puma/value", accelCallback);
+ros::Subscriber<std_msgs::Int16> accel_sub("puma/arduino/accelerator/commmand", accelCallback);
 
-arduino_msgs::StatusArduino status_msg;
-ros::Publisher arduinoStatusPub("arduino_puma/status", &status_msg);
+puma_arduino_msgs::StatusArduino status_msg;
+ros::Publisher arduinoStatusPub("puma/arduino/status", &status_msg);
 
-arduino_msgs::StatusTacometer tacometer_pub;
-ros::Publisher tacometerStatusPub("arduino_puma/tacometer", &tacometer_pub);
+puma_arduino_msgs::StatusTacometer tacometer_pub;
+ros::Publisher tacometerStatusPub("puma/arduino/tacometer/status", &tacometer_pub);
 
 void setup() {
   // Config ros
@@ -115,7 +115,7 @@ void loop() {
     noInterrupts();
     tacometer_pub.pulsos = pulsoContador;
     tacometer_pub.time_millis = limit_time;
-
+    tacometerStatusPub.publish(&tacometer_pub);
     pulsoContador = 0;
     interrupts();
 
@@ -223,7 +223,7 @@ void accelCallback( const std_msgs::Int16& data_received ) {
   }
 }
 
-void dirCallback( const control_dir_msgs::dir_data& data_received) {
+void dirCallback( const puma_direction_msgs::DirectionCmd& data_received) {
   valueDirection = data_received.range;
   if (data_received.activate) {
     digitalWrite(enableDirPin, HIGH);
@@ -237,7 +237,7 @@ void dirCallback( const control_dir_msgs::dir_data& data_received) {
   }
 }
 
-void brakeCallback( const brake_controller_msgs::brake_control& data_received ) {
+void brakeCallback( const puma_brake_msgs::BrakeCmd& data_received ) {
   positionToReach = (data_received.position/100)*100;
   if (positionToReach >= positionCurrent) {
     digitalWrite(DIR_MPP1, HIGH);
