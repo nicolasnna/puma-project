@@ -2,8 +2,8 @@
 #include <brake_controller_msgs/brake_control.h>
 #include <control_dir_msgs/dir_data.h>
 #include <std_msgs/Int16.h>
-#include <init_puma/status_arduino.h>
-const int pin5v = 12;
+#include <arduino_msgs/StatusArduino.h>
+#include <arduino_msgs/StatusTacometer.h>
 
 // Variables freno
 const int MS[3] = {51,49,47};
@@ -21,7 +21,7 @@ bool moveBrake = false;
 // Variables direccion
 const int sensorPositionPin = A1;
 const int enableDirPin = 14;
-const int right_dir = 2;
+const int right_dir = 4;
 const int left_dir = 3;
 const int limit_min = 263;
 const int limit_max = 521;
@@ -41,6 +41,12 @@ int acceleratorValue = minAcceleratorValue;
 int newAcceleratorValue = 0;
 bool enableAccelerator = false;
 
+// Variable tacometro
+const int tacometroPin = 2;
+int pulsoContador = 0;
+unsigned long last_time = 0;
+int limit_time = 500;
+
 // Variables ROS
 ros::NodeHandle nh;
 
@@ -53,9 +59,11 @@ ros::Subscriber<control_dir_msgs::dir_data> dir_sub("control_dir/dir_data", dirC
 void accelCallback( const std_msgs::Int16& data_received );
 ros::Subscriber<std_msgs::Int16> accel_sub("accel_puma/value", accelCallback);
 
-init_puma::status_arduino status_msg;
+arduino_msgs::StatusArduino status_msg;
 ros::Publisher arduinoStatusPub("arduino_puma/status", &status_msg);
 
+arduino_msgs::StatusTacometer tacometer_pub;
+ros::Publisher tacometerStatusPub("arduino_puma/tacometer", &tacometer_pub);
 
 void setup() {
   // Config ros
@@ -64,6 +72,7 @@ void setup() {
   nh.subscribe(dir_sub);
   nh.subscribe(accel_sub);
   nh.advertise(arduinoStatusPub);
+  nh.advertise(tacometerStatusPub);
   nh.loginfo("Inicializando Arduino");
   // Config pinMode brake
   pinMode(DIR_MPP1, OUTPUT);
@@ -85,24 +94,41 @@ void setup() {
   digitalWrite(enableDirPin, LOW);
   // Config pinMode accel
   pinMode(acceleratorPin, OUTPUT);
+  // Config tacometro
+  pinMode(tacometroPin, INPUT_PULLUP); 
+  attachInterrupt(digitalPinToInterrupt(tacometroPin), countPulse, RISING); 
 
   // Write topics to msg status
   status_msg.topic_brake = "brake_controller/data_control";
   status_msg.topic_dir = "control_dir/dir_data";
   status_msg.topic_accel = "accel_puma/value";
-
-  pinMode(pin5v, OUTPUT);
-  digitalWrite(pin5v, HIGH);
 }
 
 void loop() {
+  // Controladores
   accelController();
   dirController();
   brakeController();
+  // Publicar pulsos tacometro
+  unsigned long current_time = millis();
+  if (current_time - last_time >= limit_time) {
+    noInterrupts();
+    tacometer_pub.pulsos = pulsoContador;
+    tacometer_pub.time_millis = limit_time;
+
+    pulsoContador = 0;
+    interrupts();
+
+    last_time = current_time;
+  }
   // Publish msg
   publishMsgStatus();
   nh.spinOnce();
   delay(1);
+}
+
+void countPulse() {
+  pulsoContador++;
 }
 
 void publishMsgStatus() {
