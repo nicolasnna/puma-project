@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Float64, Int16, Bool
-from brake_controller_msgs.msg import brake_control
+from puma_brake_msgs.msg import BrakeCmd
 
 class WheelController():
   def __init__(self):
@@ -9,11 +9,11 @@ class WheelController():
     self._pub_wheel_left = rospy.Publisher('/wheel_left_controller/command', Float64, queue_size=5)  
     self._pub_wheel_right = rospy.Publisher('/wheel_right_controller/command', Float64, queue_size=5)  
     #Subscriber
-    rospy.Subscriber('accel_puma/value', Int16, self.__accel_callback)
-    rospy.Subscriber('control_reverse/activate', Bool, self.__reverse_callback)
+    rospy.Subscriber('puma/accelerator/command', Int16, self.__accel_callback)
+    rospy.Subscriber('puma/reverse/command', Bool, self.__reverse_callback)
     
-    rospy.Subscriber('control_brake_electric/activate', Bool, self.__brake_electric_callback)
-    rospy.Subscriber('brake_controller/data_control', brake_control, self.__brake_callback)
+    rospy.Subscriber('puma/parking/command', Bool, self.__brake_electric_callback)
+    rospy.Subscriber('puma/brake/command', BrakeCmd, self.__brake_callback)
     
     # Variable
     # Para delante izq (-) der (+)

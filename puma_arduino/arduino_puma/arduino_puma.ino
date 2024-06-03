@@ -51,19 +51,19 @@ int limit_time = 500;
 ros::NodeHandle nh;
 
 void brakeCallback( const puma_brake_msgs::BrakeCmd& data_received );
-ros::Subscriber<puma_brake_msgs::BrakeCmd> brake_sub("puma/arduino/brake/command", brakeCallback);
+ros::Subscriber<puma_brake_msgs::BrakeCmd> brake_sub("puma/brake/command", brakeCallback);
 
 void dirCallback( const puma_direction_msgs::DirectionCmd& data_received);
-ros::Subscriber<puma_direction_msgs::DirectionCmd> dir_sub("puma/arduino/direction/command", dirCallback);
+ros::Subscriber<puma_direction_msgs::DirectionCmd> dir_sub("puma/direction/command", dirCallback);
 
 void accelCallback( const std_msgs::Int16& data_received );
-ros::Subscriber<std_msgs::Int16> accel_sub("puma/arduino/accelerator/commmand", accelCallback);
+ros::Subscriber<std_msgs::Int16> accel_sub("puma/accelerator/commmand", accelCallback);
 
 puma_arduino_msgs::StatusArduino status_msg;
 ros::Publisher arduinoStatusPub("puma/arduino/status", &status_msg);
 
 puma_arduino_msgs::StatusTacometer tacometer_pub;
-ros::Publisher tacometerStatusPub("puma/arduino/tacometer/status", &tacometer_pub);
+ros::Publisher tacometerStatusPub("puma/sensors/tacometer", &tacometer_pub);
 
 void setup() {
   // Config ros
@@ -99,9 +99,9 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(tacometroPin), countPulse, RISING); 
 
   // Write topics to msg status
-  status_msg.topic_brake = "brake_controller/data_control";
-  status_msg.topic_dir = "control_dir/dir_data";
-  status_msg.topic_accel = "accel_puma/value";
+  status_msg.topic_brake = "puma/brake/command";
+  status_msg.topic_dir = "puma/direction/command";
+  status_msg.topic_accel = "puma/accelerator/command";
 }
 
 void loop() {

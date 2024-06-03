@@ -1,9 +1,0 @@
-<launch>
-    <include file="$(find interface_joy)/launch/interface_joy.launch" />
-    <node name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen" respawn="true">
-        <param name="port" value="/dev/ttyUSB0"/>
-        <param name="baud" value="57600" />
-    </node>
-    <include file="$(find brake_electric_control)/launch/brake_electric_control.launch" />
-    <include file="$(find reverse_control)/launch/reverse_control.launch"/>
-</launch>

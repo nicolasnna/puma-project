@@ -1,0 +1,9 @@
+<launch>
+
+    <node 
+        name="puma_parking" 
+        pkg="puma_parking" 
+        type="puma_parking_node.py" 
+        output="screen"/>
+
+</launch>

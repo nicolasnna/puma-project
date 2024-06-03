@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from control_dir_msgs.msg import dir_data
+from puma_direction_msgs.msg import DirectionCmd
 from std_msgs.msg import Float64
 import time
 import numpy as np
@@ -12,7 +12,7 @@ class DirectionController():
     self._pub_dir_right = rospy.Publisher('/dir_right_controller/command', Float64, queue_size=5)
     
     # Subscriber
-    rospy.Subscriber('control_dir/dir_data', dir_data, self.__dir_callback)
+    rospy.Subscriber('puma/direction/command', DirectionCmd, self.__dir_callback)
     
     # Variable
     # Dir is config in the same orientation

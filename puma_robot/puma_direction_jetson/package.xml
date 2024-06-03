@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>puma_gazebo</name>
-  <version>0.0.0</version>
-  <description>The puma_gazebo package</description>
+  <name>puma_direction_jetson</name>
+  <version>0.1.0</version>
+  <description>The puma_direction_jetson package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/puma_controller</url> -->
+  <!-- <url type="website">http://wiki.ros.org/control_dir_puma</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -49,24 +49,10 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  
-  <build_depend>controller_manager</build_depend>
-  <build_depend>joint_state_controller</build_depend>
-  <build_depend>robot_state_publisher</build_depend>
   <build_depend>rospy</build_depend>
-  <build_depend>std_msgs</build_depend>
   <build_depend>puma_direction_msgs</build_depend>
-  <build_depend>puma_arduino_msgs</build_depend>
-  <build_depend>puma_brake_msgs</build_depend>
-
-  <build_export_depend>controller_manager</build_export_depend>
-  <build_export_depend>joint_state_controller</build_export_depend>
-  <build_export_depend>robot_state_publisher</build_export_depend>
+  <build_depend>std_msgs</build_depend>
   <build_export_depend>rospy</build_export_depend>
-
-  <exec_depend>controller_manager</exec_depend>
-  <exec_depend>joint_state_controller</exec_depend>
-  <exec_depend>robot_state_publisher</exec_depend>
   <exec_depend>rospy</exec_depend>
 
 

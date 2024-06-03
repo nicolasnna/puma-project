@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>puma_robot</name>
+  <version>0.1.0</version>
+  <description>Metapackage for Puma Robot</description>
+
+  <maintainer email="puma@todo.com">Your Name</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>puma_reverse</build_depend>
+  <build_depend>puma_bringup</build_depend>
+  <build_depend>puma_joy</build_depend>
+  <build_depend>puma_parking</build_depend>
+
+  <exec_depend>puma_reverse</exec_depend>
+  <exec_depend>puma_bringup</exec_depend>
+  <exec_depend>puma_joy</exec_depend>
+  <exec_depend>puma_parking</exec_depend>
+</package>
