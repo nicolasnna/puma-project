@@ -2,7 +2,7 @@
 #include <puma_brake_msgs/BrakeCmd.h>
 #include <puma_direction_msgs/DirectionCmd.h>
 #include <puma_arduino_msgs/StatusArduino.h>
-#include <puma_arduino_msgs/StatusTacometer.h>
+#include <puma_arduino_msgs/StatusTachometer.h>
 #include <std_msgs/Int16.h>
 
 // Variables freno
@@ -43,7 +43,7 @@ bool enableAccelerator = false;
 
 // Variable tacometro
 const int tacometroPin = 2;
-int pulsoContador = 0;
+volatile unsigned long pulsoContador = 0;
 unsigned long last_time = 0;
 int limit_time = 500;
 
@@ -57,13 +57,13 @@ void dirCallback( const puma_direction_msgs::DirectionCmd& data_received);
 ros::Subscriber<puma_direction_msgs::DirectionCmd> dir_sub("puma/direction/command", dirCallback);
 
 void accelCallback( const std_msgs::Int16& data_received );
-ros::Subscriber<std_msgs::Int16> accel_sub("puma/accelerator/commmand", accelCallback);
+ros::Subscriber<std_msgs::Int16> accel_sub("puma/accelerator/command", accelCallback);
 
 puma_arduino_msgs::StatusArduino status_msg;
 ros::Publisher arduinoStatusPub("puma/arduino/status", &status_msg);
 
-puma_arduino_msgs::StatusTacometer tacometer_pub;
-ros::Publisher tacometerStatusPub("puma/sensors/tacometer", &tacometer_pub);
+puma_arduino_msgs::StatusTachometer tacometer_pub;
+ros::Publisher tacometerStatusPub("puma/sensors/tachometer", &tacometer_pub);
 
 void setup() {
   // Config ros
@@ -109,22 +109,22 @@ void loop() {
   accelController();
   dirController();
   brakeController();
+  
   // Publicar pulsos tacometro
   unsigned long current_time = millis();
   if (current_time - last_time >= limit_time) {
     noInterrupts();
     tacometer_pub.pulsos = pulsoContador;
-    tacometer_pub.time_millis = limit_time;
-    tacometerStatusPub.publish(&tacometer_pub);
     pulsoContador = 0;
     interrupts();
+    tacometer_pub.time_millis = limit_time;
+    tacometerStatusPub.publish(&tacometer_pub);
 
     last_time = current_time;
   }
   // Publish msg
   publishMsgStatus();
   nh.spinOnce();
-  delay(1);
 }
 
 void countPulse() {

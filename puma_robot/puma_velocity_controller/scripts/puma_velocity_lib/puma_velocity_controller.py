@@ -3,9 +3,9 @@ import rospy
 import math
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int16, Bool
-from control_dir_msgs.msg import dir_data
-from init_puma.msg import status_arduino
-from brake_controller_msgs.msg import brake_control
+from puma_direction_msgs.msg import DirectionCmd
+from puma_arduino_msgs.msg import StatusArduino
+from puma_brake_msgs.msg import BrakeCmd
 
 class PumaVelocityController():
   def __init__(self):
@@ -18,17 +18,17 @@ class PumaVelocityController():
     self.wheel_base = rospy.get_param('wheel_base', 1.15)
     
     rospy.Subscriber(self.cmd_vel_topic, Twist, self._cmd_vel_callback) 
-    rospy.Subscriber(self.status_topic, status_arduino, self._status_arduino_callback)
+    rospy.Subscriber(self.status_topic, StatusArduino, self._status_arduino_callback)
     
     # Publishers
     self.rear_wheels_pub = rospy.Publisher('/accel_puma/value', Int16, queue_size=5)
-    self.steering_front_pub = rospy.Publisher('/control_dir/dir_data', dir_data, queue_size=5)
-    self.brake_wheels_pub = rospy.Publisher('brake_controller/data_control', brake_control, queue_size=4)
+    self.steering_front_pub = rospy.Publisher('/control_dir/dir_data', DirectionCmd, queue_size=5)
+    self.brake_wheels_pub = rospy.Publisher('brake_controller/data_control', BrakeCmd, queue_size=4)
     self.reverse_pub = rospy.Publisher('control_reverse/activate', Bool, queue_size=5)
     
     self.rear_wheels_msg = Int16()
-    self.steering_msg = dir_data()
-    self.brake_wheels_msg = brake_control()
+    self.steering_msg = DirectionCmd()
+    self.brake_wheels_msg = BrakeCmd()
     self.reverse_msg = Bool()
     # Variable
     self.CONST_VEL_TRANSFORM = rospy.get_param('const_vel_transform',100.0 / 10.0) # Transform m/s to analog read to pwm
