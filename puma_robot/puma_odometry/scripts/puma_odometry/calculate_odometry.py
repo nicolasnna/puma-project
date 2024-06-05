@@ -7,6 +7,7 @@ from nav_msgs.msg import Odometry
 from puma_arduino_msgs.msg import StatusArduino
 from geometry_msgs.msg import TransformStamped
 import math
+from std_msgs.msg import Bool
 
 class CalculateOdometry():
   '''
@@ -15,7 +16,7 @@ class CalculateOdometry():
   def __init__(self):
     # Get angle steering
     rospy.Subscriber('/puma/arduino/status', StatusArduino, self._arduino_status_callback)
-    
+    rospy.Subscriber('puma/reverse/command', Bool, self._reverse_callback)
     # Get params
     ns = 'odometry/'
     self.wheels_base = rospy.get_param(ns+'wheels_base', 1.1) # in meters
@@ -28,12 +29,16 @@ class CalculateOdometry():
     self.theta = 0.0
     
     self.angle_direction = 0
-    
+    self.is_reverse = False
     self.last_time = rospy.Time.now()
+    self.vx = 0.0
     
     self.velocity_converter = PulseToVelocityConverter()
     self.odom_pub = rospy.Publisher("puma/odom", Odometry, queue_size=10)
     self.odom_broadcaster = tf2_ros.TransformBroadcaster()
+    
+  def _reverse_callback(self, data_received):
+    self.is_reverse = data_received.data
     
   def _arduino_status_callback(self, data_received):
     '''
@@ -52,6 +57,8 @@ class CalculateOdometry():
     current_time = rospy.Time.now()
     dt = (current_time - self.last_time).to_sec()
     
+    if self.is_reverse:
+      self.vx = -self.vx
     self.vx = self.velocity_converter.get_lineal_velocity()
     # Angular velocity based in angle direction
     # This is based in Kinemmatic bicycle model
@@ -68,7 +75,7 @@ class CalculateOdometry():
     self.x += delta_x
     self.y += delta_y
     self.theta += delta_theta
-    
+ 
     self.publish_transform(current_time)
     self.publish_odometry(current_time)
     
@@ -88,7 +95,11 @@ class CalculateOdometry():
     t.transform.translation.y = self.y
     t.transform.translation.z = 0.0
     
-    t.transform.rotation = tf.transformations.quaternion_from_euler(0, 0, self.theta)
+    q = tf.transformations.quaternion_from_euler(0, 0, self.theta)
+    t.transform.rotation.x = q[0]
+    t.transform.rotation.y = q[1]
+    t.transform.rotation.z = q[2]
+    t.transform.rotation.w = q[3]
     
     self.odom_broadcaster.sendTransform(t)
     

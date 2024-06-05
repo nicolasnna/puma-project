@@ -11,7 +11,7 @@
       <alwayson>true</alwayson>
       <updaterate>1.0</updaterate>
       <bodyName>gps_link</bodyName>
-      <frameId>world</frameId>
+      <frameId>map</frameId>
       <topicName>gps</topicName>
       <referenceLatitude>-33.42196309675523</referenceLatitude>
       <referenceLongitude>-70.5818018059048</referenceLongitude>

@@ -3,6 +3,7 @@ import rospy
 from puma_arduino_msgs.msg import StatusTachometer
 from puma_odometry.kalman_filter import KalmanFilter
 import math
+import collections
 
 class PulseToVelocityConverter():
   '''
@@ -28,8 +29,11 @@ class PulseToVelocityConverter():
     self.transmission_ratio = round(_calibrate_max_rpm/ _calibrate_rpm_wheel_max, 2)
     self.rpm_wheels = 0
     self.lineal_velocity = 0
+    
+    # Buffer for moving average filter
+    self.velocity_buffer = collections.deque(maxlen=20)
 
-  def _tachometer_callback(self, data_received):
+  def _tachometer_callback(self, data_received): 
     '''
     Callback from tachometer
     '''
@@ -38,8 +42,11 @@ class PulseToVelocityConverter():
     
     pulses_filtered = self.filter.filtrar(pulses)
     self.rpm_wheels = (pulses_filtered * 60 / time) / self.transmission_ratio
-    self.lineal_velocity = round(self.rpm_wheels * self._wheels_diameter * math.pi / 60, 2)
+    current_velocity = round(self.rpm_wheels * self._wheels_diameter * math.pi / 60, 2)
     
+    self.velocity_buffer.append(current_velocity)
+    self.lineal_velocity = round(sum(self.velocity_buffer) / len(self.velocity_buffer), 2)
+
   def get_lineal_velocity(self):
     '''
     Return lineal velocity
