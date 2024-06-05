@@ -13,7 +13,9 @@
   <build_depend>puma_bringup</build_depend>
   <build_depend>puma_joy</build_depend>
   <build_depend>puma_parking</build_depend>
+  <build_depend>puma_odometry</build_depend>
 
+  <exec_depend>puma_odometry</exec_depend>
   <exec_depend>puma_reverse</exec_depend>
   <exec_depend>puma_bringup</exec_depend>
   <exec_depend>puma_joy</exec_depend>

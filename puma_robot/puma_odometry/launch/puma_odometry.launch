@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <rosparam command="load" file="$(find puma_odometry)/config/odometry_params.yaml"/>
+  
+  <node name="puma_odometry_node" pkg="puma_odometry" type="puma_odometry_node.py" output="screen"/>
+  
+</launch>

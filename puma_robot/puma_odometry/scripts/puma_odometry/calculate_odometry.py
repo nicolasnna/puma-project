@@ -4,28 +4,46 @@ from puma_odometry.pulse_velocity_converter import PulseToVelocityConverter
 import tf2_ros
 import tf
 from nav_msgs.msg import Odometry
+from puma_arduino_msgs.msg import StatusArduino
 from geometry_msgs.msg import TransformStamped
+import math
 
 class CalculateOdometry():
   '''
   Calculate odometry and frame odom
   '''
   def __init__(self):
-    # Get params
-    self.wheels_base = rospy.get_param('wheels_base', 1.1) # in meters
-    self.frame_id = rospy.get_param('frame_id', 'odom')
-    self.child_frame_id = rospy.get_param('child_frame_id', 'base_link')
+    # Get angle steering
+    rospy.Subscriber('/puma/arduino/status', StatusArduino, self._arduino_status_callback)
     
+    # Get params
+    ns = 'odometry/'
+    self.wheels_base = rospy.get_param(ns+'wheels_base', 1.1) # in meters
+    self.frame_id = rospy.get_param(ns+'frame_id', 'odom')
+    self.child_frame_id = rospy.get_param(ns+'child_frame_id', 'base_link')
+    self.direction_zero = rospy.get_param(ns+'direction_zero', 392)
     # Variables
     self.x = 0.0
     self.y = 0.0
     self.theta = 0.0
+    
+    self.angle_direction = 0
     
     self.last_time = rospy.Time.now()
     
     self.velocity_converter = PulseToVelocityConverter()
     self.odom_pub = rospy.Publisher("puma/odom", Odometry, queue_size=10)
     self.odom_broadcaster = tf2_ros.TransformBroadcaster()
+    
+  def _arduino_status_callback(self, data_received):
+    '''
+    Callback for arduino status. Calculate angle direction in rads
+    '''
+    analog_direction = data_received.current_position_dir
+    diff_direction = self.direction_zero - analog_direction
+    # if Diff + -> Right
+    # if Diff - -> left
+    self.angle_direction = diff_direction/1024 * 2 * math.pi
     
   def calculate_odometry(self):
     '''
@@ -35,8 +53,21 @@ class CalculateOdometry():
     dt = (current_time - self.last_time).to_sec()
     
     self.vx = self.velocity_converter.get_lineal_velocity()
-    delta_x = self.vx * dt
+    # Angular velocity based in angle direction
+    # This is based in Kinemmatic bicycle model
+    if self.angle_direction != 0:
+      turning_radius = self.wheels_base/ math.tan(self.angle_direction)
+      self.angular_velocity = self.vx / turning_radius
+    else: 
+      self.angular_velocity = 0
+    
+    # Update position and rotation
+    delta_x = self.vx * dt * math.cos(self.theta)
+    delta_y = self.vx * dt * math.sin(self.theta)
+    delta_theta = self.angular_velocity * dt
     self.x += delta_x
+    self.y += delta_y
+    self.theta += delta_theta
     
     self.publish_transform(current_time)
     self.publish_odometry(current_time)
@@ -83,6 +114,6 @@ class CalculateOdometry():
     odom.child_frame_id = self.child_frame_id
     odom.twist.twist.linear.x = self.vx
     odom.twist.twist.linear.y = 0.0
-    odom.twist.twist.angular.z = 0.0
+    odom.twist.twist.angular.z = self.angular_velocity
     
     self.odom_pub.publish(odom)
