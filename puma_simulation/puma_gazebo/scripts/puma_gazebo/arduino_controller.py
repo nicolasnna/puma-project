@@ -2,7 +2,7 @@
 import rospy
 from puma_arduino_msgs.msg import StatusArduino
 
-class StatusController():
+class ArduinoController():
   def __init__(self):
     
     self._status_pub = rospy.Publisher('puma/arduino/status', StatusArduino, queue_size=5)

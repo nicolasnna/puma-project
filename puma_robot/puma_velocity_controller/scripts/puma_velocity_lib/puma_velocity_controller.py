@@ -14,17 +14,17 @@ class PumaVelocityController():
     self.cmd_vel_topic = rospy.get_param('cmd_vel_topic', 'cmd_vel')
     self.angle_limit = rospy.get_param('angle_limit', 30.0) # Grados
     self.max_steering_angle = self.angle_limit/180 * math.pi
-    self.status_topic = rospy.get_param('status_arduino', 'status_arduino')
+    self.status_topic = rospy.get_param('status_arduino', 'puma/arduino/status')
     self.wheel_base = rospy.get_param('wheel_base', 1.15)
     
     rospy.Subscriber(self.cmd_vel_topic, Twist, self._cmd_vel_callback) 
     rospy.Subscriber(self.status_topic, StatusArduino, self._status_arduino_callback)
     
     # Publishers
-    self.rear_wheels_pub = rospy.Publisher('/accel_puma/value', Int16, queue_size=5)
-    self.steering_front_pub = rospy.Publisher('/control_dir/dir_data', DirectionCmd, queue_size=5)
-    self.brake_wheels_pub = rospy.Publisher('brake_controller/data_control', BrakeCmd, queue_size=4)
-    self.reverse_pub = rospy.Publisher('control_reverse/activate', Bool, queue_size=5)
+    self.rear_wheels_pub = rospy.Publisher('puma/accelerator/command', Int16, queue_size=5)
+    self.steering_front_pub = rospy.Publisher('puma/direction/command', DirectionCmd, queue_size=5)
+    self.brake_wheels_pub = rospy.Publisher('puma/brake/command', BrakeCmd, queue_size=4)
+    self.reverse_pub = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
     
     self.rear_wheels_msg = Int16()
     self.steering_msg = DirectionCmd()

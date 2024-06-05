@@ -26,10 +26,13 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" args=" wheel_right_controller wheel_left_controller dir_right_controller dir_left_controller"/>
 
+  <!-- load node simulation -->
+  <node name="puma_gazebo_fake" pkg="puma_gazebo" type="gazebo_controller_node.py" output="screen"/>
+
   <node
     name="rviz"
     pkg="rviz"
     type="rviz"
-    args="-d $(find puma_controller)/rviz/model.rviz" />
+    args="-d $(find puma_gazebo)/rviz/model.rviz" />
 
 </launch>
