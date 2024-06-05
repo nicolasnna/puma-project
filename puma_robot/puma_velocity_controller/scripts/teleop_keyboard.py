@@ -38,9 +38,9 @@ if __name__ == '__main__':
         elif key.lower() == 'x':
           cmd_vel_msg.linear.x -= 0.2
         elif key.lower() == 'a':
-          cmd_vel_msg.angular.z -= 0.2
-        elif key.lower() == 'd':
           cmd_vel_msg.angular.z += 0.2
+        elif key.lower() == 'd':
+          cmd_vel_msg.angular.z -= 0.2
         elif key.lower() == 's':
           cmd_vel_msg.linear.x = 0
           cmd_vel_msg.angular.z = 0 

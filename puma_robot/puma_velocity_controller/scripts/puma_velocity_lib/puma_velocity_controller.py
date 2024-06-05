@@ -62,7 +62,7 @@ class PumaVelocityController():
     Processing data received from cmd_vel
     '''
     linear_velocity = data_received.linear.x
-    angular_velocity = data_received.angular.z
+    angular_velocity = -data_received.angular.z
     if linear_velocity > 0:
       self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
       self.brake_wheels_msg.position = 0
