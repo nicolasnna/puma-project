@@ -74,6 +74,7 @@ class PumaVelocityController():
       if self.reverse_msg.data:
         rospy.loginfo("Quitando modo reversa!!")
       self.reverse_msg.data = False
+      self.input_wheels = int(0)
     else:
       self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
       self.brake_wheels_msg.position = 0
@@ -89,7 +90,7 @@ class PumaVelocityController():
     if not self.change_steering:
       self.rear_wheels_msg.data = int(self.input_wheels)
     else: 
-      self.rear_wheels_msg.data = int(5)
+      self.rear_wheels_msg.data = int(35)
     self.rear_wheels_pub.publish(self.rear_wheels_msg)
   
   def control_steering(self):
@@ -139,10 +140,19 @@ class PumaVelocityController():
       steering_angle = -self.max_steering_angle
   
     # Calculate inputs in wheels
-    input_wheels = abs(linear_velocity * self.CONST_VEL_TRANSFORM) 
+    if linear_velocity == 0:
+      input_wheels = 43
+    else:
+      input_wheels = self._linear_converter_pwm(abs(linear_velocity),28,100,0,9.8) 
     
     return steering_angle, input_wheels
   
+  def _linear_converter_pwm(self, input, pwm_min, pwm_max, speed_min, speed_max):
+    '''
+    Convert velocity to input pwm aprox
+    '''
+    conversion_result = (pwm_max- pwm_min)/(speed_max-speed_min) * (input - speed_min) + pwm_min
+    return conversion_result
   def control_puma(self):
     '''
     Publish control periodically

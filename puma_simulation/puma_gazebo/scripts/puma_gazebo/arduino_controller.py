@@ -20,7 +20,7 @@ class ArduinoController():
     self.status_msg.is_limit_left_dir = False
     
     self.status_msg.topic_accel = "puma/accelerator/command"
-    self.status_msg.pwm_accel = 0
+    self.status_msg.pwm_accel = 43
     self.status_msg.voltage_accel = 0.0
     
   def set_status_accel(self, pwm_accel, voltage):

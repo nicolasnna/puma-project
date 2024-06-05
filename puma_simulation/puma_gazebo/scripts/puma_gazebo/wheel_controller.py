@@ -23,7 +23,7 @@ class WheelController():
     self._activate_brake_electric = False
     self._activate_brake = False
     
-    self.accel_value = 0.0
+    self.accel_value = 0
     
   def __brake_callback(self, data_received):
     '''
@@ -51,17 +51,29 @@ class WheelController():
     Value received from interface joy about acceleration
     '''
     self.accel_value = data_received.data
+    if self.accel_value <29:
+      velocity = 0
+    else:
+      velocity = self._linear_converter_velocity(self.accel_value,28,100,0,9.8)
+    
     if not self._activate_brake_electric and not self._activate_brake:
       if self._activate_reverse:
-        self.wheel_value[0].data = data_received.data*1.0/10.0
-        self.wheel_value[1].data = -data_received.data*1.0/10.0
+        self.wheel_value[0].data = velocity
+        self.wheel_value[1].data = -velocity
       else:
-        self.wheel_value[0].data = -data_received.data*1.0/10.0
-        self.wheel_value[1].data = data_received.data*1.0/10.0
+        self.wheel_value[0].data = -velocity
+        self.wheel_value[1].data = velocity
     
     else:
       self.wheel_value[0].data = 0
       self.wheel_value[1].data = 0
+  
+  def _linear_converter_velocity(self, input, pwm_min, pwm_max, speed_min, speed_max):
+    '''
+    Convert input pwm to velocity aprox
+    '''
+    conversion_result = (speed_max- speed_min)/(pwm_max-pwm_min) * (input - pwm_min) + speed_min
+    return conversion_result
   
   def publish_velocity(self):
     '''

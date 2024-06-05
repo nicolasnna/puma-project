@@ -18,8 +18,8 @@ if __name__ == "__main__":
       
     while not rospy.is_shutdown():
       # Set evalue status Accel
-      pwm_value = wheel_controller.accel_value
-      voltage = 5.0/256 * (pwm_value + 43)
+      pwm_value = wheel_controller.accel_value+43
+      voltage = 5.0/256 * (pwm_value)
       arduino_controlller.set_status_accel(pwm_value,voltage)
       # Set evaluate status dir
       dir_position = direction_controller.current_position
