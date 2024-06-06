@@ -4,6 +4,7 @@ from puma_gazebo.wheel_controller import WheelController
 from puma_gazebo.direction_controller import DirectionController
 from puma_gazebo.arduino_controller import ArduinoController
 from puma_gazebo.tachometer_controller import TachometerController
+import math
 
 if __name__ == "__main__":
   try:
@@ -30,6 +31,17 @@ if __name__ == "__main__":
       direction_controller.publish_position()
       arduino_controlller.send_msg()
       tachometer_controller.publish_tachometer()
+      
+      # --- Debug angular velocity --- #
+      # vel_linear = wheel_controller.current_velocity
+      # angle = direction_controller.current_angle
+      # if angle != 0:
+      #   radius = 1.15/ math.tan(angle)
+      #   vel_angular = vel_linear / radius
+      # else: 
+      #   vel_angular = 0.0
+      # rospy.loginfo("Velocidad angular actual: %s", vel_angular)
+      
       rate.sleep()
       
   except Exception as e:

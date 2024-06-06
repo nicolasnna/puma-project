@@ -1,5 +1,5 @@
 angle_limit: 30.0
-zero_position_sensor: 392
+zero_position_sensor: 395
 wheel_base: 1.15
 # Constant for convert m/s to analog
 const_vel_transform: 10.0 

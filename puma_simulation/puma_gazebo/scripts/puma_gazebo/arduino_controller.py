@@ -14,7 +14,7 @@ class ArduinoController():
     self.status_msg.is_move_brake = False
     
     self.status_msg.topic_dir = 'puma/direction/command'
-    self.status_msg.current_position_dir = 394
+    self.status_msg.current_position_dir = 395
     self.status_msg.enable_dir = False
     self.status_msg.is_limit_right_dir = False
     self.status_msg.is_limit_left_dir = False

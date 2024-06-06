@@ -4,7 +4,7 @@ odometry:
   wheels_base: 1.1
   frame_id: odom
   child_frame_id: base_link
-  direction_zero: 392
+  direction_zero: 395
 
 # Convert pulse to velocity
 tachometer:

@@ -24,6 +24,7 @@ class WheelController():
     self._activate_brake = False
     
     self.accel_value = 0
+    self.current_velocity = 0
     
   def __brake_callback(self, data_received):
     '''
@@ -55,6 +56,8 @@ class WheelController():
       velocity = 0
     else:
       velocity = self._linear_converter_velocity(self.accel_value,28,100,0,9.8)
+      
+    self.current_velocity = velocity
     
     if not self._activate_brake_electric and not self._activate_brake:
       if self._activate_reverse:

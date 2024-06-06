@@ -34,7 +34,7 @@ class PumaVelocityController():
     self.CONST_VEL_TRANSFORM = rospy.get_param('const_vel_transform',100.0 / 10.0) # Transform m/s to analog read to pwm
     self.position_steering = float("nan")
     self.CONST_RAD_VALUE = 2*math.pi/1024 
-    self.ZERO_POSITION_VALUE = rospy.get_param('zero_position_sensor',392)
+    self.ZERO_POSITION_VALUE = rospy.get_param('zero_position_sensor',395)
     self.DIF_LIMIT_VALUE = int(self.angle_limit/360 * 1024)
     self.RIGHT_LIMIT_VALUE = self.ZERO_POSITION_VALUE - self.DIF_LIMIT_VALUE
     self.LEFT_LIMIT_VALUE = self.ZERO_POSITION_VALUE + self.DIF_LIMIT_VALUE
@@ -63,8 +63,8 @@ class PumaVelocityController():
     '''
     linear_velocity = data_received.linear.x
     angular_velocity = -data_received.angular.z
+    self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
     if linear_velocity > 0:
-      self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
       self.brake_wheels_msg.position = 0
       if self.reverse_msg.data:
         rospy.loginfo("Quitando modo reversa!!")
@@ -76,7 +76,6 @@ class PumaVelocityController():
       self.reverse_msg.data = False
       self.input_wheels = int(0)
     else:
-      self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
       self.brake_wheels_msg.position = 0
       if not self.reverse_msg.data:
         rospy.loginfo("Cambiando a modo reversa!!")

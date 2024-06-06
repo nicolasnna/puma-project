@@ -22,7 +22,7 @@ class CalculateOdometry():
     self.wheels_base = rospy.get_param(ns+'wheels_base', 1.1) # in meters
     self.frame_id = rospy.get_param(ns+'frame_id', 'odom')
     self.child_frame_id = rospy.get_param(ns+'child_frame_id', 'base_link')
-    self.direction_zero = rospy.get_param(ns+'direction_zero', 392)
+    self.direction_zero = rospy.get_param(ns+'direction_zero', 395)
     # Variables
     self.x = 0.0
     self.y = 0.0
