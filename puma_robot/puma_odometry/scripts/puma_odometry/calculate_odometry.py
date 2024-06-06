@@ -57,9 +57,9 @@ class CalculateOdometry():
     current_time = rospy.Time.now()
     dt = (current_time - self.last_time).to_sec()
     
+    self.vx = self.velocity_converter.get_lineal_velocity()
     if self.is_reverse:
       self.vx = -self.vx
-    self.vx = self.velocity_converter.get_lineal_velocity()
     # Angular velocity based in angle direction
     # This is based in Kinemmatic bicycle model
     if self.angle_direction != 0:

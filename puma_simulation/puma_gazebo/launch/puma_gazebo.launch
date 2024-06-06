@@ -1,5 +1,7 @@
 <launch>
 
+  <arg name="node_start_delay" default="1.0" />  
+
   <!-- Launch Gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
   </include>
@@ -7,6 +9,7 @@
   <!-- Spawn the robot -->
   <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model)/urdf/puma_model.urdf.xacro'" />
 
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model puma_model" />
   <!-- convert joint states to TF transforms for rviz, etc -->
   <node
     name="robot_state_publisher"
@@ -17,8 +20,6 @@
     pkg="joint_state_publisher"
     type="joint_state_publisher" />
 
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model puma_model" />
-
   <!-- Load joint controller configurations from YAML file to parameter server -->
   <rosparam file="$(find puma_gazebo)/config/gazebo_params.yaml" command="load"/>
 
@@ -27,7 +28,7 @@
     output="screen" args=" wheel_right_controller wheel_left_controller dir_right_controller dir_left_controller"/>
 
   <!-- load node simulation -->
-  <node name="puma_gazebo_fake" pkg="puma_gazebo" type="gazebo_controller_node.py" output="screen"/>
+  <node name="puma_gazebo_fake" pkg="puma_gazebo" type="gazebo_controller_node.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
 
   <node
     name="rviz"

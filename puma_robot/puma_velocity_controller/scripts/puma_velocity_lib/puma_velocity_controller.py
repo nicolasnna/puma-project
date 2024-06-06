@@ -89,7 +89,7 @@ class PumaVelocityController():
     if not self.change_steering:
       self.rear_wheels_msg.data = int(self.input_wheels)
     else: 
-      self.rear_wheels_msg.data = int(35)
+      self.rear_wheels_msg.data = int(30)
     self.rear_wheels_pub.publish(self.rear_wheels_msg)
   
   def control_steering(self):

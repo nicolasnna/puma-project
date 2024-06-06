@@ -31,7 +31,7 @@ class PulseToVelocityConverter():
     self.lineal_velocity = 0
     
     # Buffer for moving average filter
-    self.velocity_buffer = collections.deque(maxlen=20)
+    self.velocity_buffer = collections.deque(maxlen=3)
 
   def _tachometer_callback(self, data_received): 
     '''
@@ -46,7 +46,7 @@ class PulseToVelocityConverter():
     
     self.velocity_buffer.append(current_velocity)
     self.lineal_velocity = round(sum(self.velocity_buffer) / len(self.velocity_buffer), 2)
-    rospy.loginfo("Current velocity: %s, prom_vel: %s", current_velocity,self.lineal_velocity)
+    #rospy.loginfo("Current velocity: %s, prom_vel: %s", current_velocity,self.lineal_velocity)
   def get_lineal_velocity(self):
     '''
     Return lineal velocity

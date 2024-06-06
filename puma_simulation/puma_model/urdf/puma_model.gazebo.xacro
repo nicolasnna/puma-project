@@ -12,11 +12,11 @@
       <updaterate>1.0</updaterate>
       <bodyName>gps_link</bodyName>
       <frameId>map</frameId>
-      <topicName>gps</topicName>
+      <topicName>gps/fix</topicName>
       <referenceLatitude>-33.42196309675523</referenceLatitude>
       <referenceLongitude>-70.5818018059048</referenceLongitude>
       <referenceAltitude>570</referenceAltitude>
-      <velocitytopicname>/fix_velocity</velocitytopicname>
+      <velocitytopicname>gps/fix_velocity</velocitytopicname>
       <drift>5.0 5.0 5.0</drift>
       <gaussiannoise>0.1 0.1 0.1</gaussiannoise>
       <velocitydrift>0 0 0</velocitydrift>

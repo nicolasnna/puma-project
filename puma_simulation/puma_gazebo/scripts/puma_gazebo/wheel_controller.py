@@ -52,10 +52,10 @@ class WheelController():
     Value received from interface joy about acceleration
     '''
     self.accel_value = data_received.data
-    if self.accel_value <29:
+    if self.accel_value <=29:
       velocity = 0
     else:
-      velocity = self._linear_converter_velocity(self.accel_value,28,100,0,9.8)
+      velocity = self._linear_converter_velocity(self.accel_value,30,100,0.71,9.8)*4 # Relation joint and velocity
       
     self.current_velocity = velocity
     

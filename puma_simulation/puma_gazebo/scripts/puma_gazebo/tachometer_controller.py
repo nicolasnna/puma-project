@@ -2,6 +2,7 @@
 import rospy
 from puma_arduino_msgs.msg import StatusTachometer
 from std_msgs.msg import Float64
+from gazebo_msgs.msg import ModelStates
 import math 
 
 class TachometerController():
@@ -11,7 +12,8 @@ class TachometerController():
   def __init__(self):
     # Rospy
     self.tachometer_pub = rospy.Publisher("puma/sensors/tachometer", StatusTachometer, queue_size=10)
-    rospy.Subscriber("/wheel_right_controller/command", Float64, self._velocity_callback)
+    #rospy.Subscriber("/wheel_right_controller/command", Float64, self._velocity_callback)
+    rospy.Subscriber("/gazebo/model_states", ModelStates, self._gazebo_states_callback)
     
     self.limit_time = rospy.get_param('time_tachometer', 1000)
     self.wheels_diameter = rospy.get_param('wheels_diameter', 0.53)
@@ -27,6 +29,30 @@ class TachometerController():
     self.transmission_ratio = round(calibrate_max_rpm/ calibrate_rpm_wheel_max, 2)
     
     self.last_time = rospy.Time.now()
+    
+    # Publish debug
+    self.vel_measurement_pub = rospy.Publisher('puma/debug/velocity_model', Float64, queue_size=5)
+    
+  def _gazebo_states_callback(self, data_received):
+    '''
+    Gazebo model states callback
+    '''
+    names = data_received.name
+    index = names.index('puma_model')
+    
+    vel_x = data_received.twist[index].linear.x
+    vel_y = data_received.twist[index].linear.y
+    vel_z = data_received.twist[index].linear.z
+    
+    vel_magnitude = round(math.sqrt(vel_x**2 + vel_y**2 + vel_z**2),3)
+    vel_measurement_msg = Float64()
+    vel_measurement_msg.data = vel_magnitude
+    self.vel_measurement_pub.publish(vel_measurement_msg)
+    
+    rpm_wheels = vel_magnitude / (self.wheels_diameter * math.pi) * 60
+    time = self.limit_time / 1000
+
+    self.pulses = int(rpm_wheels * self.transmission_ratio * time / 60)
     
   def _velocity_callback(self, data_received):
     '''
