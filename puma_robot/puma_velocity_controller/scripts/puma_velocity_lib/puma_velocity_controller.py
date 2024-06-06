@@ -140,9 +140,9 @@ class PumaVelocityController():
   
     # Calculate inputs in wheels
     if linear_velocity == 0:
-      input_wheels = 43
+      input_wheels = 0
     else:
-      input_wheels = self._linear_converter_pwm(abs(linear_velocity),28,100,0,9.8) 
+      input_wheels = self._linear_converter_pwm(abs(linear_velocity),30,100,0.71,9.8) 
     
     return steering_angle, input_wheels
   
