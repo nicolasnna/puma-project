@@ -1,3 +1,4 @@
+<!-- source https://github.com/leonhartyao/gazebo_models_worlds_collection/ -->
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="outdoor">
@@ -16,7 +17,10 @@
         </clouds>
       </sky>
     </scene>
-
+    <!-- A ground plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
     <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
          topic to a ROS topic (or vise versa). -->
     <!-- <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>-->

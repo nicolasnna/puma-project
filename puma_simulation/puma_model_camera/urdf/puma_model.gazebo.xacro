@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="puma_model_sim">
+ 
+  <gazebo>
+    <!-- Plugin ros gazebo controller -->
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/</robotNamespace>
+    </plugin>
+    <!-- Plugin Gps simulate (requires hector gazebo plugins) -->
+    <plugin name="gps_controller" filename="libhector_gazebo_ros_gps.so">
+      <alwayson>true</alwayson>
+      <updaterate>1.0</updaterate>
+      <bodyName>gps_link</bodyName>
+      <frameId>map</frameId>
+      <topicName>gps/fix</topicName>
+      <referenceLatitude>-33.42196309675523</referenceLatitude>
+      <referenceLongitude>-70.5818018059048</referenceLongitude>
+      <referenceAltitude>570</referenceAltitude>
+      <velocitytopicname>gps/fix_velocity</velocitytopicname>
+      <drift>5.0 5.0 5.0</drift>
+      <gaussiannoise>0.1 0.1 0.1</gaussiannoise>
+      <velocitydrift>0 0 0</velocitydrift>
+      <velocitygaussiannoise>0.1 0.1 0.1</velocitygaussiannoise>
+    </plugin>
+    <!-- Plugin IMU 1 -->
+    <plugin name="imu1_controller" filename="libhector_gazebo_ros_imu.so">
+      <updateRate>30</updateRate>
+      <bodyName>imu1_link</bodyName>
+      <topicName>/imu1</topicName>
+      <frameId>imu1_link</frameId>
+      <gaussianNoise>0 0 0</gaussianNoise>
+      <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+    <!-- Plugin IMU 2  -->
+    <plugin name="imu2_controller" filename="libhector_gazebo_ros_imu.so">
+      <updateRate>30</updateRate>
+      <bodyName>imu2_link</bodyName>
+      <topicName>/imu2</topicName>
+      <frameId>imu2_link</frameId>
+      <gaussianNoise>0 0 0</gaussianNoise>
+      <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+  </gazebo>
+
+
+
+  <!-- Transmisión para la rueda trasera derecha -->
+  <transmission name="wheel_back_right">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_right_back_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_right_actuator">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- Transmisión para la rueda trasera izquierda -->
+  <transmission name="wheel_back_left">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="wheel_left_back_joint">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="wheel_left_actuator">
+      <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- Transmisión para la dirección izquierda -->
+  <transmission name="direction_left">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dir_left_joint">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="direction_motor_left">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- Transmisión para la dirección derecha -->
+  <transmission name="direction_right">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="dir_right_joint">
+    <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="direction_motor_right">
+      <hardwareInterface>PositionJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <!-- Configuracion de links -->
+  <gazebo reference="wheel_right_front_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material> Gazebo/Grey </material>
+  </gazebo>
+
+  <gazebo reference="wheel_left_front_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material> Gazebo/Grey </material>
+  </gazebo>
+
+  <gazebo reference="wheel_right_back_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material> Gazebo/Grey </material>
+  </gazebo>
+
+  <gazebo reference="wheel_left_back_link">
+    <mu1>1</mu1>
+    <mu2>1</mu2>
+    <minDepth>0.003</minDepth>
+    <material>Gazebo/Grey</material>
+  </gazebo>
+
+  <gazebo reference="base_link">
+    <material>Gazebo/ZincYellow</material> 
+  </gazebo>
+
+  <gazebo reference="base_component_link">
+    <material>Gazebo/Turquoise  </material> 
+  </gazebo>
+
+</robot>
