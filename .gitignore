@@ -2,4 +2,3 @@ __pycache__/
 *.pyc
 .vscode
 puma_navigation_simulation
-puma_imu_driver
