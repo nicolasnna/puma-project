@@ -2,7 +2,6 @@
 import rospy
 from puma_direction_msgs.msg import DirectionCmd
 from std_msgs.msg import Float64
-import time
 import numpy as np
 
 class DirectionController():
@@ -15,9 +14,10 @@ class DirectionController():
     rospy.Subscriber('puma/direction/command', DirectionCmd, self.__dir_callback)
     
     # Variable
+    self.value_offset = rospy.get_param('direction_value_offset', 0.0)
     # Dir is config in the same orientation
     self.dir_value = Float64()
-    self.dir_value.data = 0.0
+    self.dir_value.data = self.value_offset
     
     self._activate_dir = False
     self._orientation_dir = 0.0
@@ -45,12 +45,12 @@ class DirectionController():
     if self._activate_dir:
       
       if (self._orientation_dir > 0 ) and (self.dir_value.data >= self.RIGHT_LIMIT_VALUE):
-        self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
+        self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3 + self.value_offset
           
       elif (self._orientation_dir < 0) and (self.dir_value.data <= self.LEFT_LIMIT_VALUE):
-        self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
+        self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3 + self.value_offset
     
-    self.current_position = int(-1*self.dir_value.data/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
+    self.current_position = int(-1*(self.dir_value.data-self.value_offset)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
     self.current_angle = self.dir_value.data
     self.current_enable = self._activate_dir 
     
