@@ -28,7 +28,43 @@ class Bno08xDriver():
     self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
     self.bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
     
+    self.is_calibrate = False
+    self.acceleration_offset = [0.0, 0.0, 0.0]
+    self.angular_offset = [0.0, 0.0, 0.0]
     
+  def calibrate_acceleration_velocity(self, with_gravity=False):
+    '''
+    Calibrate acceleration linear and angular velocity
+    '''
+    accel_x_array = []
+    accel_y_array = []
+    accel_z_array = []
+    
+    angular_x_array = []
+    angular_y_array = []
+    angular_z_array = []
+    
+    for i in range(0,1000):
+      accel_x, accel_y, accel_z = self.bno.acceleration
+      accel_x_array.append(accel_x)
+      accel_y_array.append(accel_y)
+      accel_z_array.append(accel_z if with_gravity else 0)
+      
+      gyro_x, gyro_y, gyro_z = self.bno.gyro
+      angular_x_array.append(gyro_x)
+      angular_y_array.append(gyro_y)
+      angular_z_array.append(gyro_z)
+      
+      
+    self.acceleration_offset = [math.mean(accel_x_array), 
+                                math.mean(accel_y_array), 
+                                math.mean(accel_z_array)]
+    
+    self.angular_offset = [math.mean(angular_x_array), 
+                           math.mean(accel_y_array), 
+                           math.mean(accel_z_array)]
+    
+  
   def measurement_sensor(self):
     '''
     Measurement data of BNO08X
@@ -41,14 +77,14 @@ class Bno08xDriver():
       imu_msg.header.stamp = rospy.Time.now()
       
       accel_x, accel_y, accel_z = self.bno.acceleration
-      imu_msg.linear_acceleration.x = accel_x
-      imu_msg.linear_acceleration.y = accel_y
-      imu_msg.linear_acceleration.z = accel_z
+      imu_msg.linear_acceleration.x = accel_x - self.acceleration_offset[0]
+      imu_msg.linear_acceleration.y = accel_y - self.acceleration_offset[1]
+      imu_msg.linear_acceleration.z = accel_z - self.acceleration_offset[2]
       
       gyro_x, gyro_y, gyro_z = self.bno.gyro
-      imu_msg.angular_velocity.x = gyro_x
-      imu_msg.angular_velocity.y = gyro_y
-      imu_msg.angular_velocity.z = gyro_z
+      imu_msg.angular_velocity.x = gyro_x - self.angular_offset[0]
+      imu_msg.angular_velocity.y = gyro_y - self.angular_offset[1]
+      imu_msg.angular_velocity.z = gyro_z - self.angular_offset[2]
       
       quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
       imu_msg.orientation.w = quat_i
