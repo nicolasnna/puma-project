@@ -11,7 +11,7 @@ from adafruit_bno08x import (
     BNO_REPORT_ROTATION_VECTOR,
 )
 from adafruit_bno08x.i2c import BNO08X_I2C
-import math
+import statistics
 
 class Bno08xDriver():
   def __init__(self):
@@ -57,13 +57,13 @@ class Bno08xDriver():
       angular_z_array.append(gyro_z)
       
       
-    self.acceleration_offset = [math.mean(accel_x_array), 
-                                math.mean(accel_y_array), 
-                                math.mean(accel_z_array)]
+    self.acceleration_offset = [statistics.mean(accel_x_array), 
+                                statistics.mean(accel_y_array), 
+                                statistics.mean(accel_z_array)]
     
-    self.angular_offset = [math.mean(angular_x_array), 
-                           math.mean(accel_y_array), 
-                           math.mean(accel_z_array)]
+    self.angular_offset = [statistics.mean(angular_x_array), 
+                           statistics.mean(accel_y_array), 
+                           statistics.mean(accel_z_array)]
     
   
   def measurement_sensor(self):
