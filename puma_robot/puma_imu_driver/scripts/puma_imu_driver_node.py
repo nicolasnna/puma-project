@@ -11,7 +11,7 @@ if __name__ == "__main__":
     with_gravity = rospy.get_param('~imu/with_gravity', True)
     
     rospy.loginfo("Iniciando calibración de IMU")
-    imu_driver.calibrate_acceleration_velocity(with_gravity)
+    imu_driver.calibrate_acceleration(with_gravity)
     rospy.loginfo("Acceleracion lineal y velocidad angular calibrados")
     
     rate = rospy.Rate(frequency)

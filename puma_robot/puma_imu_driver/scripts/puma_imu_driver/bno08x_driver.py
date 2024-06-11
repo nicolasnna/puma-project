@@ -29,43 +29,26 @@ class Bno08xDriver():
     self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
     self.bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
     
-    self.is_calibrate = False
     self.acceleration_offset = [0.0, 0.0, 0.0]
-    self.angular_offset = [0.0, 0.0, 0.0]
     
-  def calibrate_acceleration_velocity(self, with_gravity=True):
+  def calibrate_acceleration(self, with_gravity=True):
     '''
-    Calibrate acceleration linear and angular velocity
+    Calibrate acceleration linear 
     '''
     accel_x_array = []
     accel_y_array = []
     accel_z_array = []
-    
-    angular_x_array = []
-    angular_y_array = []
-    angular_z_array = []
     
     for i in range(0,1000):
       accel_x, accel_y, accel_z = self.bno.acceleration
       accel_x_array.append(accel_x)
       accel_y_array.append(accel_y)
       accel_z_array.append(accel_z if not with_gravity else 0)
-      
-      gyro_x, gyro_y, gyro_z = self.bno.gyro
-      angular_x_array.append(gyro_x)
-      angular_y_array.append(gyro_y)
-      angular_z_array.append(gyro_z)
-      
-      
+         
     self.acceleration_offset = [statistics.mean(accel_x_array), 
                                 statistics.mean(accel_y_array), 
                                 statistics.mean(accel_z_array)]
     
-    self.angular_offset = [statistics.mean(angular_x_array), 
-                           statistics.mean(accel_y_array), 
-                           statistics.mean(accel_z_array)]
-    
-  
   def measurement_sensor(self):
     '''
     Measurement data of BNO08X
@@ -84,9 +67,9 @@ class Bno08xDriver():
       imu_msg.linear_acceleration.z = accel_z - self.acceleration_offset[2]
       
       gyro_x, gyro_y, gyro_z = self.bno.gyro
-      imu_msg.angular_velocity.x = gyro_x - self.angular_offset[0]
-      imu_msg.angular_velocity.y = gyro_y - self.angular_offset[1]
-      imu_msg.angular_velocity.z = gyro_z - self.angular_offset[2]
+      imu_msg.angular_velocity.x = gyro_x
+      imu_msg.angular_velocity.y = gyro_y
+      imu_msg.angular_velocity.z = gyro_z
       
       quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
       imu_msg.orientation.w = quat_i
