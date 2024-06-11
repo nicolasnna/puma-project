@@ -4,7 +4,7 @@ from puma_brake_msgs.msg import BrakeCmd
 from puma_direction_msgs.msg import DirectionCmd
 from std_msgs.msg import Int16, Bool
 from sensor_msgs.msg import Joy
-from diagnostic_msgs.msg import DiagnosticArray
+from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
 class InterfaceJoy():
     '''
@@ -32,7 +32,7 @@ class InterfaceJoy():
     
     init_send = 0
     state_transform = {"0": False, "1": True}
-    def __init__(self) -> None:
+    def __init__(self):
         
         rospy.init_node("puma_joy_node")
         
@@ -69,7 +69,7 @@ class InterfaceJoy():
         self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
         self._publisher_reverse = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
         self._publisher_brake_electric = rospy.Publisher('puma/parking/command', Bool, queue_size=5)
-        
+        self._publisher_diagnostic = rospy.Publisher('puma/joy/diagnostic', DiagnosticStatus, queue_size=5)
         # Create variable to send
         self.msg_send_brake = BrakeCmd()
         self.msg_send_dir = DirectionCmd()
@@ -82,7 +82,15 @@ class InterfaceJoy():
         self.msg_send_brake_electric = Bool()
         self.msg_send_brake_electric.data = False
         
-        self.level = 2
+        self.msg_diagnostic = DiagnosticStatus()
+        # self.msg_diagnostic.level = 2
+        # self.msg_diagnostic.name = 'Joy interface puma'
+        # self.msg_diagnostic.message = "Interface cannot get joy data"
+        self.msg_diagnostic.level = 0
+        self.msg_diagnostic.name = 'Joy interface puma'
+        self.msg_diagnostic.message = "Interface is working"
+        
+        self.level_joy = 2
         
         
     def __subCallBack(self, data_received):
@@ -92,7 +100,6 @@ class InterfaceJoy():
         #--- Start in 1.0 and end in -1.0 --#
         self.lt_left = data_received.axes[self.__LT_LEFT_INDEX]
         self.rt_right = data_received.axes[self.__RT_RIGHT_INDEX]
-        
         
         self.x_left = data_received.axes[self.__X_LEFT_INDEX]*-1
         self.y_left = data_received.axes[self.__Y_LEFT_INDEX]
@@ -126,10 +133,8 @@ class InterfaceJoy():
         status = data_received.status
         for elements in status:
             if elements.name == 'joy_puma: Joystick Driver Status':
-                self.level = elements.level
-                
-        rospy.loginfo("level of joy: %s", self.level)
-        
+                self.level_joy = elements.level_joy
+                        
     def __convertTriggerToRange(self,trigger_value, value_min, value_max):
         '''
         Convert 1.0/-1.0 to pos_min/pos_max
@@ -141,6 +146,7 @@ class InterfaceJoy():
         '''
         Publish control data and dir data
         '''
+        self._publisher_diagnostic.publish(self.msg_diagnostic)
         try: 
             # --- Control brake --- #
             self.msg_send_brake.position = self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1])
@@ -154,8 +160,10 @@ class InterfaceJoy():
             # --- Control Accelerator puma --- #
             self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
             
-            if self.level != 0:
+            if self.level_joy != 0:
                 self.msg_send_accel_puma.data = 0
+                self.msg_send_dir.activate = False
+                self.msg_send_brake.position = 1000
             
         except: 
             # Cierre

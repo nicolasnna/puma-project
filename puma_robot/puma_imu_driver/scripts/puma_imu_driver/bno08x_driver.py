@@ -19,6 +19,7 @@ class Bno08xDriver():
     self.imu_pub = rospy.Publisher('puma/sensors/imu/raw', Imu, queue_size=10)
     self.mag_pub = rospy.Publisher('puma/sensors/imu/magnetic', MagneticField, queue_size=10)
     self.diagnostic_pub = rospy.Publisher('puma/sensors/imu/diagnostic', DiagnosticStatus, queue_size=10)
+    self.frame = rospy.get_param('~imu/frame','imu1_link')
     
     i2c = busio.I2C(board.SCL_1, board.SDA_1) 
     self.bno = BNO08X_I2C(i2c, address=0x4b) # BNO080 (0x4b) BNO085 (0x4a)
@@ -32,7 +33,7 @@ class Bno08xDriver():
     self.acceleration_offset = [0.0, 0.0, 0.0]
     self.angular_offset = [0.0, 0.0, 0.0]
     
-  def calibrate_acceleration_velocity(self, with_gravity=False):
+  def calibrate_acceleration_velocity(self, with_gravity=True):
     '''
     Calibrate acceleration linear and angular velocity
     '''
@@ -48,7 +49,7 @@ class Bno08xDriver():
       accel_x, accel_y, accel_z = self.bno.acceleration
       accel_x_array.append(accel_x)
       accel_y_array.append(accel_y)
-      accel_z_array.append(accel_z if with_gravity else 0)
+      accel_z_array.append(accel_z if not with_gravity else 0)
       
       gyro_x, gyro_y, gyro_z = self.bno.gyro
       angular_x_array.append(gyro_x)
@@ -75,6 +76,7 @@ class Bno08xDriver():
     try: 
       # --- IMU RAW DATA --- #
       imu_msg.header.stamp = rospy.Time.now()
+      imu_msg.header.frame_id = self.frame
       
       accel_x, accel_y, accel_z = self.bno.acceleration
       imu_msg.linear_acceleration.x = accel_x - self.acceleration_offset[0]
@@ -99,6 +101,7 @@ class Bno08xDriver():
       # --- Magnetic data --- #
       mag_x, mag_y, mag_z = self.bno.magnetic
       mag_msg.header.stamp = rospy.Time.now()
+      mag_msg.header.frame_id = self.frame
       mag_msg.magnetic_field.x = mag_x
       mag_msg.magnetic_field.y = mag_y
       mag_msg.magnetic_field.z = mag_z
