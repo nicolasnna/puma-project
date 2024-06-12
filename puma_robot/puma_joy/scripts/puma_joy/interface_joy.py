@@ -131,9 +131,10 @@ class InterfaceJoy():
 
     def _diagnostic_callback(self, data_received):
         status = data_received.status
+        
         for elements in status:
-            if elements.name == 'joy_puma: Joystick Driver Status':
-                self.level_joy = elements.level_joy
+            if elements.name == 'joy_node: Joystick Driver Status':
+                self.level_joy = elements.level 
                         
     def __convertTriggerToRange(self,trigger_value, value_min, value_max):
         '''

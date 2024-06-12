@@ -1,0 +1,11 @@
+obstacle_range: 3.0
+raytrace_range: 5
+
+footprint: [[-0.8, -0.55], [-0.8, 0.55], [0.8, 0.55], [0.8, -0.5]]
+#robot_radius: 0.105
+
+inflation_radius: 0.5
+cost_scaling_factor: 5.0
+#map_type: costmap
+observation_sources: camera
+camera: {sensor_frame: camera_depth_optical_frame, data_type: PointCloud2, topic: camera/depth/color/points, marking: true, clearing: true}

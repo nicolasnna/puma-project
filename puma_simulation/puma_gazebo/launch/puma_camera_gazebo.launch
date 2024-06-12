@@ -35,8 +35,13 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" args=" wheel_right_controller wheel_left_controller dir_right_controller dir_left_controller"/>
 
+  <!-- velocity controller -->
+  <rosparam file="$(find puma_velocity_controller)/config/puma_velocity_params.yaml" command="load"/>
+  <node pkg="puma_velocity_controller" name="puma_velocity_controller" type="puma_controller_node.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+
   <!-- load node simulation -->
   <node name="puma_gazebo_fake" pkg="puma_gazebo" type="gazebo_controller_node.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_gazebo)/rviz/model.rviz" required="true"/>
+
 </launch>
