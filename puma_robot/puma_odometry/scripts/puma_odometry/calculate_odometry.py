@@ -23,6 +23,7 @@ class CalculateOdometry():
     self.frame_id = rospy.get_param(ns+'frame_id', 'odom')
     self.child_frame_id = rospy.get_param(ns+'child_frame_id', 'base_link')
     self.direction_zero = rospy.get_param(ns+'direction_zero', 395)
+    self.publish_frame = rospy.get_param(ns+'publish_frame', False)
     # Variables
     self.x = 0.0
     self.y = 0.0
@@ -76,7 +77,8 @@ class CalculateOdometry():
     self.y += delta_y
     self.theta += delta_theta
  
-    self.publish_transform(current_time)
+    if self.publish_frame:
+      self.publish_transform(current_time)
     self.publish_odometry(current_time)
     
     self.last_time = current_time
