@@ -6,3 +6,7 @@ gps_to_enu:
   longitude_ref: -70.5818018059048
   altitude_ref: 570
   apply_offset_yaw: true
+
+frame_map_odom:
+  topic_imu: 'puma/sensors/imu/raw'
+  topic_gps_enu: 'puma/sensors/gps/enu'
