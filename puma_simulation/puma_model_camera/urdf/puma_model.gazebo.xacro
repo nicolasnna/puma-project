@@ -17,10 +17,10 @@
       <referenceLongitude>-70.5818018059048</referenceLongitude>
       <referenceAltitude>570</referenceAltitude>
       <velocitytopicname>gps/fix_velocity</velocitytopicname>
-      <drift>5.0 5.0 5.0</drift>
-      <gaussiannoise>0.1 0.1 0.1</gaussiannoise>
-      <velocitydrift>0 0 0</velocitydrift>
-      <velocitygaussiannoise>0.1 0.1 0.1</velocitygaussiannoise>
+      <drift>0.0 0.0 0.0</drift>
+      <gaussianNoise>0.0 0.0 0.0</gaussianNoise>
+      <velocityDrift>0 0 0</velocityDrift>
+      <velocityGaussianNoise>0.0 0.0 0.0</velocityGaussianNoise>
     </plugin>
     <!-- Plugin IMU 1 -->
     <plugin name="imu_controller" filename="libhector_gazebo_ros_imu.so">
