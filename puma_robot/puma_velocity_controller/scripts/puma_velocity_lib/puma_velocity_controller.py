@@ -77,7 +77,8 @@ class PumaVelocityController():
     Controls the speed of the rear wheels
     """
     # Change velocity if have changes in steering angle
-    self.rear_wheels_msg.data = int(self.input_wheels if not self.change_steering else 30)
+    self.rear_wheels_msg.data = int(self.input_wheels)
+    #self.rear_wheels_msg.data = int(self.input_wheels if not self.change_steering else 30)
     self.rear_wheels_pub.publish(self.rear_wheels_msg)
   
   def control_steering(self):
@@ -118,7 +119,7 @@ class PumaVelocityController():
     steering_angle = max(min(steering_angle, self.max_steering_angle), -self.max_steering_angle)
     
     # Calculate wheel input speed
-    input_wheels = self.linear_converter_pwm(abs(linear_velocity), 30, 100, 0.71, 9.8) if linear_velocity != 0 else 0
+    input_wheels = self.linear_converter_pwm(abs(linear_velocity), 28,100,0.01,9.8) if linear_velocity != 0 else 0
 
     return steering_angle, input_wheels
   

@@ -8,11 +8,11 @@ Reading keyboard and publish cmd_vel (Twist)
 * Commands WASDX
 * Press Q or Ctr+C to quit
 
-W: Increment lineal velocity x in 0.75 m/s
+W: Increment lineal velocity x in 0.2 m/s
 S: Stop lineal and angular velocity
-A: Decrement angular velocity z in 0.15 m/s
-D: Increment angular velocity z in 0.15 m/s
-X: Decrement lineal velocity z in 0.75 m/s
+A: Decrement angular velocity z in 0.1 m/s
+D: Increment angular velocity z in 0.1 m/s
+X: Decrement lineal velocity z in 0.2 m/s
 -------------------------------------------
 """
 
@@ -34,13 +34,13 @@ if __name__ == '__main__':
         key = app.getkey()
         
         if key.lower() == 'w':
-          cmd_vel_msg.linear.x += 0.75
+          cmd_vel_msg.linear.x += 0.2
         elif key.lower() == 'x':
-          cmd_vel_msg.linear.x -= 0.15
+          cmd_vel_msg.linear.x -= 0.2
         elif key.lower() == 'a':
-          cmd_vel_msg.angular.z += 0.6
+          cmd_vel_msg.angular.z += 0.1
         elif key.lower() == 'd':
-          cmd_vel_msg.angular.z -= 0.15
+          cmd_vel_msg.angular.z -= 0.1
         elif key.lower() == 's':
           cmd_vel_msg.linear.x = 0
           cmd_vel_msg.angular.z = 0 

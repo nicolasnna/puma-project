@@ -100,7 +100,7 @@ ekf_map:
                  false, false, false,
                  false, false, false,
                  false, false, false]
-  pose0_queue_size: 10
+  pose0_queue_size: 4
   pose0_nodelay: true
   pose0_differential: false
   pose0_relative: false
