@@ -13,4 +13,8 @@ cd ../..
 cd puma_imu_driver/scripts || echo "No se ha encontrado puma_joy"
 chmod +x puma_imu_driver_node.py 
 cd ../..
+cd puma_controller/scripts || echo "No se ha encontrado puma_joy"
+chmod +x velocity_linear_node.py 
+chmod +x convert_ackermann_node.py 
+cd ../..
 echo "Listo"

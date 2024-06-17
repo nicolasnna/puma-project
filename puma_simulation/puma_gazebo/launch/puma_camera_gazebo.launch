@@ -1,5 +1,5 @@
 <launch>
-  <arg name="node_start_delay" default="1.0" /> 
+  <arg name="node_start_delay" default="4.0" /> 
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
