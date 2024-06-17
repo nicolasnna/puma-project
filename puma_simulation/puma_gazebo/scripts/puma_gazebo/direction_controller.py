@@ -55,22 +55,22 @@ class DirectionController():
     '''
     current_angle_analog = self.current_angle / self.CONST_RAD_VALUE
     
-    is_diff_angle_right = (self.current_angle*(1+self.tolerance) > self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE )
-    is_diff_angle_left = (self.current_angle*(1-self.tolerance) < self.angle_goal) and (current_angle_analog <= self.LEFT_LIMIT_VALUE)
+    is_diff_angle_positiv = (self.current_angle*(1+self.tolerance) < self.angle_goal) and (current_angle_analog <= self.LEFT_LIMIT_VALUE)
+    is_diff_angle_negativ = (self.current_angle*(1-self.tolerance) > self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE)
     
-    #rospy.loginfo("Right angle limit: %s, left angle limit: %s", self.RIGHT_LIMIT_VALUE, self.LEFT_LIMIT_VALUE)
-    #rospy.loginfo("Is diff angle to right: %s, is diff angle to left: %s", is_diff_angle_right, is_diff_angle_left)
-    #rospy.loginfo("Current position: %s, current goal: %s", self.current_angle, self.angle_goal)
+    rospy.loginfo("Right angle limit: %s, left angle limit: %s", self.RIGHT_LIMIT_VALUE, self.LEFT_LIMIT_VALUE)
+    rospy.loginfo("Is diff angle to positiv: %s, is diff angle to negativ: %s", is_diff_angle_positiv, is_diff_angle_negativ)
+    rospy.loginfo("Current position: %s, current goal: %s", self.current_angle, self.angle_goal)
     
-    if is_diff_angle_right:
+    if is_diff_angle_positiv:
       self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
       #rospy.loginfo("Increment direction to right")
-    elif is_diff_angle_left:
+    elif is_diff_angle_negativ:
       self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
       #rospy.loginfo("Increment direction to left")
     
-    self.current_position = int(-1*(self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
-    self.current_angle = self.dir_value.data*-1
+    self.current_position = int((self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
+    self.current_angle = self.dir_value.data
     
   def dir_callback(self, data_received):
     '''

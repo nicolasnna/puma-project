@@ -12,6 +12,7 @@
 
 #include <tf/transform_listener.h>
 #include <geometry_msgs/Twist.h>
+#include <tf2_ros/buffer.h>
 #include <base_local_planner/odometry_helper_ros.h>
 
 using namespace std;
@@ -21,12 +22,12 @@ namespace puma_local_planner{
 class PumaLocalPlanner : public nav_core::BaseLocalPlanner{
 public: 
   PumaLocalPlanner();
-  PumaLocalPlanner(std::string name, tf::TransformListener *tf,
+  PumaLocalPlanner(std::string name, tf2_ros::Buffer* tf,
                     costmap_2d::Costmap2DROS* costmap_ros);
   
   ~PumaLocalPlanner();
   
-  void initialize(std::string name, tf::TransformListener *tf,
+  void initialize(std::string name, tf2_ros::Buffer* tf,
                   costmap_2d::Costmap2DROS* costmap_ros);
  
   bool setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan);
@@ -38,7 +39,7 @@ public:
 private:
   costmap_2d::Costmap2DROS* costmap_ros_;
   costmap_2d::Costmap2D* costmap_; 
-  tf::TransformListener* tf_;
+  tf2_ros::Buffer* tf_;
   bool initialized_;
 
   // Odometry

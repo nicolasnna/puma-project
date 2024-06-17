@@ -16,7 +16,7 @@
 		<param name="planner_frequency" value="1.0" />
 		<param name="planner_patience" value="5.0" />
 
-		<param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" />
+		<!-- <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" /> -->
   </node>
 
   <!-- <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node">

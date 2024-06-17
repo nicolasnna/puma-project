@@ -16,19 +16,17 @@ namespace puma_local_planner {
 
 PumaLocalPlanner::PumaLocalPlanner() : costmap_ros_(NULL), tf_(NULL), initialized_(false) {}
 
-PumaLocalPlanner::PumaLocalPlanner(std::string name, tf::TransformListener *tf, costmap_2d::Costmap2DROS* costmap_ros) : costmap_ros_(NULL), tf_(NULL), initialized_(false) {
-  initialize(name, tf, costmap_ros);
+PumaLocalPlanner::PumaLocalPlanner(std::string name, tf2_ros::Buffer* tf, costmap_2d::Costmap2DROS* costmap_ros) : costmap_ros_(NULL), tf_(NULL), initialized_(false) {
+  
 }
  
 PumaLocalPlanner::~PumaLocalPlanner() {}
 
-void PumaLocalPlanner::initialize(std::string name, tf::TransformListener *tf, costmap_2d::Costmap2DROS* costmap_ros) {
+void PumaLocalPlanner::initialize(std::string name, tf2_ros::Buffer* tf, costmap_2d::Costmap2DROS* costmap_ros) {
   if(!initialized_) {
     ros::NodeHandle nh = ros::NodeHandle("~" + name);
     tf_ = tf;
-    // std::shared_ptr<base_local_planner::OdometryHelperRos> odom_helper_;
-
-    // odom_helper_ = std::make_shared<base_local_planner::OdometryHelperRos>("/odometry/filtered");
+  
 
 
     costmap_ros_ = costmap_ros;
