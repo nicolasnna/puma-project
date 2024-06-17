@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
-from puma_velocity_lib.puma_velocity_controller import PumaVelocityController
+from puma_controller.puma_velocity_controller import PumaVelocityController
   
 try: 
   if __name__ == "__main__":

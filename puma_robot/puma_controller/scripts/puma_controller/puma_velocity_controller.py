@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import rospy
 import math
 from geometry_msgs.msg import Twist
@@ -25,7 +25,8 @@ class PumaVelocityController():
     self.steering_front_pub = rospy.Publisher('puma/direction/command', DirectionCmd, queue_size=5)
     self.brake_wheels_pub = rospy.Publisher('puma/brake/command', BrakeCmd, queue_size=4)
     self.reverse_pub = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
-  
+
+    
     # Parameters and variables for conversion
     self.CONST_VEL_TRANSFORM = rospy.get_param('~const_vel_transform', 10.0)
     self.position_steering = float("nan")
@@ -63,7 +64,7 @@ class PumaVelocityController():
     Processes data received from cmd_vel and updates necessary variables
     """
     linear_velocity = data_received.linear.x
-    angular_velocity = -data_received.angular.z
+    angular_velocity = data_received.angular.z
     self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
     
     self.brake_wheels_msg.position = 0 if linear_velocity != 0 else 1000
@@ -91,7 +92,7 @@ class PumaVelocityController():
     angle_value = int(self.steering_angle / self.CONST_RAD_VALUE) + self.ZERO_POSITION_VALUE
     # Evaluate value
     angle_value = max(min(angle_value, self.LEFT_LIMIT_VALUE), self.RIGHT_LIMIT_VALUE)
-    
+    rospy.loginfo("Max angle : %s",angle_value)
     # Comparate with current position
     if not math.isnan(self.position_steering):
       if angle_value < self.position_steering - self.range_extra_value:
@@ -117,7 +118,7 @@ class PumaVelocityController():
     # Calculate steering angle
     steering_angle = math.atan(self.wheel_base / radius)
     steering_angle = max(min(steering_angle, self.max_steering_angle), -self.max_steering_angle)
-    
+    rospy.loginfo(steering_angle)
     # Calculate wheel input speed
     input_wheels = self.linear_converter_pwm(abs(linear_velocity), 28,100,0.01,9.8) if linear_velocity != 0 else 0
 

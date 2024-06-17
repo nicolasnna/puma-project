@@ -10,8 +10,8 @@ Reading keyboard and publish cmd_vel (Twist)
 
 W: Increment lineal velocity x in 0.2 m/s
 S: Stop lineal and angular velocity
-A: Decrement angular velocity z in 0.1 m/s
-D: Increment angular velocity z in 0.1 m/s
+A: Increment angular velocity z in 0.1 m/s
+D: Decrement angular velocity z in 0.1 m/s
 X: Decrement lineal velocity z in 0.2 m/s
 -------------------------------------------
 """

@@ -1,0 +1,7 @@
+<library path="lib/libpuma_local_planner">
+        <class name ="puma_local_planner/PumaLocalPlanner" type ="puma_local_planner::PumaLocalPlanner" base_class_type= "nav_core::BaseLocalPlanner">
+                <description>
+                        puma_local_planner
+                </description>
+        </class>
+</library>
