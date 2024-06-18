@@ -56,7 +56,9 @@
   <build_depend>roscpp</build_depend>
   <build_depend>pluginlib</build_depend>
   <build_depend>base_local_planner</build_depend>
-  <build_depend>steering_functions</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>puma_arduino_msgs</build_depend>
+  <build_depend>ackermann_msgs</build_depend>
 
   <build_export_depend>costmap_2d</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>

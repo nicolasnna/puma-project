@@ -4,8 +4,8 @@
 
   <node name="ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true"/>
   
-  <node name="ekf_map" pkg="robot_localization" type="ekf_localization_node"  clear_params="true">
+  <!-- <node name="ekf_map" pkg="robot_localization" type="ekf_localization_node"  clear_params="true">
     <remap from="odometry/filtered" to="odometry/filtered_map"/>
-  </node>
+  </node> -->
   
 </launch>

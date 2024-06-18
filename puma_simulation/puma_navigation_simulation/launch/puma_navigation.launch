@@ -1,25 +1,34 @@
 <launch>
-    <!-- Arguments -->
+    
+    <arg name="path" value="$(find puma_navigation_simulation)/config/test"/>
+  
     <arg name="map_file" default="$(find puma_navigation_simulation)/maps/blank_map.yaml"/>
-    <arg name="open_rviz" default="true"/>
-    <arg name="move_forward_only" default="false"/>
-
-    <!-- Run the map server-->
     <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
-  
-    <!-- Static tf between map and odom -->
-    <!-- <arg name="static_tf" default="true" />
-    <node if="$(arg static_tf)" pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom" /> -->
+  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
+    <!-- <rosparam command="load" file="$(arg path)/base_global_planner.yaml" />  -->
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
+    <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
+    <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
 
-    <!-- move_base -->
-    <include file="$(find puma_navigation_simulation)/launch/move_base.launch">
-    </include>
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+    <param name="planner_frequency" value="1.0" />
+    <param name="planner_patience" value="5.0" />
 
-    <!-- rviz --> 
-    <!-- <group if="$(arg open_rviz)"> 
-        <node pkg="rviz" type="rviz" name="rviz" required="true"
-            args="-d $(find puma_navigation_simulation)/rviz/puma.rviz"/>
-    </group> -->
+    <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" />
+    <param name="controller_frequency" value="5.0" />
+    <param name="controller_patience" value="15.0" />
+
+    <param name="clearing_rotation_allowed" value="false" /> <!-- Our carlike robot is not able to rotate in place -->
+    <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner" /> -->
+		<!-- <param name="planner_frequency" value="1.0" />
+		<param name="planner_patience" value="5.0" /> -->
+    <!-- <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> -->
+    <!-- <rosparam command="load" file="$(arg path)/base_local_planner.yaml"/> -->
+		<!-- <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" /> -->
+    <!-- <remap from="move_base/PumaLocalPlanner/puma/arduino/status" to="/puma/arduino/status"/> -->
+    
+  </node>
 
 </launch>

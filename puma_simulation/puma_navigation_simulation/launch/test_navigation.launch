@@ -6,7 +6,7 @@
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
   <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
-    <rosparam command="load" file="$(arg path)/base_global_planner.yaml" /> 
+    <!-- <rosparam command="load" file="$(arg path)/base_global_planner.yaml" />  -->
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
     <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
@@ -16,8 +16,21 @@
 		<param name="planner_frequency" value="1.0" />
 		<param name="planner_patience" value="5.0" />
 
+		<param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+		<param name="controller_frequency" value="5.0" />
+		<param name="controller_patience" value="15.0" /> 
+
+    <rosparam command="load" file="$(arg path)/teb_local_planner.yaml"/>
+    <param name="clearing_rotation_allowed" value="false" /> <!-- Our carlike robot is not able to rotate in place -->
+    <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner" /> -->
+		<!-- <param name="planner_frequency" value="1.0" />
+		<param name="planner_patience" value="5.0" /> -->
+    <!-- <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> -->
+    <!-- <rosparam command="load" file="$(arg path)/base_local_planner.yaml"/> -->
+    
 		<!-- <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" /> -->
   </node>
+
 
   <!-- <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node">
     <remap from="cloud_in" to="/camera/depth/color/points"/>

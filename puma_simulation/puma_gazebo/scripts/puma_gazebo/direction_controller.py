@@ -2,7 +2,7 @@
 import rospy
 from puma_direction_msgs.msg import DirectionCmd
 from ackermann_msgs.msg import AckermannDriveStamped
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Bool
 import numpy as np
 
 class DirectionController():
@@ -18,6 +18,7 @@ class DirectionController():
     # Subscriber
     rospy.Subscriber('puma/direction/command', DirectionCmd, self.dir_callback)
     rospy.Subscriber('puma/control/ackermann/command', AckermannDriveStamped, self.ackermann_callback)
+    rospy.Subscriber('puma/reverse/command', Bool, self.reverse_callback)
     
     # Variable
     self.value_offset = rospy.get_param('direction_value_offset', 0.0)
@@ -42,12 +43,19 @@ class DirectionController():
     self.angle_goal = 0
     self.tolerance = 0.05
     
+    self.is_reverse = False
+    
   def ackermann_callback(self, acker_data):
     '''
     Callback from ackermann drive controller callback
     '''
     self.angle_goal = acker_data.drive.steering_angle
     
+  def reverse_callback(self, reverse_data):
+    '''
+    Callback from reverse node
+    '''
+    self.is_reverse = reverse_data.data
     
   def direction_to_angle(self):
     '''
@@ -55,23 +63,38 @@ class DirectionController():
     '''
     current_angle_analog = self.current_angle / self.CONST_RAD_VALUE
     
-    is_diff_angle_positiv = (self.current_angle*(1+self.tolerance) < self.angle_goal) and (current_angle_analog <= self.LEFT_LIMIT_VALUE)
-    is_diff_angle_negativ = (self.current_angle*(1-self.tolerance) > self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE)
-    
-    rospy.loginfo("Right angle limit: %s, left angle limit: %s", self.RIGHT_LIMIT_VALUE, self.LEFT_LIMIT_VALUE)
-    rospy.loginfo("Is diff angle to positiv: %s, is diff angle to negativ: %s", is_diff_angle_positiv, is_diff_angle_negativ)
-    rospy.loginfo("Current position: %s, current goal: %s", self.current_angle, self.angle_goal)
-    
-    if is_diff_angle_positiv:
-      self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
-      #rospy.loginfo("Increment direction to right")
-    elif is_diff_angle_negativ:
-      self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
-      #rospy.loginfo("Increment direction to left")
-    
-    self.current_position = int((self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
-    self.current_angle = self.dir_value.data
-    
+    if not self.is_reverse:
+      # For forward drive
+      is_diff_angle_positiv = (self.current_angle*(1+self.tolerance) < self.angle_goal) and (current_angle_analog <= self.LEFT_LIMIT_VALUE)
+      is_diff_angle_negativ = (self.current_angle*(1-self.tolerance) > self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE)
+      
+      if is_diff_angle_positiv:
+        self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
+        #rospy.loginfo("Increment direction to right")
+      elif is_diff_angle_negativ:
+        self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
+        #rospy.loginfo("Increment direction to left")
+      
+      self.current_position = int((self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
+      self.current_angle = self.dir_value.data
+    else:
+      # For backward drive
+      is_diff_angle_positiv = (self.current_angle*(1-self.tolerance) > self.angle_goal) and (current_angle_analog <= self.LEFT_LIMIT_VALUE)
+      is_diff_angle_negativ = (self.current_angle*(1+self.tolerance) < self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE)
+      #rospy.loginfo("Is diff angle to positiv: %s, is diff angle to negativ: %s", is_diff_angle_positiv, is_diff_angle_negativ)
+      
+      if is_diff_angle_positiv:
+        self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
+        #rospy.loginfo("Increment direction to right")
+      elif is_diff_angle_negativ:
+        self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
+        #rospy.loginfo("Increment direction to left")
+        
+      #rospy.loginfo("Right angle limit: %s, left angle limit: %s", self.RIGHT_LIMIT_VALUE, self.LEFT_LIMIT_VALUE)
+      #rospy.loginfo("Current position: %s, current goal: %s", self.current_angle, self.angle_goal)
+      self.current_position = int((self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
+      self.current_angle = self.dir_value.data
+      
   def dir_callback(self, data_received):
     '''
     Callback from dir controller remote topic

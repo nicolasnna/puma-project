@@ -13,7 +13,9 @@ class TachometerController():
     # Rospy
     self.tachometer_pub = rospy.Publisher("puma/sensors/tachometer", StatusTachometer, queue_size=10)
     #rospy.Subscriber("/wheel_right_controller/command", Float64, self._velocity_callback)
-    rospy.Subscriber("/gazebo/model_states", ModelStates, self._gazebo_states_callback)
+    # Publish debug
+    self.vel_measurement_pub = rospy.Publisher('puma/debug/velocity_model', Float64, queue_size=5)
+    
     
     self.limit_time = rospy.get_param('time_tachometer', 1000)
     self.wheels_diameter = rospy.get_param('wheels_diameter', 0.53)
@@ -29,9 +31,8 @@ class TachometerController():
     self.transmission_ratio = round(calibrate_max_rpm/ calibrate_rpm_wheel_max, 2)
     
     self.last_time = rospy.Time.now()
+    rospy.Subscriber("/gazebo/model_states", ModelStates, self._gazebo_states_callback)
     
-    # Publish debug
-    self.vel_measurement_pub = rospy.Publisher('puma/debug/velocity_model', Float64, queue_size=5)
     
   def _gazebo_states_callback(self, data_received):
     '''

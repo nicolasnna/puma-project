@@ -1,19 +1,12 @@
 global_costmap:
   global_frame: map
   robot_base_frame: base_link
-  update_frequency: 1
-  publish_frequency: 1.0
-  transform_tolerance: 0.6
-  resolution: 0.1
-
+  update_frequency: 1.0
+  publish_frequency: 0.5
+  static_map: true
+ 
+  transform_tolerance: 0.5
   plugins:
-    - {name: static_layer, type: "costmap_2d::StaticLayer"}
-    - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
-
-  static_layer:
-    map_topic: "/map"
-    subscribe_to_updates: false
-
-  inflation_layer:
-    inflation_radius: 0.55
-    cost_scaling_factor: 4.0
+    - {name: static_layer,            type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer,          type: "costmap_2d::VoxelLayer"}
+    - {name: inflation_layer,         type: "costmap_2d::InflationLayer"}

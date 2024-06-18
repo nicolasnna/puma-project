@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   puma_brake_msgs
   puma_arduino_msgs
   gazebo_ros_control
-  rviz_satellite
   velocity_controllers
 )
 

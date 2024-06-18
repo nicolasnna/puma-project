@@ -13,7 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   nav_core
   tf2_ros
   roscpp
-  steering_functions
+  puma_arduino_msgs
+  nav_msgs
+  ackermann_msgs
 )
 
 ## System dependencies are found with CMake's conventions
