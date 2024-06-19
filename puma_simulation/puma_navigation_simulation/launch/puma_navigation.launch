@@ -13,6 +13,7 @@
     <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
 
     <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+    <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/>
     <param name="planner_frequency" value="1.0" />
     <param name="planner_patience" value="5.0" />
 

@@ -52,7 +52,7 @@ namespace puma_local_planner {
     current_analog_direction = status->current_position_dir;
     current_angle_direction = (current_analog_direction - ZERO_POSITION)* CONST_ANALOG_TO_RAD;
 
-    ROS_INFO("Angulo(rads) actual: %f", current_angle_direction);
+    //ROS_INFO("Angulo(rads) actual: %f", current_angle_direction);
   }
 
   void PumaLocalPlanner::odometryCallback(const nav_msgs::Odometry::ConstPtr &odom) {
@@ -87,6 +87,7 @@ namespace puma_local_planner {
   void PumaLocalPlanner::setNextPart(){
     next_position.x = plan[count].pose.position.x;
     next_position.y = plan[count].pose.position.y;
+    //ROS_INFO("Angle part position: %f ", plan[count].pose.orientation.z);
   }
 
   void PumaLocalPlanner::setErrorNow(){
@@ -106,43 +107,66 @@ namespace puma_local_planner {
 
     //Calculate distance
     distance = std::sqrt( pow(error_position.x,2) + pow(error_position.y,2) );
-    error_position.az = delta_theta - current_position.az;
+    error_position.az = delta_theta - current_position.az ;
 
-    // Choose smallest angle 
+    // Choose smallest angle  
     // Always smaller than abs(PI)
-    if ( error_position.az > PI ) { error_position.az -= 2*PI; }
-    if ( error_position.az < -PI ) { error_position.az += 2*PI; }
+    //if ( error_position.az > PI ) { error_position.az -= 2*PI; }
+    //if ( error_position.az < -PI ) { error_position.az += 2*PI; }
   }
 
   void PumaLocalPlanner::setVelocity(){
-    cmd.linear.x = 0.8;
-    cmd.angular.z = error_position.az;
-    acker_cmd.drive.steering_angle = current_analog_direction + error_position.az;
-    acker_cmd.drive.speed = 1.2;
+
+    acker_cmd.drive.steering_angle = error_position.az;
+    acker_cmd.drive.speed = 0.6;
   }
 
   void PumaLocalPlanner::setRotation(){
     // AUN ERROR EN GIRAR HACIA UN SOLO LADO
-		if (fabs(error_position.az) > 20*D2R){
+    if (fabs(error_position.az) > 30*D2R ) {
+      // Wheen error > limit direction
+      //ROS_INFO("Error angular mayor a la direccion limite. Error: %f", error_position.az);
+      acker_cmd.drive.steering_angle = error_position.az;
+      acker_cmd.drive.speed = 0.0;
 
-			cmd.angular.z=(error_position.az)*0.3;
+      if (fabs(current_angle_direction) >= 29*D2R) {
+        // When direction is in limit
+        acker_cmd.drive.speed = 0.3;
+      }
+    } else {
+      // Wheen error is on limit of direction
+      ROS_INFO("Error angular dentro de los limites de la direccion");
+      acker_cmd.drive.steering_angle = error_position.az;
+      acker_cmd.drive.speed = 0.0;
 
-			// linear speed is zero while the angle is too big
-			cmd.linear.x= 0.0;
-			cmd.linear.y= 0.0;
+      if ( fabs(error_position.az) <= (current_angle_direction + 2*D2R) & 
+        fabs(error_position.az) >= (current_angle_direction - 2*D2R)) {
+        acker_cmd.drive.speed = 0.5;
+      }
+    }
+  }
 
-      acker_cmd.drive.steering_angle = current_analog_direction + error_position.az;
-
-		} else {
-      acker_cmd.drive.steering_angle = current_analog_direction + error_position.az;
-      acker_cmd.drive.speed = 0.2;
-
-			cmd.angular.z=(error_position.az)*0.5;
-
-			// keeping a small linear speed so that the movement is smooth
-			cmd.linear.x= 0.1;
-			cmd.linear.y= 0.0;
-		}
+  void PumaLocalPlanner::setCountPlan(){
+    if (count < (length-1)) {
+      // If left part of global plan
+      if((length - count) < 10){ 
+        // When few parts of the plan are missing
+        count = length - 1;
+      } else if ((length - count) < 20){ 
+        // When 20 parts of the plan are missing
+        count += 10;
+      } else {
+        // When many parts of the plan are missing
+        count += 20; 
+      }
+      setNextPart();
+    } else {
+      ROS_INFO("Llegada al destino");
+      goal_reached = true;
+      // Ackermann
+      acker_cmd.drive.speed = 0.0;
+      acker_cmd.drive.steering_angle = 0.0;
+    }
   }
 
   bool PumaLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel) {
@@ -155,39 +179,20 @@ namespace puma_local_planner {
     if (length != 0 ){
       // Calculate diff position
       setErrorNow();
-      // If have considerable distance
+
       if (distance > 0.5) {
-        if(fabs(error_position.az > 10 * D2R)) {
+        // If have considerable distance
+        if(fabs(error_position.az > 2 * D2R)) {
           setRotation();
         } else {
           setVelocity();
         }
       } else {
-        ROS_INFO("Distancia menor a 0.5m del destino");
-
-        if (count <(length-1)) {
-          if((length - 1 - count) < 11){ 
-						count = length - 1;
-					} else if ((length - 1 - count) < 21){ 
-						count += 10;
-					} else {
-						count += 20; 
-					}
-          ROS_INFO("Cambiando a la siguiente parte del plan: %d", count);
-					setNextPart();
-        } else {
-          ROS_INFO("Llegada al destino");
-          goal_reached = true;
-          cmd.linear.x = 0.0;
-          cmd.angular.z = 0.0;
-          
-          // Ackermann
-          acker_cmd.drive.speed = 0.0;
-          acker_cmd.drive.steering_angle = 0.0;
-        }
+        //ROS_INFO("Distancia menor a 0.5m del destino");
+        setCountPlan();
       }
     }
-    cmd_vel = cmd;
+
     ackerman_pub.publish(acker_cmd);
     return true;
   }

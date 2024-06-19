@@ -46,6 +46,7 @@ namespace puma_local_planner{
       void setNextPart();
       bool isGoalReached();
       void setErrorNow();
+      void setCountPlan();
       
       // Control velocity
       bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);
