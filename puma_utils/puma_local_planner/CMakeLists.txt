@@ -109,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-  LIBRARIES puma_local_planner
+  LIBRARIES puma_local_planner 
 #  CATKIN_DEPENDS costmap_2d geometry_msgs nav_core tf2_ros
 #  DEPENDS system_lib
 )
@@ -149,6 +149,7 @@ add_library(puma_local_planner
 	src/puma_local_planner.cpp
 )
 
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(puma_local_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
@@ -166,7 +167,7 @@ target_link_libraries(
 ## Install ##
 #############
 
-install(TARGETS puma_local_planner
+install(TARGETS puma_local_planner 
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

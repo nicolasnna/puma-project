@@ -34,8 +34,17 @@ namespace puma_local_planner {
       odometry_sub = nh.subscribe("/odometry/filtered", 1000, &PumaLocalPlanner::odometryCallback, this);
       ackerman_pub = nh.advertise<ackermann_msgs::AckermannDriveStamped>("/puma/control/ackermann/command", 10);
       
-      
-      wheel_base = 1.15;
+      // Config PID
+      pid_linear.p = 5.0;
+      pid_linear.i = 2.0;
+      pid_linear.d = 10.0;
+      pid_linear.integral_error = pid_linear.prev_error = 0.0;
+      pid_angular.p = 0.5;
+      pid_angular.i = 10.0;
+      pid_angular.d = 2.0;
+      pid_angular.integral_error = pid_angular.prev_error = 0.0;
+
+      dt = 0.1;
 
       costmap_ros_ = costmap_ros;
       // initialize the copy of the costmap the controller will use
@@ -63,7 +72,18 @@ namespace puma_local_planner {
     current_position.y = odom->pose.pose.position.y;
     current_position.z = odom->pose.pose.position.z;
 
-    current_position.az = odom->pose.pose.orientation.z;
+    // Create variables for orientation odom
+    double x, y, z, w = 0;
+    x = odom->pose.pose.orientation.x;
+    y = odom->pose.pose.orientation.y;
+    z = odom->pose.pose.orientation.z;
+    w = odom->pose.pose.orientation.w;
+    tf2::Quaternion quat_odom(x,y,z,w);
+    // Create variables for convert in RPY
+    double roll, pitch, yaw;
+    tf2::Matrix3x3(quat_odom).getRPY(roll, pitch, yaw);
+
+    current_position.az = yaw;
   }
 
 
@@ -115,14 +135,23 @@ namespace puma_local_planner {
     //if ( error_position.az < -PI ) { error_position.az += 2*PI; }
   }
 
-  void PumaLocalPlanner::setVelocity(){
+  double PumaLocalPlanner::computePid(pid pid_controller, double desired, double actual) {
+    double error = desired - actual;
+    pid_controller.integral_error += error * dt;
+    double derivative = (error - pid_controller.prev_error) / dt;
+    pid_controller.prev_error = error;
 
-    acker_cmd.drive.steering_angle = error_position.az;
+    return (pid_controller.p * error) + (pid_controller.i * pid_controller.integral_error) + (pid_controller.d * derivative);
+  }
+
+  void PumaLocalPlanner::setVelocity(){
+    double desired_steering_angle = error_position.az;
+    double angle_control = computePid(pid_angular, desired_steering_angle, current_angle_direction);
+    acker_cmd.drive.steering_angle = angle_control;
     acker_cmd.drive.speed = 0.6;
   }
 
   void PumaLocalPlanner::setRotation(){
-    // AUN ERROR EN GIRAR HACIA UN SOLO LADO
     if (fabs(error_position.az) > 30*D2R ) {
       // Wheen error > limit direction
       //ROS_INFO("Error angular mayor a la direccion limite. Error: %f", error_position.az);
@@ -135,8 +164,10 @@ namespace puma_local_planner {
       }
     } else {
       // Wheen error is on limit of direction
-      ROS_INFO("Error angular dentro de los limites de la direccion");
-      acker_cmd.drive.steering_angle = error_position.az;
+      //ROS_INFO("Error angular dentro de los limites de la direccion");
+      double desired_steering_angle = error_position.az;
+      double angle_control = computePid(pid_angular, desired_steering_angle, current_angle_direction);
+      acker_cmd.drive.steering_angle = angle_control;
       acker_cmd.drive.speed = 0.0;
 
       if ( fabs(error_position.az) <= (current_angle_direction + 2*D2R) & 
@@ -166,6 +197,9 @@ namespace puma_local_planner {
       // Ackermann
       acker_cmd.drive.speed = 0.0;
       acker_cmd.drive.steering_angle = 0.0;
+      // Reset pid
+      pid_angular.prev_error = pid_angular.integral_error = 0.0;
+      pid_linear.prev_error = pid_linear.integral_error = 0.0;
     }
   }
 
@@ -194,14 +228,6 @@ namespace puma_local_planner {
     }
 
     ackerman_pub.publish(acker_cmd);
-    return true;
-  }
-
-  bool PumaLocalPlanner::computeAckermannCommands(ackermann_msgs::AckermannDriveStamped& acker_msg){
-    if(!initialized_) {
-      ROS_ERROR("Este planificador no ha sido iniciado");
-      return false;
-    }
     return true;
   }
 

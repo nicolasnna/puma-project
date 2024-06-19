@@ -22,12 +22,21 @@
 #include <nav_msgs/Odometry.h>
 #include <ackermann_msgs/AckermannDriveStamped.h>
 
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+//#include "pid.h"
+
 using namespace std;
 
 namespace puma_local_planner{
 
   struct position{
     double x, y, z, az;
+  };
+
+  struct pid {
+    double p, i, d;
+    double prev_error, integral_error;
   };
 
   class PumaLocalPlanner : public nav_core::BaseLocalPlanner{
@@ -50,9 +59,9 @@ namespace puma_local_planner{
       
       // Control velocity
       bool computeVelocityCommands(geometry_msgs::Twist& cmd_vel);
-      bool computeAckermannCommands(ackermann_msgs::AckermannDriveStamped& acker_msg);
       void setVelocity();
       void setRotation();
+      double computePid(pid, double, double);
 
       // Callbacks
       void statusArduinoCallback(const puma_arduino_msgs::StatusArduino::ConstPtr &);
@@ -73,6 +82,7 @@ namespace puma_local_planner{
       float current_vel_x;
       float current_angular_z;
 
+
       // Subs and pub
       ros::Subscriber status_arduino_sub, odometry_sub;
       ros::Publisher ackerman_pub;
@@ -90,9 +100,9 @@ namespace puma_local_planner{
       // Error position
       position error_position;
 
-      // Robot Cinematics
-      double wheel_base;
-
+      // PID Controller
+      pid pid_linear, pid_angular;
+      double dt;
   };
 };
 
