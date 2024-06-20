@@ -1,0 +1,2 @@
+geometry_msgs/PoseStamped selected_goal
+float32 angle_limit

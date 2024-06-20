@@ -82,7 +82,6 @@ namespace puma_local_planner{
       float current_vel_x;
       float current_angular_z;
 
-
       // Subs and pub
       ros::Subscriber status_arduino_sub, odometry_sub;
       ros::Publisher ackerman_pub;
@@ -95,6 +94,7 @@ namespace puma_local_planner{
       double distance;
       std::vector<geometry_msgs::PoseStamped> plan; // it will contain global plan
       bool goal_reached;
+      bool relocate_orientation;
       // Pos vel next
       position next_position;
       // Error position

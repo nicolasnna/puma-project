@@ -35,16 +35,18 @@ namespace puma_local_planner {
       ackerman_pub = nh.advertise<ackermann_msgs::AckermannDriveStamped>("/puma/control/ackermann/command", 10);
       
       // Config PID
-      pid_linear.p = 5.0;
-      pid_linear.i = 2.0;
-      pid_linear.d = 10.0;
+      pid_linear.p = 0.7;
+      pid_linear.i = 5.0;
+      pid_linear.d = 3.0;
       pid_linear.integral_error = pid_linear.prev_error = 0.0;
-      pid_angular.p = 0.5;
-      pid_angular.i = 10.0;
+      pid_angular.p = 0.3;
+      pid_angular.i = 2.0;
       pid_angular.d = 2.0;
       pid_angular.integral_error = pid_angular.prev_error = 0.0;
 
       dt = 0.1;
+
+      relocate_orientation = false;
 
       costmap_ros_ = costmap_ros;
       // initialize the copy of the costmap the controller will use
@@ -124,14 +126,16 @@ namespace puma_local_planner {
     // Calculate tan
       delta_theta = std::atan2(error_position.y, error_position.x);
     }
-
+   
     //Calculate distance
     distance = std::sqrt( pow(error_position.x,2) + pow(error_position.y,2) );
     error_position.az = delta_theta - current_position.az ;
 
+
     // Choose smallest angle  
     // Always smaller than abs(PI)
-    //if ( error_position.az > PI ) { error_position.az -= 2*PI; }
+    // if ( fabs(error_position.az) > PI ) { relocate_orientation = true; }
+    // else { relocate_orientation = false; }
     //if ( error_position.az < -PI ) { error_position.az += 2*PI; }
   }
 
@@ -152,28 +156,30 @@ namespace puma_local_planner {
   }
 
   void PumaLocalPlanner::setRotation(){
-    if (fabs(error_position.az) > 30*D2R ) {
-      // Wheen error > limit direction
-      //ROS_INFO("Error angular mayor a la direccion limite. Error: %f", error_position.az);
-      acker_cmd.drive.steering_angle = error_position.az;
-      acker_cmd.drive.speed = 0.0;
+    
+      if (fabs(error_position.az) > 30*D2R ) {
+        // Wheen error > limit direction
+        //ROS_INFO("Error angular mayor a la direccion limite. Error: %f", error_position.az);
+        acker_cmd.drive.steering_angle = error_position.az;
+        acker_cmd.drive.speed = 0.0;
 
-      if (fabs(current_angle_direction) >= 29*D2R) {
-        // When direction is in limit
-        acker_cmd.drive.speed = 0.3;
-      }
-    } else {
-      // Wheen error is on limit of direction
-      //ROS_INFO("Error angular dentro de los limites de la direccion");
-      double desired_steering_angle = error_position.az;
-      double angle_control = computePid(pid_angular, desired_steering_angle, current_angle_direction);
-      acker_cmd.drive.steering_angle = angle_control;
-      acker_cmd.drive.speed = 0.0;
+        if (fabs(current_angle_direction) >= 29*D2R) {
+          // When direction is in limit
+          acker_cmd.drive.speed = 0.3;
+        }
+      } else {
+        // Wheen error is on limit of direction
+        //ROS_INFO("Error angular dentro de los limites de la direccion");
+        double desired_steering_angle = error_position.az;
+        double angle_control = computePid(pid_angular, desired_steering_angle, current_angle_direction);
+        acker_cmd.drive.steering_angle = angle_control;
+        acker_cmd.drive.speed = 0.0;
 
-      if ( fabs(error_position.az) <= (current_angle_direction + 2*D2R) & 
-        fabs(error_position.az) >= (current_angle_direction - 2*D2R)) {
-        acker_cmd.drive.speed = 0.5;
-      }
+        if ( fabs(error_position.az) <= (current_angle_direction + 2*D2R) & 
+          fabs(error_position.az) >= (current_angle_direction - 2*D2R)) {
+          acker_cmd.drive.speed = 0.5;
+        }
+      
     }
   }
 

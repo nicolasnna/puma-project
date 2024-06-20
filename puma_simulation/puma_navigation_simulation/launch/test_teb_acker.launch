@@ -21,17 +21,17 @@
 		<param name="controller_patience" value="15.0" /> 
 
     <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/>
-    <rosparam command="load" file="$(arg path)/eband_local_planner.yaml"/>
+    <rosparam command="load" file="$(arg path)/teb_acker.yaml"/>
     <param name="clearing_rotation_allowed" value="false" /> <!-- Our carlike robot is not able to rotate in place -->
     <!-- <param name="base_global_planner" value="global_planner/GlobalPlanner" /> -->
 		<!-- <param name="planner_frequency" value="1.0" />
 		<param name="planner_patience" value="5.0" /> -->
-    <param name="base_local_planner" value="eband_local_planner/EBandPlannerROS" />
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
     <!-- <rosparam command="load" file="$(arg path)/base_local_planner.yaml"/> -->
     
 		<!-- <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" /> -->
   </node>
-
+  <node name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_min.py" output="screen"/>
 
   <!-- <node name="pointcloud_to_laserscan" pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node">
     <remap from="cloud_in" to="/camera/depth/color/points"/>

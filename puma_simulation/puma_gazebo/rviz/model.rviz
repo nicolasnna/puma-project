@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /TF1/Frames1
         - /Navigation1
+        - /Navigation1/Global planner1
       Splitter Ratio: 0.5
     Tree Height: 552
   - Class: rviz/Selection
@@ -466,9 +467,19 @@ Visualization Manager:
           Class: rviz/Map
           Color Scheme: costmap
           Draw Behind: false
-          Enabled: true
+          Enabled: false
           Name: Potential
           Topic: /move_base/GlobalPlanner/potential
+          Unreliable: false
+          Use Timestamp: false
+          Value: false
+        - Alpha: 0.699999988079071
+          Class: rviz/Map
+          Color Scheme: raw
+          Draw Behind: false
+          Enabled: true
+          Name: local cost
+          Topic: /move_base/local_costmap/costmap
           Unreliable: false
           Use Timestamp: false
           Value: true
@@ -502,16 +513,6 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
-    - Alpha: 0.699999988079071
-      Class: rviz/Map
-      Color Scheme: map
-      Draw Behind: false
-      Enabled: true
-      Name: Map
-      Topic: /move_base/local_costmap/costmap
-      Unreliable: false
-      Use Timestamp: false
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -540,7 +541,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 10.721171379089355
+      Distance: 16.85189437866211
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -548,17 +549,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 2.682482957839966
-        Y: -0.48405662178993225
-        Z: 3.4986166954040527
+        X: 10.170689582824707
+        Y: 9.488076210021973
+        Z: -1.0479668378829956
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.2903207540512085
       Target Frame: <Fixed Frame>
-      Yaw: 2.9526476860046387
+      Yaw: 4.998241901397705
     Saved: ~
 Window Geometry:
   Displays:

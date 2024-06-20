@@ -6,7 +6,7 @@ from puma_arduino_msgs.msg import StatusArduino
 import numpy as np
 
 
-class CmdVelToAckermann():
+class CmdVelToAckermannMin():
   def __init__(self):
     # Initialization of parameters
     self.cmd_vel_topic = rospy.get_param('~cmd_vel_topic', 'cmd_vel')
@@ -38,30 +38,9 @@ class CmdVelToAckermann():
     """
     Processes data received from cmd_vel and updates necessary variables
     """
-    linear_velocity = data_received.linear.x
-    angular_velocity = data_received.angular.z
-    self.steering_angle = self.calculate_steering_angle(linear_velocity, angular_velocity)
-    self.vel = linear_velocity
-    
+    self.vel = data_received.linear.x
+    self.steering_angle = data_received.angular.z
   
-  def calculate_steering_angle(self, linear_velocity, angular_velocity):
-    """
-    Calculates the steering angle and wheel input
-    """
-    # Calculate turning radius
-    if angular_velocity == 0 or linear_velocity == 0:
-      return 0
-    else:
-      radius = linear_velocity / angular_velocity
-  
-    #rospy.loginfo("Linear velocity: %s. Radius; %s", linear_velocity, radius)
-    # Calculate steering angle
-    calculate_ang = math.atan(self.wheel_base / radius)
-    # Validate steering angle 
-    steering_angle = self.ang_max if calculate_ang > self.ang_max else calculate_ang
-    steering_angle = -self.ang_max if calculate_ang < -self.ang_max else steering_angle
-   
-    return steering_angle
   
   def publish_ackermann(self):
     # Messages
@@ -73,13 +52,16 @@ class CmdVelToAckermann():
     diff_angle_1 = abs(self.steering_angle - self.current_angle)
     diff_angle_2 = abs(self.current_angle - self.steering_angle)
     
-    if ( diff_angle_1 > np.deg2rad(10) or diff_angle_2> np.deg2rad(10)):
+    if ( diff_angle_1 > np.deg2rad(20) or diff_angle_2> np.deg2rad(20)):
       ackermann_msg.drive.speed = 0.0
-    elif( diff_angle_1 > np.deg2rad(5) or diff_angle_2> np.deg2rad(5)):
+    elif( diff_angle_1 > np.deg2rad(12) or diff_angle_2> np.deg2rad(12)):
+      ackermann_msg.drive.speed = self.vel * 0.2
+    elif( diff_angle_1 > np.deg2rad(7) or diff_angle_2> np.deg2rad(7)):
       ackermann_msg.drive.speed = self.vel * 0.5
     elif( diff_angle_1 > np.deg2rad(2) or diff_angle_2> np.deg2rad(2)):
       ackermann_msg.drive.speed = self.vel * 0.8
     else: 
       ackermann_msg.drive.speed = self.vel
+
     
     self.ackermann_pub.publish(ackermann_msg)
