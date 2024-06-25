@@ -6,6 +6,7 @@ from std_msgs.msg import Int16, Bool
 from puma_direction_msgs.msg import DirectionCmd
 from puma_arduino_msgs.msg import StatusArduino
 from puma_brake_msgs.msg import BrakeCmd
+from diagnostic_msgs.msg import DiagnosticStatus
 
 class PumaVelocityController():
   def __init__(self):
@@ -19,6 +20,7 @@ class PumaVelocityController():
     # Subscribers
     rospy.Subscriber(self.cmd_vel_topic, Twist, self.cmd_vel_callback)
     rospy.Subscriber(self.status_topic, StatusArduino, self.status_arduino_callback)
+    rospy.Subscriber('/puma/joy/diagnostic', DiagnosticStatus, self.diagnostic_joy_callback)
 
     # Publishers
     self.rear_wheels_pub = rospy.Publisher('puma/accelerator/command', Int16, queue_size=5)
@@ -41,6 +43,7 @@ class PumaVelocityController():
     self.change_steering = False
     self.steering_angle = 0
     self.input_wheels = 0
+    self.enable_joy = False
     
     # Messages
     self.rear_wheels_msg = Int16()
@@ -48,6 +51,15 @@ class PumaVelocityController():
     self.brake_wheels_msg = BrakeCmd()
     self.reverse_msg = Bool()
     
+  def diagnostic_joy_callback(self, status):
+    '''
+    Callback diagnostic joy status
+    '''
+    if status.level == 0:
+      self.enable_joy = True
+    else: 
+      self.enable_joy = False
+          
   def status_arduino_callback(self, status_received):
     """
     Processes data received from Arduino and determines if steering angle needs adjustment
@@ -134,7 +146,8 @@ class PumaVelocityController():
     """
     Periodically publishes control commands
     """
-    self.control_steering()
-    self.control_wheels()
-    self.brake_wheels_pub.publish(self.brake_wheels_msg)
-    self.reverse_pub.publish(self.reverse_msg)
+    if not self.enable_joy:
+      self.control_steering()
+      self.control_wheels()
+      self.brake_wheels_pub.publish(self.brake_wheels_msg)
+      self.reverse_pub.publish(self.reverse_msg)

@@ -3,6 +3,7 @@ import rospy
 from ackermann_msgs.msg import AckermannDriveStamped
 from puma_brake_msgs.msg import BrakeCmd
 from std_msgs.msg import Bool, Int16
+from diagnostic_msgs.msg import DiagnosticStatus
 
 class VelocityLinearController():
   def __init__(self):
@@ -14,6 +15,7 @@ class VelocityLinearController():
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
+    rospy.Subscriber('/puma/joy/diagnostic', DiagnosticStatus, self.diagnostic_joy_callback)
 
     # Publishers
     self.reverse_pub = rospy.Publisher(reverse_topic, Bool, queue_size=10)
@@ -24,6 +26,16 @@ class VelocityLinearController():
     self.reverse_msg = Bool(False)
     self.brake_msg = BrakeCmd()
     self.accel_msg = Int16()
+    self.enable_joy = False
+    
+  def diagnostic_joy_callback(self, status):
+    '''
+    Callback diagnostic joy status
+    '''
+    if status.level == 0:
+      self.enable_joy = True
+    else: 
+      self.enable_joy = False
     
   def ackermann_callback(self, acker_data):
     '''
@@ -46,6 +58,7 @@ class VelocityLinearController():
     '''
     Puublish velocity linear control periodically
     '''
-    self.accel_pub.publish(self.accel_msg)
-    self.brake_pub.publish(self.brake_msg)
-    self.reverse_pub.publish(self.reverse_msg)
+    if not self.enable_joy:
+      self.accel_pub.publish(self.accel_msg)
+      self.brake_pub.publish(self.brake_msg)
+      self.reverse_pub.publish(self.reverse_msg)

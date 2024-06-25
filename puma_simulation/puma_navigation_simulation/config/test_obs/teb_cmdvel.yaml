@@ -26,7 +26,7 @@ TebLocalPlannerROS:
   acc_lim_theta: 0.3
 
  # ********************** Carlike robot parameters ********************
-  min_turning_radius: 2      # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
+  min_turning_radius: 2.3      # Min turning radius of the carlike robot (compute value using a model or adjust with rqt_reconfigure manually)
   wheelbase: 1.15           # Wheelbase of our robot
   cmd_angle_instead_rotvel: False # stage simulator takes the angle instead of the rotvel as input (twist message)
  # ********************************************************************
@@ -41,17 +41,17 @@ TebLocalPlannerROS:
   xy_goal_tolerance: 0.5
   yaw_goal_tolerance: 0.7
   free_goal_vel: False
-  complete_global_plan: False
+  complete_global_plan: True
     
  # Obstacles
     
-  min_obstacle_dist: 0.57 # This value must also include our robot's expansion, since footprint_model is set to "line".
-  inflation_dist: 0.6
+  min_obstacle_dist: 2 # This value must also include our robot's expansion, since footprint_model is set to "line".
+  inflation_dist: 1
   include_costmap_obstacles: True
-  costmap_obstacles_behind_robot_dist: 1.0
+  costmap_obstacles_behind_robot_dist: 2.0
   obstacle_poses_affected: 15
 
-  dynamic_obstacle_inflation_dist: 0.6
+  dynamic_obstacle_inflation_dist: 2
   include_dynamic_obstacles: True 
 
   costmap_converter_plugin: ""

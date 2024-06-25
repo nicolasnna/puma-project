@@ -20,9 +20,9 @@ class CmdVelToAckermann():
     self.ackermann_pub = rospy.Publisher('puma/control/ackermann/command', AckermannDriveStamped, queue_size=10)
     
     # Calculate max radius
-    self.ang_max = np.deg2rad(15)
+    self.ang_max = np.deg2rad(30)
     self.radius_max = self.wheel_base/np.arctan(self.ang_max)  # 4.4912
-    rospy.loginfo("Radius max: %f", self.radius_max)
+    #rospy.loginfo("Radius max: %f", self.radius_max)
     self.speed_acker = 0.0
     self.A2R = 0.006135742
     self.position_zero = 395
@@ -69,17 +69,18 @@ class CmdVelToAckermann():
     ackermann_msg.header.stamp = rospy.Time.now()
     ackermann_msg.header.frame_id = 'odom'
     ackermann_msg.drive.steering_angle = self.steering_angle
+    ackermann_msg.drive.speed = self.vel
     
-    diff_angle_1 = abs(self.steering_angle - self.current_angle)
-    diff_angle_2 = abs(self.current_angle - self.steering_angle)
+    # diff_angle_1 = abs(self.steering_angle - self.current_angle)
+    # diff_angle_2 = abs(self.current_angle - self.steering_angle)
     
-    if ( diff_angle_1 > np.deg2rad(10) or diff_angle_2> np.deg2rad(10)):
-      ackermann_msg.drive.speed = 0.0
-    elif( diff_angle_1 > np.deg2rad(5) or diff_angle_2> np.deg2rad(5)):
-      ackermann_msg.drive.speed = self.vel * 0.5
-    elif( diff_angle_1 > np.deg2rad(2) or diff_angle_2> np.deg2rad(2)):
-      ackermann_msg.drive.speed = self.vel * 0.8
-    else: 
-      ackermann_msg.drive.speed = self.vel
+    # if ( diff_angle_1 > np.deg2rad(10) or diff_angle_2> np.deg2rad(10)):
+    #   ackermann_msg.drive.speed = 0.0
+    # elif( diff_angle_1 > np.deg2rad(5) or diff_angle_2> np.deg2rad(5)):
+    #   ackermann_msg.drive.speed = self.vel * 0.5
+    # elif( diff_angle_1 > np.deg2rad(2) or diff_angle_2> np.deg2rad(2)):
+    #   ackermann_msg.drive.speed = self.vel * 0.8
+    # else: 
+    #   ackermann_msg.drive.speed = self.vel
     
     self.ackermann_pub.publish(ackermann_msg)

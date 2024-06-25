@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib_msgs
   actionlib
   geometry_msgs
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -50,6 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate messages in the 'msg' folder
 # add_message_files(
+#   DIRECTORY msg
 #   FILES
 #   Message1.msg
 #   Message2.msg
@@ -65,9 +67,7 @@ find_package(catkin REQUIRED COMPONENTS
 # Generate actions in the 'action' folder
 add_action_files(
   DIRECTORY action
-  FILES
-  Action1.action
-
+  FILES Relocate.action
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -75,7 +75,7 @@ add_action_files(
 #   DEPENDENCIES
 #   std_msgs  # Or other packages containing msgs
 # )
-generate_messages(DEPENDENCIES actionlib_msgs)
+generate_messages(DEPENDENCIES actionlib_msgs std_msgs geometry_msgs)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##

@@ -1,8 +1,9 @@
 #goal definition
 geometry_msgs/PoseStamped goal_orientation
+float32 angle_limit
 ---
 #result definition
-float32 orientation_result
+float32 orientation_diff_result
 ---
 #feedback
 float32 orientation_missing

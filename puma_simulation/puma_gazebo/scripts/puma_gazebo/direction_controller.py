@@ -3,6 +3,7 @@ import rospy
 from puma_direction_msgs.msg import DirectionCmd
 from ackermann_msgs.msg import AckermannDriveStamped
 from std_msgs.msg import Float64, Bool
+from diagnostic_msgs.msg import DiagnosticStatus
 import numpy as np
 
 class DirectionController():
@@ -19,6 +20,7 @@ class DirectionController():
     rospy.Subscriber('puma/direction/command', DirectionCmd, self.dir_callback)
     rospy.Subscriber('puma/control/ackermann/command', AckermannDriveStamped, self.ackermann_callback)
     rospy.Subscriber('puma/reverse/command', Bool, self.reverse_callback)
+    rospy.Subscriber('puma/joy/diagnostic', DiagnosticStatus, self.diagnostic_joy)
     
     # Variable
     self.value_offset = rospy.get_param('direction_value_offset', 0.0)
@@ -44,6 +46,16 @@ class DirectionController():
     self.tolerance = 0.05
     
     self.is_reverse = False
+    self.enable_joy = False
+    
+  def diagnostic_joy(self, status):
+    '''
+    Callback from status of joy
+    '''
+    if status.level == 0:
+      self.enable_joy = True
+    else:
+      self.enable_joy = False
     
   def ackermann_callback(self, acker_data):
     '''
@@ -69,31 +81,15 @@ class DirectionController():
     is_diff_angle_negativ = (self.current_angle*(1-self.tolerance) > self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE)
     
     if is_diff_angle_positiv:
-      self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
+      self.dir_value.data = self.dir_value.data + (7*self.CONST_RAD_VALUE/3)
       #rospy.loginfo("Increment direction to right")
     elif is_diff_angle_negativ:
-      self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
+      self.dir_value.data = self.dir_value.data - (7*self.CONST_RAD_VALUE/3)
       #rospy.loginfo("Increment direction to left")
     
     self.current_position = int((self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
     self.current_angle = self.dir_value.data
-    # else:
-    #   # For backward drive
-    #   is_diff_angle_positiv = (self.current_angle*(1-self.tolerance) > self.angle_goal) and (current_angle_analog <= self.LEFT_LIMIT_VALUE)
-    #   is_diff_angle_negativ = (self.current_angle*(1+self.tolerance) < self.angle_goal) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE)
-    #   #rospy.loginfo("Is diff angle to positiv: %s, is diff angle to negativ: %s", is_diff_angle_positiv, is_diff_angle_negativ)
-      
-    #   if is_diff_angle_positiv:
-    #     self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3
-    #     #rospy.loginfo("Increment direction to right")
-    #   elif is_diff_angle_negativ:
-    #     self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3
-    #     #rospy.loginfo("Increment direction to left")
-        
-    #   #rospy.loginfo("Right angle limit: %s, left angle limit: %s", self.RIGHT_LIMIT_VALUE, self.LEFT_LIMIT_VALUE)
-    #   #rospy.loginfo("Current position: %s, current goal: %s", self.current_angle, self.angle_goal)
-    #   self.current_position = int((self.dir_value.data)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
-    #   self.current_angle = self.dir_value.data
+
       
   def dir_callback(self, data_received):
     '''
@@ -107,25 +103,25 @@ class DirectionController():
     '''
     Control dir position with remote
     '''
-    if self._activate_dir:
+    if self.enable_joy:
+      if self._activate_dir:
+        current_angle_analog = self.current_angle / self.CONST_RAD_VALUE
+        if (self._orientation_dir > 0 ) and (current_angle_analog >= self.RIGHT_LIMIT_VALUE):
+          self.dir_value.data = self.dir_value.data - (7*self.CONST_RAD_VALUE/3) + self.value_offset
+            
+        elif (self._orientation_dir < 0) and (current_angle_analog <= self.LEFT_LIMIT_VALUE):
+          self.dir_value.data = self.dir_value.data + (7*self.CONST_RAD_VALUE/3) + self.value_offset
       
-      if (self._orientation_dir > 0 ) and (self.dir_value.data >= self.RIGHT_LIMIT_VALUE):
-        self.dir_value.data = self.dir_value.data - self.CONST_RAD_VALUE/3 + self.value_offset
-          
-      elif (self._orientation_dir < 0) and (self.dir_value.data <= self.LEFT_LIMIT_VALUE):
-        self.dir_value.data = self.dir_value.data + self.CONST_RAD_VALUE/3 + self.value_offset
-    
-    self.current_position = int(-1*(self.dir_value.data-self.value_offset)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
-    self.current_angle = self.dir_value.data
-    self.current_enable = self._activate_dir 
+      self.current_position = int(-1*(self.dir_value.data-self.value_offset)/self.CONST_RAD_VALUE + self.ZERO_POSITION_VALUE)
+      self.current_angle = self.dir_value.data
+      self.current_enable = self._activate_dir 
     
   def publish_position(self):
     '''
     Send msg to direction 
     '''
-    #rospy.loginfo("Valor en radianes de la direccion: %s",self.dir_value.data)
-    #rospy.loginfo("limite derecho: %s limite izquierdo: %s", self.RIGHT_LIMIT_VALUE, self.LEFT_LIMIT_VALUE)
-    self.direction_to_angle()
+    if not self.enable_joy:
+      self.direction_to_angle()
     self._pub_dir_left.publish(self.dir_value)
     self._pub_dir_right.publish(self.dir_value)
     

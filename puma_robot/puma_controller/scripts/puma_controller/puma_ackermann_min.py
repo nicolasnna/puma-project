@@ -22,7 +22,7 @@ class CmdVelToAckermannMin():
     # Calculate max radius
     self.ang_max = np.deg2rad(15)
     self.radius_max = self.wheel_base/np.arctan(self.ang_max)  # 4.4912
-    rospy.loginfo("Radius max: %f", self.radius_max)
+    #rospy.loginfo("Radius max: %f", self.radius_max)
     self.speed_acker = 0.0
     self.A2R = 0.006135742
     self.position_zero = 395

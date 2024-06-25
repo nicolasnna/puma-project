@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   puma_arduino_msgs
   gazebo_ros_control
   velocity_controllers
+  diagnostic_msgs
 )
 
 ## System dependencies are found with CMake's conventions

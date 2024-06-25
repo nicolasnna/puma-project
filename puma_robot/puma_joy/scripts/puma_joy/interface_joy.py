@@ -83,9 +83,6 @@ class InterfaceJoy():
         self.msg_send_brake_electric.data = False
         
         self.msg_diagnostic = DiagnosticStatus()
-        # self.msg_diagnostic.level = 2
-        # self.msg_diagnostic.name = 'Joy interface puma'
-        # self.msg_diagnostic.message = "Interface cannot get joy data"
         self.msg_diagnostic.level = 0
         self.msg_diagnostic.name = 'Joy interface puma'
         self.msg_diagnostic.message = "Interface is working"
@@ -119,11 +116,11 @@ class InterfaceJoy():
         
         # Brake electric status
         if self.LB_button and self.RB_button:
-            self.msg_send_brake_electric.data = not self.msg_send_brake_electric.data
+            self.msg_send_brake_electric.data = self.LB_button
         
         # Reverse status
-        if self.back_button and self.start_button:
-            self.msg_send_reverse.data = not self.msg_send_reverse.data
+        #if self.back_button and self.start_button:
+        self.msg_send_reverse.data = self.LB_button
         
         # Accelerator status
         if self.start_button:
@@ -135,6 +132,7 @@ class InterfaceJoy():
         for elements in status:
             if elements.name == 'joy_node: Joystick Driver Status':
                 self.level_joy = elements.level 
+        self.msg_diagnostic.level = self.level_joy
                         
     def __convertTriggerToRange(self,trigger_value, value_min, value_max):
         '''
@@ -147,7 +145,6 @@ class InterfaceJoy():
         '''
         Publish control data and dir data
         '''
-        self._publisher_diagnostic.publish(self.msg_diagnostic)
         try: 
             # --- Control brake --- #
             self.msg_send_brake.position = self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1])
@@ -161,10 +158,13 @@ class InterfaceJoy():
             # --- Control Accelerator puma --- #
             self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
             
+            self.msg_diagnostic.message = "Interface is working"
+            
             if self.level_joy != 0:
                 self.msg_send_accel_puma.data = 0
                 self.msg_send_dir.activate = False
                 self.msg_send_brake.position = 1000
+                self.msg_diagnostic.message = "Interface is not working"
             
         except: 
             # Cierre
@@ -173,6 +173,7 @@ class InterfaceJoy():
             self.msg_send_dir.activate = False
             self.msg_send_accel_puma.data = 0
         finally: 
+            self._publisher_diagnostic.publish(self.msg_diagnostic)
             self._publisher_brake.publish(self.msg_send_brake)
             self._publisher_dir.publish(self.msg_send_dir)
             if self.ready_send_accel:
