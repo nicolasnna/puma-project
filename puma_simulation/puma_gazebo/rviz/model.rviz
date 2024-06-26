@@ -8,7 +8,7 @@ Panels:
         - /TF1/Frames1
         - /Navigation1
         - /Navigation1/Global planner1
-        - /Navigation1/local cost1
+        - /Navigation1/Global costmap1
       Splitter Ratio: 0.5
     Tree Height: 552
   - Class: rviz/Selection
@@ -28,7 +28,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: PointCloud2
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -495,9 +495,19 @@ Visualization Manager:
           Class: rviz/Map
           Color Scheme: costmap
           Draw Behind: false
-          Enabled: true
+          Enabled: false
           Name: local cost
           Topic: /move_base/local_costmap/costmap
+          Unreliable: false
+          Use Timestamp: false
+          Value: false
+        - Alpha: 0.8999999761581421
+          Class: rviz/Map
+          Color Scheme: costmap
+          Draw Behind: false
+          Enabled: true
+          Name: Global costmap
+          Topic: /move_base/global_costmap/costmap
           Unreliable: false
           Use Timestamp: false
           Value: true
@@ -531,7 +541,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 28.496370315551758
+      Distance: 36.727439880371094
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -539,9 +549,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 8.91252613067627
-        Y: 2.5440094470977783
-        Z: -1.958448052406311
+        X: 0.6890314817428589
+        Y: 3.1904478073120117
+        Z: -1.9119247198104858
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
@@ -549,7 +559,7 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
-      Yaw: 3.1682276725769043
+      Yaw: 4.713234901428223
     Saved: ~
 Window Geometry:
   Displays:
@@ -568,4 +578,4 @@ Window Geometry:
     collapsed: false
   Width: 1158
   X: 192
-  Y: 154
+  Y: 80
