@@ -1,0 +1,26 @@
+<library path="lib/libpuma_plugin_rviz">
+  <class type="buttons_waypoints::ReadyPath"
+         base_class_type="rviz::Tool">
+    <description>
+      Button tool in rviz for activate path follow in puma_waypoints
+    </description>
+  </class>
+</library>
+
+<library path="lib/libpuma_plugin_rviz">
+  <class type="buttons_waypoints::ResetPath"
+         base_class_type="rviz::Tool">
+    <description>
+      Button tool in rviz for rest path plan in puma_waypoints
+    </description>
+  </class>
+</library>
+
+<library path="lib/libpuma_plugin_rviz">
+  <class type="buttons_waypoints::StopPlan"
+         base_class_type="rviz::Tool">
+    <description>
+      Button tool in rviz for rest stop current plan in puma_waypoints
+    </description>
+  </class>
+</library>

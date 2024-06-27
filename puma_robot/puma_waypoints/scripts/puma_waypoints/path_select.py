@@ -11,7 +11,7 @@ import tf
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success'], output_keys=['waypoints','path_plan'])
+    smach.State.__init__(self, outcomes=['success'], output_keys=['waypoints','path_plan'], input_keys=['waypoints'])
     self.ns = '~waypoints'
     self.ns_robot = '/puma/waypoints'
     # Get params
@@ -21,14 +21,14 @@ class PathSelect(smach.State):
     self.pose_array_publisher = rospy.Publisher(pose_array_topic, PoseArray, queue_size=1)
 
     # Variables
-    self.waypoints = []
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
+    self.waypoints = []
     
     # Start thread for reset messages
     def wait_for_reset_plan():
       """ Function for reset path """
       while not rospy.is_shutdown():
-        reset_msg = rospy.wait_for_message(self.ns_robot+'/path_reset', Empty)
+        reset_msg = rospy.wait_for_message(self.ns_robot+'/plan_reset', Empty)
         rospy.loginfo("Received command for reset waypoints")
         self.initialize_path_waypoints()
         rospy.sleep(3)
@@ -39,6 +39,7 @@ class PathSelect(smach.State):
   def initialize_path_waypoints(self):
     """ Initialize or reset path waypoints """
     self.waypoints = []
+    self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray([]))
     rospy.loginfo("Path array has been reseted")
     
   def convert_frame_pose(self, waypoint, target_frame):
@@ -73,14 +74,18 @@ class PathSelect(smach.State):
     
   def execute(self, userdata):
     """ Generate path waypoints """
-    self.initialize_path_waypoints()
+    if "waypoints" in userdata:
+      self.waypoints = userdata.waypoints
+      self.path_selected = True
+    else:
+      self.initialize_path_waypoints()
+      self.path_selected = False
     self.path_ready = False
-    self.path_selected = False
     
     # Load saved path
     def wait_for_upload_path():
       """ Function for load path from csv """
-      file_to_upload = rospy.wait_for_message(self.ns_robot+'/path_upload', String)
+      file_to_upload = rospy.wait_for_message(self.ns_robot+'/plan_upload', String)
       rospy.loginfo("Received file name for upload plan: '%s'",file_to_upload.data)
       path_file = self.output_file_path + '/' + file_to_upload.data + '.csv'
       try:
@@ -110,7 +115,7 @@ class PathSelect(smach.State):
     # Save current path
     def wait_for_save_path():
       """ Function for save actual path from csv """
-      file_to_save = rospy.wait_for_message(self.ns_robot+'/path_save', String)
+      file_to_save = rospy.wait_for_message(self.ns_robot+'/plan_save', String)
       rospy.loginfo("Received file name for save current plan: '%s'",file_to_save.data)
       path_file = self.output_file_path + '/' + file_to_save.data + '.csv'
       with open(path_file, 'w') as file:
@@ -132,7 +137,7 @@ class PathSelect(smach.State):
     # Wait for path ready
     def wait_for_path_ready():
       """ complete path and ready """
-      rospy.wait_for_message(self.ns_robot+'/path_ready', Empty)
+      rospy.wait_for_message(self.ns_robot+'/plan_ready', Empty)
       rospy.loginfo("Received path READY message")
       self.path_ready = True
     # Thread for path ready
@@ -146,6 +151,7 @@ class PathSelect(smach.State):
         continue
       except Exception as e:
         raise e
+      self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray([]))
       rospy.loginfo("Recieved new waypoint to x: %.3f, y: %.3f", pose.pose.pose.position.x, pose.pose.pose.position.y)
       # Transform to pose "map"
       self.waypoints.append(self.convert_frame_pose(pose,'map'))

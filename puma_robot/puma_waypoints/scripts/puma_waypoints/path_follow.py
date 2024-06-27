@@ -3,8 +3,10 @@ import rospy
 import smach
 import threading
 import actionlib
+from actionlib_msgs.msg import GoalID
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import PoseArray
+from std_msgs.msg import Empty
 import tf
 import time
 import math
@@ -12,7 +14,7 @@ import math
 class PathFollow(smach.State):
   """ Smach test of path follow """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success'], input_keys=['waypoints','path_plan'])
+    smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan'], output_keys=['waypoints'])
     self.ns = '~waypoints'
     self.ns_robot = '/puma/waypoints'
     
@@ -35,7 +37,23 @@ class PathFollow(smach.State):
     self.pose_array_planned = rospy.Publisher(self.ns_robot+'/path_planned',PoseArray,queue_size=1)
     self.pose_array_completed = rospy.Publisher(self.ns_robot+'/path_completed',PoseArray,queue_size=1)
     
+    self.is_aborted = False
+    
   def execute(self, userdata):
+    
+    # Aborted current plan
+    def wait_for_stop_plan():
+      rospy.wait_for_message('/puma/waypoints/plan_stop', Empty)
+      rospy.loginfo('####################################')
+      rospy.loginfo('##### PLAN IS ABORTED FOR USER #####')
+      rospy.loginfo('####################################')
+      stop_msg = GoalID()
+      rospy.Publisher('/move_base/cancel',GoalID,queue_size=1).publish(stop_msg)
+      self.is_aborted = True
+    # Init thread
+    stop_thread = threading.Thread(target=wait_for_stop_plan)
+    stop_thread.start()
+    
     # Execute waypoints each in sequence
     for waypoint in userdata.waypoints:
       # If dont have waypoints
@@ -58,18 +76,18 @@ class PathFollow(smach.State):
       
       # Send goal
       self.client.send_goal(goal)
-      if not self.distance_tolerance > 0.0:
+      if waypoint == userdata.waypoints[-1]:
         self.client.wait_for_result()
-        rospy.loginfo("Waiting for %f sec...", self.duration)
-        time.sleep(self.duration)
       else:
         # Loop wich detect when robot is near to a certain GOAL point
         distance = 10
         while(distance > self.distance_tolerance):
+          if self.is_aborted:
+            return 'aborted'
           now = rospy.Time.now()
           self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, now, rospy.Duration(4.0))
           trans,rot = self.listener.lookupTransform(self.odom_frame_id, self.base_frame_id, now)
           distance = math.sqrt(pow(goal_pos_x-trans[0],2) + pow(goal_pos_y-trans[1],2))
-          rospy.loginfo("DISTANCE: %.5f", distance)
+          #rospy.loginfo("DISTANCE: %.5f", distance)
         
     return 'success'
