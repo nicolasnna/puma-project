@@ -3,6 +3,8 @@
 
 #include <ros/ros.h>
 #include <rviz/tool.h>
+#include <rviz/display_context.h>
+#include <rviz/tool_manager.h>
 
 namespace buttons_waypoints {
 

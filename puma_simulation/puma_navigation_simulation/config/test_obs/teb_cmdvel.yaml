@@ -8,21 +8,20 @@ TebLocalPlannerROS:
   dt_hysteresis: 0.1
   max_samples: 500
   global_plan_overwrite_orientation: True
-  allow_init_with_backwards_motion: False
-  max_global_plan_lookahead_dist: 0.0
+  allow_init_with_backwards_motion: True
+  max_global_plan_lookahead_dist: 3.0
   global_plan_viapoint_sep: -1
   global_plan_prune_distance: 1
   exact_arc_length: False
-  feasibility_check_no_poses: 5
+  feasibility_check_no_poses: 2
   publish_feedback: False    
 
- # Robot
-         
-  max_vel_x: 5.0
+  # Robot
+  max_vel_x: 3.0
   max_vel_x_backwards: 1.4
   max_vel_y: 0.0
   max_vel_theta: 0.785 # the angular velocity is also bounded by min_turning_radius in case of a carlike robot (r = v / omega)
-  acc_lim_x: 1.8
+  acc_lim_x: 1.0
   acc_lim_theta: 0.3
 
  # ********************** Carlike robot parameters ********************
@@ -41,18 +40,18 @@ TebLocalPlannerROS:
   xy_goal_tolerance: 1.0
   yaw_goal_tolerance: 0.7
   free_goal_vel: False
-  complete_global_plan: False
+  complete_global_plan: True
     
  # Obstacles
     
   min_obstacle_dist: 3 # This value must also include our robot's expansion, since footprint_model is set to "line".
-  inflation_dist: 1
+  inflation_dist: 2
   include_costmap_obstacles: True
   costmap_obstacles_behind_robot_dist: 2.0
   obstacle_poses_affected: 15
 
   dynamic_obstacle_inflation_dist: 2
-  include_dynamic_obstacles: True 
+  include_dynamic_obstacles: False 
 
   costmap_converter_plugin: ""
   costmap_converter_spin_thread: True
@@ -64,14 +63,14 @@ TebLocalPlannerROS:
   no_outer_iterations: 4
   optimization_activate: True
   optimization_verbose: False
-  penalty_epsilon: 0.01
+  penalty_epsilon: 0.1
   obstacle_cost_exponent: 4
-  weight_max_vel_x: 1
+  weight_max_vel_x: 2
   weight_max_vel_theta: 1
   weight_acc_lim_x: 1
-  weight_acc_lim_theta: 10.0
+  weight_acc_lim_theta: 1
   weight_kinematics_nh: 1000
-  weight_kinematics_forward_drive: 100
+  weight_kinematics_forward_drive: 10
   weight_kinematics_turning_radius: 1
   weight_optimaltime: 1 # must be > 0
   weight_shortest_path: 0
@@ -86,9 +85,9 @@ TebLocalPlannerROS:
 
   enable_homotopy_class_planning: True
   enable_multithreading: True
-  max_number_classes: 6
+  max_number_classes: 4
   selection_cost_hysteresis: 1.0
-  selection_prefer_initial_plan: 0.9
+  selection_prefer_initial_plan: 0.95
   selection_obst_cost_scale: 10.0
   selection_alternative_time_cost: False
 

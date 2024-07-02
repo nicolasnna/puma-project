@@ -16,8 +16,7 @@ if __name__ == "__main__":
                            transitions={'success':'FOLLOW_PATH'},
                            remapping={'waypoints':'waypoints'})
     smach.StateMachine.add('FOLLOW_PATH',PathFollow(),
-                           transitions={'success':'COMPLETE_PATH',
-                            'aborted':'GET_PATH'},
+                           transitions={'success':'COMPLETE_PATH', 'aborted':'GET_PATH'}, 
                            remapping={'waypoints':'waypoints'}) 
     smach.StateMachine.add('COMPLETE_PATH',PathComplete(),
                            transitions={'success':'GET_PATH'})
@@ -26,8 +25,7 @@ if __name__ == "__main__":
   # For see state machine in diagram
   sis = smach_ros.IntrospectionServer('puma', sm, '/WAYPOINTS')
   sis.start()
-
+  
   while not rospy.is_shutdown():
     outcome = sm.execute()
-    rospy.spin()
     sis.stop()

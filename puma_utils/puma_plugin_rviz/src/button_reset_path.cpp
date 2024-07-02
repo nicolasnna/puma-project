@@ -16,6 +16,10 @@ namespace buttons_waypoints {
 
   void ResetPath::activate() { 
     Publish();
+    // Cambiar a la herramienta "Interact"
+    rviz::ToolManager* tool_manager = context_->getToolManager();
+    rviz::Tool* interact_tool = tool_manager->getTool(0);
+    tool_manager->setCurrentTool(interact_tool);
   }
 
   void ResetPath::deactivate() {}

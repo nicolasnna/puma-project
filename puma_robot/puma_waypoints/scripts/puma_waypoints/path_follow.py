@@ -6,9 +6,9 @@ import actionlib
 from actionlib_msgs.msg import GoalID
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import PoseArray
+from puma_manage_map_msgs.msg import ManageCmd
 from std_msgs.msg import Empty
 import tf
-import time
 import math
 
 class PathFollow(smach.State):
@@ -31,28 +31,43 @@ class PathFollow(smach.State):
     rospy.loginfo('Connected to move_base.')
     rospy.loginfo('Starting a tf listener.')
     self.listener = tf.TransformListener()
-    self.distance_tolerance = rospy.get_param(self.ns+'/waypoiint_distance_tolerance', 1.2)
+    self.distance_tolerance = rospy.get_param(self.ns+'/waypoint_distance_tolerance', 1.2)
     
     # Publisher 
     self.pose_array_planned = rospy.Publisher(self.ns_robot+'/path_planned',PoseArray,queue_size=1)
     self.pose_array_completed = rospy.Publisher(self.ns_robot+'/path_completed',PoseArray,queue_size=1)
     
+    # var
     self.is_aborted = False
-    
+    self.is_changing_map = False
+
   def execute(self, userdata):
-    
+    self.is_aborted = False
+    self.is_changing_map = False
+    path_planned = userdata.path_plan
+    path_complete = PoseArray()
+    path_complete.header.frame_id = path_planned.header.frame_id
     # Aborted current plan
     def wait_for_stop_plan():
       rospy.wait_for_message('/puma/waypoints/plan_stop', Empty)
       rospy.loginfo('####################################')
       rospy.loginfo('##### PLAN IS ABORTED FOR USER #####')
       rospy.loginfo('####################################')
+      self.is_aborted = True
       stop_msg = GoalID()
       rospy.Publisher('/move_base/cancel',GoalID,queue_size=1).publish(stop_msg)
-      self.is_aborted = True
     # Init thread
-    stop_thread = threading.Thread(target=wait_for_stop_plan)
+    stop_thread = threading.Thread(target=wait_for_stop_plan, daemon=True)
     stop_thread.start()
+    
+    # Pause plan for wait map change
+    def wait_for_change_map():
+      rospy.wait_for_message('/puma/map/change_map', ManageCmd)
+      rospy.loginfo('Is changing map')
+      self.is_changing_map = True
+    # Init thread
+    changing_map_thread = threading.Thread(target=wait_for_change_map)
+    changing_map_thread.start()
     
     # Execute waypoints each in sequence
     for waypoint in userdata.waypoints:
@@ -84,10 +99,24 @@ class PathFollow(smach.State):
         while(distance > self.distance_tolerance):
           if self.is_aborted:
             return 'aborted'
+          if self.is_changing_map:
+            stop_msg = GoalID()
+            rospy.Publisher('/move_base/cancel',GoalID,queue_size=1).publish(stop_msg)
+            rospy.wait_for_message('/puma/map/map_ready', Empty)
+            self.is_changing_map = False
+            # Continue plan
+            rospy.loginfo('Continua la navegacion')
+            self.client.send_goal(goal)
+            
           now = rospy.Time.now()
           self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, now, rospy.Duration(4.0))
           trans,rot = self.listener.lookupTransform(self.odom_frame_id, self.base_frame_id, now)
           distance = math.sqrt(pow(goal_pos_x-trans[0],2) + pow(goal_pos_y-trans[1],2))
-          #rospy.loginfo("DISTANCE: %.5f", distance)
-        
+          
+      path_complete.poses.append(path_planned.poses[0])
+      path_planned.poses.pop(0)
+      
+      self.pose_array_completed.publish(path_complete)
+      self.pose_array_planned.publish(path_planned)
+      
     return 'success'

@@ -1,0 +1,6 @@
+image: map_example.pgm
+resolution: 0.26
+origin: [-130, -130, 0]
+occupied_thresh: 0.65
+free_thresh: 0.196 # Taken from the Willow Garage map in the turtlebot_navigation package
+negate: 0

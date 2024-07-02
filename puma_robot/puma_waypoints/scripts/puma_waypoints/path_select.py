@@ -11,7 +11,7 @@ import tf
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success'], output_keys=['waypoints','path_plan'], input_keys=['waypoints'])
+    smach.State.__init__(self, outcomes=['success'], output_keys=['waypoints','path_plan','aborted'], input_keys=['waypoints'])
     self.ns = '~waypoints'
     self.ns_robot = '/puma/waypoints'
     # Get params
@@ -27,13 +27,16 @@ class PathSelect(smach.State):
     # Start thread for reset messages
     def wait_for_reset_plan():
       """ Function for reset path """
-      while not rospy.is_shutdown():
-        reset_msg = rospy.wait_for_message(self.ns_robot+'/plan_reset', Empty)
-        rospy.loginfo("Received command for reset waypoints")
-        self.initialize_path_waypoints()
-        rospy.sleep(3)
+      try:
+        while not rospy.is_shutdown():
+          reset_msg = rospy.wait_for_message(self.ns_robot+'/plan_reset', Empty)
+          rospy.loginfo("Received command for reset waypoints")
+          self.initialize_path_waypoints()
+          rospy.sleep(3)
+      except rospy.ROSInterruptException:
+        rospy.logwarn("Close wait for reset thread")
         
-    reset_thread = threading.Thread(target=wait_for_reset_plan)
+    reset_thread = threading.Thread(target=wait_for_reset_plan, daemon=True )
     reset_thread.start()
         
   def initialize_path_waypoints(self):
@@ -77,6 +80,7 @@ class PathSelect(smach.State):
     if "waypoints" in userdata:
       self.waypoints = userdata.waypoints
       self.path_selected = True
+      self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
     else:
       self.initialize_path_waypoints()
       self.path_selected = False
@@ -85,10 +89,10 @@ class PathSelect(smach.State):
     # Load saved path
     def wait_for_upload_path():
       """ Function for load path from csv """
-      file_to_upload = rospy.wait_for_message(self.ns_robot+'/plan_upload', String)
-      rospy.loginfo("Received file name for upload plan: '%s'",file_to_upload.data)
-      path_file = self.output_file_path + '/' + file_to_upload.data + '.csv'
       try:
+        file_to_upload = rospy.wait_for_message(self.ns_robot+'/plan_upload', String)
+        rospy.loginfo("Received file name for upload plan: '%s'",file_to_upload.data)
+        path_file = self.output_file_path + '/' + file_to_upload.data + '.csv'
         with open(path_file, 'r') as file:
           self.initialize_path_waypoints() # Reset plan
           read_csv = csv.reader(file, delimiter = ",")
@@ -105,43 +109,51 @@ class PathSelect(smach.State):
             self.waypoints.append(pose_plan)
           self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
         self.path_selected = True
+      except rospy.ROSInterruptException:
+        rospy.logwarn("Close wait for upload thread")
       except Exception as e:
         rospy.logwarn("Cannot upload or find file '%s' for path waypoints", file_to_upload)
         rospy.logwarn("Error: %s",e)
     # Thread for waiting upload path
-    wait_for_upload_thread = threading.Thread(target=wait_for_upload_path)
+    wait_for_upload_thread = threading.Thread(target=wait_for_upload_path, daemon=True)
     wait_for_upload_thread.start()
     
     # Save current path
     def wait_for_save_path():
       """ Function for save actual path from csv """
-      file_to_save = rospy.wait_for_message(self.ns_robot+'/plan_save', String)
-      rospy.loginfo("Received file name for save current plan: '%s'",file_to_save.data)
-      path_file = self.output_file_path + '/' + file_to_save.data + '.csv'
-      with open(path_file, 'w') as file:
-        write_csv = csv.writer(file, delimiter=",")
-        for pose_plan in self.waypoints:
-          write_csv.writerow([
-            str(pose_plan.pose.pose.position.x),
-            str(pose_plan.pose.pose.position.y),
-            str(pose_plan.pose.pose.position.z),
-            str(pose_plan.pose.pose.orientation.x),
-            str(pose_plan.pose.pose.orientation.y),
-            str(pose_plan.pose.pose.orientation.z),
-            str(pose_plan.pose.pose.orientation.w)
-          ])
+      try:
+        file_to_save = rospy.wait_for_message(self.ns_robot+'/plan_save', String)
+        rospy.loginfo("Received file name for save current plan: '%s'",file_to_save.data)
+        path_file = self.output_file_path + '/' + file_to_save.data + '.csv'
+        with open(path_file, 'w') as file:
+          write_csv = csv.writer(file, delimiter=",")
+          for pose_plan in self.waypoints:
+            write_csv.writerow([
+              str(pose_plan.pose.pose.position.x),
+              str(pose_plan.pose.pose.position.y),
+              str(pose_plan.pose.pose.position.z),
+              str(pose_plan.pose.pose.orientation.x),
+              str(pose_plan.pose.pose.orientation.y),
+              str(pose_plan.pose.pose.orientation.z),
+              str(pose_plan.pose.pose.orientation.w)
+            ])
+      except rospy.ROSInterruptException:
+        rospy.logwarn("Close wait for save thread")
     # Thread for waiting save path
-    wait_for_save_thread = threading.Thread(target=wait_for_save_path)
+    wait_for_save_thread = threading.Thread(target=wait_for_save_path, daemon=True)
     wait_for_save_thread.start()
     
     # Wait for path ready
     def wait_for_path_ready():
       """ complete path and ready """
-      rospy.wait_for_message(self.ns_robot+'/plan_ready', Empty)
-      rospy.loginfo("Received path READY message")
-      self.path_ready = True
+      try:
+        rospy.wait_for_message(self.ns_robot+'/plan_ready', Empty)
+        rospy.loginfo("Received path READY message")
+        self.path_ready = True
+      except rospy.ROSInterruptException:
+        rospy.logwarn("Close wait for ready thread")
     # Thread for path ready
-    wait_for_ready_thread = threading.Thread(target=wait_for_path_ready)
+    wait_for_ready_thread = threading.Thread(target=wait_for_path_ready, daemon=True)
     wait_for_ready_thread.start()
       
     while not (self.path_ready and self.path_selected):
@@ -157,6 +169,9 @@ class PathSelect(smach.State):
       self.waypoints.append(self.convert_frame_pose(pose,'map'))
       self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
       self.path_selected = True
+      
+      if rospy.is_shutdown():
+        return 'aborted'
       
     # Finish while
     userdata.path_plan = self.convert_poseCov_to_poseArray(self.waypoints)
