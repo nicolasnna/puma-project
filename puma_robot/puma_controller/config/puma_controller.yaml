@@ -1,0 +1,6 @@
+velocity_controller:
+  angle_limit: 30.0
+  zero_position_sensor: 395
+  wheel_base: 1.15
+  cmd_vel_topic: cmd_vel
+  status_arduino_topic: puma/arduino/status

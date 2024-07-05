@@ -1,19 +1,15 @@
 #!/usr/bin/env python3
 import rospy
-from puma_controller.puma_velocity_controller import PumaVelocityController
+from puma_controller.puma_controller import PumaController
+
+if __name__ == '__main__':
+  rospy.init_node('puma_controller', anonymous=False)
+  try:
+    puma_controller = PumaController()
+  except Exception as e:
+    rospy.logerr("Error al instanciar la clase PumaController: %s", e)
   
-try: 
-  if __name__ == "__main__":
-    
-    rospy.init_node('puma_controller')
-    
-    puma_velocity_control = PumaVelocityController()
-    
-    rate = rospy.Rate(30)
-    while not rospy.is_shutdown():
-      puma_velocity_control.control_puma()
-      rate.sleep()
-      
-      
-except:
-  rospy.logerr("Nodo 'puma_controller' desactivado!!!")
+  rate = rospy.Rate(30)
+  while not rospy.is_shutdown():
+    puma_controller.velocity_publish()
+    rate.sleep()

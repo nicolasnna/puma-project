@@ -11,7 +11,7 @@ dir_topic: "puma/direction/command"
 # --- params for accel puma --- #
 accel_puma_topic: "puma/accelerator/command"
 min_accel: 0
-max_accel: 100 # max value 126
+max_accel: 40 # max value 126
 
 
 # --- Params for controller --- #

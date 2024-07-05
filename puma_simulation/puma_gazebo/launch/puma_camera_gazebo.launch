@@ -35,9 +35,9 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
     output="screen" args=" wheel_right_controller wheel_left_controller dir_right_controller dir_left_controller"/>
 
-  <!-- Velocity controller -->
+  <!-- Puma controller - accel, brake, dir -->
   <!-- <node name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/> -->
-  <node name="puma_velocity_linear_controller" pkg="puma_controller" type="velocity_linear_node.py" output="screen"/>
+  <node name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
 
   <!-- Converter gps to enu -->
   <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/>

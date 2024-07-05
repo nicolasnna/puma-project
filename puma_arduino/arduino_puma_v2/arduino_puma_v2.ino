@@ -5,6 +5,8 @@
 #include <puma_arduino_msgs/StatusTachometer.h>
 #include <std_msgs/Int16.h>
 
+#define Analog2Rad 0.006135937
+
 // Variables freno
 const int MS[3] = {51,49,47};
 const int DIR_MPP1 = 8;
@@ -23,12 +25,17 @@ const int sensorPositionPin = A1;
 const int enableDirPin = 14;
 const int right_dir = 4;
 const int left_dir = 3;
-const int limit_min = 263;
-const int limit_max = 521;
+// 45 grados limite
+//const int limit_min = 263;
+//const int limit_max = 521;
+// 30 grados limite
+const int limit_min = 310;
+const int limit_max = 480;
 const int zero_position = 392;
 
-int valueDirection = 0;
+float angleGoal = 0; // Is save angle goal in rads
 int sensorPositionValue = 0;
+float angleCurrent = 0;
 bool stop_dir_right = true;
 bool stop_dir_left = true;
 bool enablePinDirection = false;
@@ -106,25 +113,33 @@ void setup() {
 
 void loop() {
   nh.spinOnce();
-  // Controladores
-  accelController();
-  dirController();
-  brakeController();
-  
-  // Publicar pulsos tacometro
-  unsigned long current_time = millis();
-  if (current_time - last_time >= limit_time) {
-    noInterrupts();
-    tacometer_pub.pulsos = pulsoContador;
-    pulsoContador = 0;
-    interrupts();
-    tacometer_pub.time_millis = limit_time;
-    tacometerStatusPub.publish(&tacometer_pub);
 
-    last_time = current_time;
+  // Si ros esta activado
+  if (nh.connected()) {
+    // Controladores
+    accelController();
+    dirController();
+    brakeController();
+    
+    // Publicar pulsos tacometro
+    unsigned long current_time = millis();
+    if (current_time - last_time >= limit_time) {
+      noInterrupts();
+      tacometer_pub.pulsos = pulsoContador;
+      pulsoContador = 0;
+      interrupts();
+      tacometer_pub.time_millis = limit_time;
+      tacometerStatusPub.publish(&tacometer_pub);
+
+      last_time = current_time;
+    }
+    // Publish msg
+    publishMsgStatus();
+  } else {  // Si ros esta desactivado o fue apagado
+    analogWrite(acceleratorPin, minAcceleratorValue); // Colocar accelerador al minimo
+
   }
-  // Publish msg
-  publishMsgStatus();
+  delay(10);
 }
 
 void countPulse() {
@@ -158,6 +173,8 @@ void accelController(){
 
 void dirController(){
   sensorPositionValue = analogRead(sensorPositionPin);
+  angleCurrent = (sensorPositionValue - zero_position) * Analog2Rad;
+
   // Checking if can turn on direction
   if(sensorPositionValue > limit_min){
     stop_dir_right = false;
@@ -168,18 +185,21 @@ void dirController(){
   if(sensorPositionValue < limit_max){
     stop_dir_left = false;
   } else {
-    nh.logwarn("Direccion a la derecha maxima alcanzada");
+    nh.logwarn("Direccion a la izquierda maxima alcanzada");
     stop_dir_left = true;
   }
 
-  if (stop_dir_right == false && valueDirection > 0 && enablePinDirection){
-    analogWrite(right_dir,255);
+  bool is_diff_angle_positiv = ((angleCurrent*1.05) < angleGoal) && (sensorPositionValue <= limit_max) && (sensorPositionValue >= limit_min);
+  bool is_diff_angle_negativ = ((angleCurrent*0.95) > angleGoal) && (sensorPositionValue <= limit_max) && (sensorPositionValue >= limit_min);
+
+  if (is_diff_angle_negativ && enablePinDirection){
+    analogWrite(left_dir,0);
+    analogWrite(right_dir,150);
+  } else if (is_diff_angle_positiv && enablePinDirection){
+    analogWrite(right_dir,0);
+    analogWrite(left_dir,150);
   } else {
     analogWrite(right_dir,0);
-  }
-  if (stop_dir_left == false && valueDirection < 0 && enablePinDirection){
-    analogWrite(left_dir,255);
-  } else {
     analogWrite(left_dir,0);
   }
 }
@@ -224,12 +244,12 @@ void accelCallback( const std_msgs::Int16& data_received ) {
 }
 
 void dirCallback( const puma_direction_msgs::DirectionCmd& data_received) {
-  valueDirection = data_received.range;
+  angleGoal = data_received.angle;
   if (data_received.activate) {
     digitalWrite(enableDirPin, HIGH);
     enablePinDirection = true;
   } else {
-    valueDirection = 0;
+    angleGoal = 0;
     digitalWrite(enableDirPin, LOW);
     enablePinDirection = false;
     analogWrite(right_dir,0);

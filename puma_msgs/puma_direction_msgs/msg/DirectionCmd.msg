@@ -1,3 +1,3 @@
-int16 range
-bool  activate
-bool  finish_calibration
+float32 angle
+bool    activate
+bool    run_calibration

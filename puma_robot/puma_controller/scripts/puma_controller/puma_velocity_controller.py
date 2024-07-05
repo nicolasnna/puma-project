@@ -7,20 +7,23 @@ from puma_direction_msgs.msg import DirectionCmd
 from puma_arduino_msgs.msg import StatusArduino
 from puma_brake_msgs.msg import BrakeCmd
 from diagnostic_msgs.msg import DiagnosticStatus
+from nav_msgs.msg import Odometry
 
 class PumaVelocityController():
   def __init__(self):
+    ns = "/velocity_controller"
     # Initialization of parameters
-    self.cmd_vel_topic = rospy.get_param('~cmd_vel_topic', 'cmd_vel')
-    self.angle_limit = rospy.get_param('~angle_limit', 30.0)  # Angle limit in degrees
+    self.cmd_vel_topic = rospy.get_param(ns+'/cmd_vel_topic', 'cmd_vel')
+    self.angle_limit = rospy.get_param(ns+'/angle_limit', 30.0)  # Angle limit in degrees
     self.max_steering_angle = math.radians(self.angle_limit)  # Convert angle limit to radians
-    self.status_topic = rospy.get_param('~status_arduino', 'puma/arduino/status')
-    self.wheel_base = rospy.get_param('~wheel_base', 1.15)  # Wheelbase in meters
+    self.status_topic = rospy.get_param(ns+'/status_arduino_topic', 'puma/arduino/status')
+    self.wheel_base = rospy.get_param(ns+'/wheel_base', 1.15)  # Wheelbase in meters
 
     # Subscribers
     rospy.Subscriber(self.cmd_vel_topic, Twist, self.cmd_vel_callback)
     rospy.Subscriber(self.status_topic, StatusArduino, self.status_arduino_callback)
     rospy.Subscriber('/puma/joy/diagnostic', DiagnosticStatus, self.diagnostic_joy_callback)
+    rospy.Subscriber('/puma/odometry/filtered', Odometry, self.callback_odometry)
 
     # Publishers
     self.rear_wheels_pub = rospy.Publisher('puma/accelerator/command', Int16, queue_size=5)
@@ -28,12 +31,10 @@ class PumaVelocityController():
     self.brake_wheels_pub = rospy.Publisher('puma/brake/command', BrakeCmd, queue_size=4)
     self.reverse_pub = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
 
-    
     # Parameters and variables for conversion
-    self.CONST_VEL_TRANSFORM = rospy.get_param('~const_vel_transform', 10.0)
     self.position_steering = float("nan")
     self.CONST_RAD_VALUE = 2 * math.pi / 1024
-    self.ZERO_POSITION_VALUE = rospy.get_param('~zero_position_sensor', 395)
+    self.ZERO_POSITION_VALUE = rospy.get_param(ns+'/zero_position_sensor', 395)
     self.DIF_LIMIT_VALUE = int(self.angle_limit / 360 * 1024)
     self.RIGHT_LIMIT_VALUE = self.ZERO_POSITION_VALUE - self.DIF_LIMIT_VALUE
     self.LEFT_LIMIT_VALUE = self.ZERO_POSITION_VALUE + self.DIF_LIMIT_VALUE
@@ -44,6 +45,7 @@ class PumaVelocityController():
     self.steering_angle = 0
     self.input_wheels = 0
     self.enable_joy = False
+    self.current_vel = 0
     
     # Messages
     self.rear_wheels_msg = Int16()
@@ -70,6 +72,10 @@ class PumaVelocityController():
       
     self.change_steering = (self.position_steering < angle_value - self.range_extra_value or 
                             self.position_steering > angle_value + self.range_extra_value)
+
+  def callback_odometry(self, odom):
+    """ Get callback odometry """
+    self.current_vel = odom.twist.twist.linear.x
     
   def cmd_vel_callback(self, data_received):
     """
@@ -77,14 +83,16 @@ class PumaVelocityController():
     """
     linear_velocity = data_received.linear.x
     angular_velocity = data_received.angular.z
+    
     self.steering_angle, self.input_wheels = self.calculate_angles_velocities_output(linear_velocity, angular_velocity)
+    
     
     self.brake_wheels_msg.position = 0 if linear_velocity != 0 else 1000
     self.reverse_msg.data = linear_velocity < 0
     
     if self.reverse_msg.data:
       rospy.loginfo("Reverse mode!!")
-
+      
   def control_wheels(self):
     """
     Controls the speed of the rear wheels
@@ -141,7 +149,7 @@ class PumaVelocityController():
     Converts linear velocity to a PWM signal for motor control
     """
     return (pwm_max - pwm_min) / (speed_max - speed_min) * (input_value - speed_min) + pwm_min
-     
+
   def control_puma(self):
     """
     Periodically publishes control commands

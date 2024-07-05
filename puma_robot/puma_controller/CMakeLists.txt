@@ -166,7 +166,6 @@ catkin_install_python(PROGRAMS
   scripts/teleop_keyboard.py
   scripts/convert_ackermann_node.py
   scripts/convert_ackermann_min.py
-  scripts/velocity_linear_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

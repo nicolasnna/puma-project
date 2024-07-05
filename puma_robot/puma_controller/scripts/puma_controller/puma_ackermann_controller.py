@@ -5,7 +5,6 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from puma_arduino_msgs.msg import StatusArduino
 import numpy as np
 
-
 class CmdVelToAckermann():
   def __init__(self):
     # Initialization of parameters
@@ -60,7 +59,7 @@ class CmdVelToAckermann():
     # Validate steering angle 
     steering_angle = self.ang_max if calculate_ang > self.ang_max else calculate_ang
     steering_angle = -self.ang_max if calculate_ang < -self.ang_max else steering_angle
-   
+  
     return steering_angle
   
   def publish_ackermann(self):
@@ -70,17 +69,5 @@ class CmdVelToAckermann():
     ackermann_msg.header.frame_id = 'odom'
     ackermann_msg.drive.steering_angle = self.steering_angle
     ackermann_msg.drive.speed = self.vel
-    
-    # diff_angle_1 = abs(self.steering_angle - self.current_angle)
-    # diff_angle_2 = abs(self.current_angle - self.steering_angle)
-    
-    # if ( diff_angle_1 > np.deg2rad(10) or diff_angle_2> np.deg2rad(10)):
-    #   ackermann_msg.drive.speed = 0.0
-    # elif( diff_angle_1 > np.deg2rad(5) or diff_angle_2> np.deg2rad(5)):
-    #   ackermann_msg.drive.speed = self.vel * 0.5
-    # elif( diff_angle_1 > np.deg2rad(2) or diff_angle_2> np.deg2rad(2)):
-    #   ackermann_msg.drive.speed = self.vel * 0.8
-    # else: 
-    #   ackermann_msg.drive.speed = self.vel
     
     self.ackermann_pub.publish(ackermann_msg)

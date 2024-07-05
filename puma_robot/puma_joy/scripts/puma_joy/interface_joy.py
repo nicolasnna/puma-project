@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import rospy
+import numpy as np
 from puma_brake_msgs.msg import BrakeCmd
 from puma_direction_msgs.msg import DirectionCmd
 from std_msgs.msg import Int16, Bool
@@ -43,6 +44,7 @@ class InterfaceJoy():
         self.__pub_topic_accel_puma = rospy.get_param('accel_puma_topic','puma/accelerator/command')
         self.pos_range = [rospy.get_param('pos_min', 0), rospy.get_param('pos_max',1000)]
         self.accel_puma_range = [rospy.get_param('min_accel', 0), rospy.get_param('max_accel', 10)]
+        self.angle_range = np.deg2rad([rospy.get_param('angle_min_degree', -30), rospy.get_param('angle_max_degree', 30)])
         
         # Get index of axes and buttons
         self.__LT_LEFT_INDEX = rospy.get_param('lt_left_index',2)
@@ -98,10 +100,10 @@ class InterfaceJoy():
         self.lt_left = data_received.axes[self.__LT_LEFT_INDEX]
         self.rt_right = data_received.axes[self.__RT_RIGHT_INDEX]
         
-        self.x_left = data_received.axes[self.__X_LEFT_INDEX]*-1
+        self.x_left = data_received.axes[self.__X_LEFT_INDEX]
         self.y_left = data_received.axes[self.__Y_LEFT_INDEX]
         
-        self.x_right = data_received.axes[self.__X_RIGHT_INDEX]*-1
+        self.x_right = data_received.axes[self.__X_RIGHT_INDEX]
         self.y_right = data_received.axes[self.__Y_RIGHT_INDEX]
         
         #--- Convert from 0-1 to False-True ---#
@@ -116,8 +118,9 @@ class InterfaceJoy():
         
         # Brake electric status
         if self.LB_button and self.RB_button:
-            self.msg_send_brake_electric.data = self.LB_button
-        
+            self.msg_send_brake_electric.data = False
+        elif self.RB_button:
+            self.msg_send_brake_electric.data = True
         # Reverse status
         #if self.back_button and self.start_button:
         self.msg_send_reverse.data = self.LB_button
@@ -139,7 +142,7 @@ class InterfaceJoy():
         Convert 1.0/-1.0 to pos_min/pos_max
         '''
         conversion_result = (value_min - value_max)/(1.0+1.0) * (trigger_value-1.0) + value_min
-        return int(conversion_result)
+        return (conversion_result)
         
     def sendDataControl(self):
         '''
@@ -147,16 +150,16 @@ class InterfaceJoy():
         '''
         try: 
             # --- Control brake --- #
-            self.msg_send_brake.position = self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1])
+            self.msg_send_brake.position = int(self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1]))
             self.msg_send_brake.button_repeat = self.LB_button
                 
             # --- Control direction --- #
-            self.msg_send_dir.range = int(self.x_left*100)
+            self.msg_send_dir.angle = self.__convertTriggerToRange(self.x_left*-1, self.angle_range[0], self.angle_range[1])
             self.msg_send_dir.activate = self.A_button
-            self.msg_send_dir.finish_calibration = self.B_button
+            #self.msg_send_dir.finish_calibration = self.B_button
             
             # --- Control Accelerator puma --- #
-            self.msg_send_accel_puma.data = self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1])
+            self.msg_send_accel_puma.data = int(self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1]))
             
             self.msg_diagnostic.message = "Interface is working"
             
