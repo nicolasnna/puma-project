@@ -1,11 +1,13 @@
 gps_to_enu:
-  topic_gps: 'gps/fix'
+  topic_gps: 'ublox/fix'
   topic_publish: 'puma/sensors/gps/enu'
+  topic_reset: 'puma/sensors/gps/reset'
   frame_id: 'map'
   latitude_ref: -33.42196309675523
   longitude_ref: -70.5818018059048
   altitude_ref: 570
-  apply_offset_yaw: true
+  apply_offset_90_yaw: true
+  auto_calculate_ref: true
 
 frame_map_odom:
   topic_imu: 'puma/sensors/imu/raw'
