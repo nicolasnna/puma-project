@@ -36,32 +36,32 @@ class InterfaceJoy():
     def __init__(self):
         
         rospy.init_node("puma_joy_node")
-        
+        ns = '/puma_joy'
         # Get params from rosparam
-        self.__sub_topic = rospy.get_param('joy_topic','joy')
-        self.__pub_topic_brake = rospy.get_param('brake_topic','puma/brake/command')
-        self.__pub_topic_dir = rospy.get_param('dir_topic','puma/direction/command')
-        self.__pub_topic_accel_puma = rospy.get_param('accel_puma_topic','puma/accelerator/command')
-        self.pos_range = [rospy.get_param('pos_min', 0), rospy.get_param('pos_max',1000)]
-        self.accel_puma_range = [rospy.get_param('min_accel', 0), rospy.get_param('max_accel', 10)]
-        self.angle_range = np.deg2rad([rospy.get_param('angle_min_degree', -30), rospy.get_param('angle_max_degree', 30)])
+        self.__sub_topic = rospy.get_param(ns+'/joy_topic','joy')
+        self.__pub_topic_brake = rospy.get_param(ns+'/brake_topic','puma/brake/command')
+        self.__pub_topic_dir = rospy.get_param(ns+'/dir_topic','puma/direction/command')
+        self.__pub_topic_accel_puma = rospy.get_param(ns+'/accel_puma_topic','puma/accelerator/command')
+        self.pos_range = [rospy.get_param(ns+'/pos_min', 0), rospy.get_param(ns+'/pos_max',1000)]
+        self.accel_puma_range = [rospy.get_param(ns+'/min_accel', 0), rospy.get_param(ns+'/max_accel', 10)]
+        self.angle_range = np.deg2rad([rospy.get_param(ns+'/angle_min_degree', -30), rospy.get_param(ns+'/angle_max_degree', 30)])
         
         # Get index of axes and buttons
-        self.__LT_LEFT_INDEX = rospy.get_param('lt_left_index',2)
-        self.__RT_RIGHT_INDEX = rospy.get_param('rt_right_index',5)
-        self.__X_LEFT_INDEX = rospy.get_param('x_left_index', 0)
-        self.__Y_LEFT_INDEX = rospy.get_param('y_left_index', 1)    
-        self.__X_RIGHT_INDEX = rospy.get_param('x_right_index', 3)
-        self.__Y_RIGHT_INDEX = rospy.get_param('y_right_index', 4)
+        self.__LT_LEFT_INDEX = rospy.get_param(ns+'/lt_left_index',2)
+        self.__RT_RIGHT_INDEX = rospy.get_param(ns+'/rt_right_index',5)
+        self.__X_LEFT_INDEX = rospy.get_param(ns+'/x_left_index', 0)
+        self.__Y_LEFT_INDEX = rospy.get_param(ns+'/y_left_index', 1)    
+        self.__X_RIGHT_INDEX = rospy.get_param(ns+'/x_right_index', 3)
+        self.__Y_RIGHT_INDEX = rospy.get_param(ns+'/y_right_index', 4)
         
-        self.__A_BUTTON_INDEX = rospy.get_param('a_button_index', 0)
-        self.__B_BUTTON_INDEX = rospy.get_param('b_button_index', 1)
-        self.__X_BUTTON_INDEX = rospy.get_param('x_button_index', 2)
-        self.__Y_BUTTON_INDEX = rospy.get_param('y_button_index', 3)
-        self.__LB_BUTTON_INDEX = rospy.get_param('lb_button_index', 4)
-        self.__RB_BUTTON_INDEX = rospy.get_param('rb_button_index', 5)
-        self.__BACK_BUTTON_INDEX = rospy.get_param('back_button_index', 6)
-        self.__START_BUTTON_INDEX = rospy.get_param('start_button_index', 7)
+        self.__A_BUTTON_INDEX = rospy.get_param(ns+'/a_button_index', 0)
+        self.__B_BUTTON_INDEX = rospy.get_param(ns+'/b_button_index', 1)
+        self.__X_BUTTON_INDEX = rospy.get_param(ns+'/x_button_index', 2)
+        self.__Y_BUTTON_INDEX = rospy.get_param(ns+'/y_button_index', 3)
+        self.__LB_BUTTON_INDEX = rospy.get_param(ns+'/lb_button_index', 4)
+        self.__RB_BUTTON_INDEX = rospy.get_param(ns+'/rb_button_index', 5)
+        self.__BACK_BUTTON_INDEX = rospy.get_param(ns+'/back_button_index', 6)
+        self.__START_BUTTON_INDEX = rospy.get_param(ns+'/start_button_index', 7)
         
         # Create topics
         rospy.Subscriber(self.__sub_topic, Joy, self.__subCallBack)

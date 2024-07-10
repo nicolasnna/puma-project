@@ -7,16 +7,18 @@ import numpy as np
 
 class CmdVelToAckermann():
   def __init__(self):
+    ns = '/ackermann_converter'
     # Initialization of parameters
-    self.cmd_vel_topic = rospy.get_param('~cmd_vel_topic', 'cmd_vel')
-    self.wheel_base = rospy.get_param('~wheel_base', 1.15)  # Wheelbase in meters
-
+    cmd_vel_topic = rospy.get_param(ns+'/cmd_vel_topic', 'cmd_vel')
+    self.wheel_base = rospy.get_param(ns+'/wheel_base', 1.15)  # Wheelbase in meters
+    acker_topic = rospy.get_param(ns+'/ackermann_topic', 'puma/control/ackermann/command')
+    arduino_status_topic = rospy.get_param(ns+'/arduino_status_topic', 'puma/arduino/status')
     # Subscribers
-    rospy.Subscriber(self.cmd_vel_topic, Twist, self.cmd_vel_callback)
-    rospy.Subscriber('/puma/arduino/status', StatusArduino, self.status_callback)
+    rospy.Subscriber(cmd_vel_topic, Twist, self.cmd_vel_callback)
+    rospy.Subscriber(arduino_status_topic, StatusArduino, self.status_callback)
     
     # Publishers
-    self.ackermann_pub = rospy.Publisher('puma/control/ackermann/command', AckermannDriveStamped, queue_size=10)
+    self.ackermann_pub = rospy.Publisher(acker_topic, AckermannDriveStamped, queue_size=10)
     
     # Calculate max radius
     self.ang_max = np.deg2rad(30)

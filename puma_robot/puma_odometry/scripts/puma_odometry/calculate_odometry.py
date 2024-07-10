@@ -14,11 +14,16 @@ class CalculateOdometry():
   Calculate odometry and frame odom
   '''
   def __init__(self):
-    # Get angle steering
-    rospy.Subscriber('/puma/arduino/status', StatusArduino, self._arduino_status_callback)
-    rospy.Subscriber('puma/reverse/command', Bool, self._reverse_callback)
-    # Get params
+    # Get params 
     ns = 'odometry/'
+    odom_pub_topic = rospy.get_param(ns+'odometry_topic', 'puma/odom')
+    arduino_status_topic = rospy.get_param(ns+'arduino_status_topic', 'puma/arduino/status')
+    reverse_topic = rospy.get_param(ns+'reverse_topic', 'puma/reverse/command')
+    
+    # Get angle steering
+    rospy.Subscriber(arduino_status_topic, StatusArduino, self._arduino_status_callback)
+    rospy.Subscriber(reverse_topic, Bool, self._reverse_callback)
+    # Get params
     self.wheels_base = rospy.get_param(ns+'wheels_base', 1.1) # in meters
     self.frame_id = rospy.get_param(ns+'frame_id', 'odom')
     self.child_frame_id = rospy.get_param(ns+'child_frame_id', 'base_link')
@@ -35,7 +40,7 @@ class CalculateOdometry():
     self.vx = 0.0
     
     self.velocity_converter = PulseToVelocityConverter()
-    self.odom_pub = rospy.Publisher("puma/odom", Odometry, queue_size=10)
+    self.odom_pub = rospy.Publisher(odom_pub_topic, Odometry, queue_size=10)
     self.odom_broadcaster = tf2_ros.TransformBroadcaster()
     
   def _reverse_callback(self, data_received):

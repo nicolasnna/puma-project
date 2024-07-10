@@ -1,15 +1,36 @@
 <?xml version="1.0"?>
 <launch>
   <!-- Arguments -->
-  <arg name="use_camera" default="true" />
-
-  <!-- TF states -->
+  <arg name="use_camera" default="false" />
+  <!-- load params -->
+  <rosparam command="load" file="$(find puma_bringup)/config/localization_params.yaml"/>
+  <!-- Charge model -->
   <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model)/urdf/puma_model.urdf.xacro'"/>
+  <group if="$(arg use_camera)">
+    <arg name="model" default="$(find puma_model_camera)/urdf/puma_model_v2_baselink.urdf.xacro"/>
+    <arg name="name" default="camera" />
+    <arg name="topics_ns" default="camera" />
+    <arg name="add_plug" default="false" />
+    <arg name="publish_pointcloud" default="true"/>
+
+    <param name="robot_description" command="$(find xacro)/xacro $(arg model) use_nominal_extrinsics:=true publish_pointcloud:=$(arg publish_pointcloud) add_plug:=$(arg add_plug) name:=$(arg name) topics_ns:=$(arg topics_ns)" />
+  </group>
+  
+  <!-- TF states -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-
-  
-
-
+  <!-- Static Tf between map and odom -->
+  <node pkg="tf2_ros" pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
+  <!-- Gps -->
+  <node pkg="ublox_gps" type="ublox_gps" name="ublox" output="screen" clear_params="true" respawn="true" respawm_delay="30">
+    <rosparam command="load" file="$(find puma_bringup)/config/zed_f9p.yaml"/>
+    <remap from="ublox/fix" to="puma/sensors/gps/fix"/>
+    <remap from="ublox/fix_velocity" to="puma/sensors/gps/fix_velocity"/>
+  </node>
+  <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/>
+  <!-- Odometry -->
+  <node name="puma_odometry_node" pkg="puma_odometry" type="puma_odometry_node.py" output="screen"/>
+  <!-- Fusion ekf -->
+  <node name="ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true"/>
 
 </launch>

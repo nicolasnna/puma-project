@@ -1,33 +1,32 @@
 puma_joy:
   joy_topic: "joy"
-
   # --- Params for brake controller --- #
   brake_topic: "puma/brake/command"
   pos_min: 0
   pos_max: 1000
-
   # --- params for dir controller --- #
   dir_topic: "puma/direction/command"
-
   # --- params for accel puma --- #
   accel_puma_topic: "puma/accelerator/command"
   min_accel: 0
   max_accel: 40 # max value 126
-
-
   # --- Params for controller --- #
   lt_left_index: 2
   rt_right_index: 5
-
   x_left_index: 0
   y_left_index: 1
-
   x_right_index: 3
   y_right_index: 4
-
   a_button_index: 0
   b_button_index: 1
   x_button_index: 2
   y_button_index: 3
   lb_button_index: 4
   rb_button_index: 5
+
+bno08x_driver:
+  imu_topic: puma/sensors/imu/raw
+  magnetic_topic: puma/sensors/imu/magnetic
+  diagnostic_topic: puma/sensors/imu/diagnostic
+  frame_imu: imu_link
+  frequency: 60

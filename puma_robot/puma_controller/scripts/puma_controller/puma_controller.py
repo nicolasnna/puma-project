@@ -9,7 +9,7 @@ from nav_msgs.msg import Odometry
 
 class PumaController():
   def __init__(self):
-    ns = '/velocity_puma'
+    ns = '/puma_controller'
     # Get params
     accelerator_topic = rospy.get_param(ns+'/accelerator_topic', 'puma/accelerator/command')
     brake_topic = rospy.get_param(ns+'/brake_topic', 'puma/brake/command')
