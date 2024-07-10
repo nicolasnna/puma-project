@@ -7,7 +7,7 @@
   </include>
 
   <!-- Spawn the robot -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model)/urdf/puma_model.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model)/urdf/puma_model_v2_baselink.urdf.xacro'" />
 
   <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model puma_model" />
   <!-- convert joint states to TF transforms for rviz, etc -->
