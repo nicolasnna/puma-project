@@ -12,42 +12,31 @@ from adafruit_bno08x import (
 )
 from adafruit_bno08x.i2c import BNO08X_I2C
 import statistics
+import time
 
 class Bno08xDriver():
   def __init__(self):
+    # Get params
+    ns='/bno08x_driver'
+    topic_imu = rospy.get_param(ns+'/imu_topic', 'puma/sensors/imu/raw')
+    topic_mag = rospy.get_param(ns+'/magnetic_topic', 'puma/sensors/imu/magnetic')
+    topic_diagnostic = rospy.get_param(ns+'/diagnostic_topic', 'puma/sensors/imu/diagnostic')
+    self.frame = rospy.get_param(ns+'/frame_imu','imu_link')
+    
     # Publishers
-    self.imu_pub = rospy.Publisher('puma/sensors/imu/raw', Imu, queue_size=10)
-    self.mag_pub = rospy.Publisher('puma/sensors/imu/magnetic', MagneticField, queue_size=10)
-    self.diagnostic_pub = rospy.Publisher('puma/sensors/imu/diagnostic', DiagnosticStatus, queue_size=10)
-    self.frame = rospy.get_param('~imu/frame','imu1_link')
+    self.imu_pub = rospy.Publisher(topic_imu, Imu, queue_size=10)
+    self.mag_pub = rospy.Publisher(topic_mag, MagneticField, queue_size=10)
+    self.diagnostic_pub = rospy.Publisher(topic_diagnostic, DiagnosticStatus, queue_size=10)
     
     i2c = busio.I2C(board.SCL_1, board.SDA_1) 
     self.bno = BNO08X_I2C(i2c, address=0x4b) # BNO080 (0x4b) BNO085 (0x4a)
-
+    # Init calibration
+    self.bno.begin_calibration()
+    # Activate feature
     self.bno.enable_feature(BNO_REPORT_ACCELEROMETER)
     self.bno.enable_feature(BNO_REPORT_GYROSCOPE)
     self.bno.enable_feature(BNO_REPORT_MAGNETOMETER)
     self.bno.enable_feature(BNO_REPORT_ROTATION_VECTOR)
-    
-    self.acceleration_offset = [0.0, 0.0, 0.0]
-    
-  def calibrate_acceleration(self, with_gravity=True):
-    '''
-    Calibrate acceleration linear 
-    '''
-    accel_x_array = []
-    accel_y_array = []
-    accel_z_array = []
-    
-    for i in range(0,1000):
-      accel_x, accel_y, accel_z = self.bno.acceleration
-      accel_x_array.append(accel_x)
-      accel_y_array.append(accel_y)
-      accel_z_array.append(accel_z if not with_gravity else 0)
-         
-    self.acceleration_offset = [statistics.mean(accel_x_array), 
-                                statistics.mean(accel_y_array), 
-                                statistics.mean(accel_z_array)]
     
   def measurement_sensor(self):
     '''

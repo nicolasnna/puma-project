@@ -19,9 +19,12 @@ int positionToReach = 0;
 int positionMissing = 0;
 bool positiveRunMotor = true;
 bool moveBrake = false;
+const int pinReaderBrakeDel = 29;
+const int pinReaderBrakeTras = 28;
+int readBrakeDel = 0;
 
 // Variables direccion
-const int sensorPositionPin = A1;
+const int sensorPositionPin = A2;
 const int enableDirPin = 14;
 const int right_dir = 4;
 const int left_dir = 3;
@@ -34,6 +37,7 @@ const int limit_max = 480;
 const int zero_position = 392;
 
 float angleGoal = 0; // Is save angle goal in rads
+int positionGoal = 0;
 int sensorPositionValue = 0;
 float angleCurrent = 0;
 bool stop_dir_right = true;
@@ -74,6 +78,7 @@ ros::Publisher tacometerStatusPub("puma/sensors/tachometer", &tacometer_pub);
 
 void setup() {
   // Config ros
+  nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(brake_sub);
   nh.subscribe(dir_sub);
@@ -82,6 +87,8 @@ void setup() {
   nh.advertise(tacometerStatusPub);
   nh.loginfo("Inicializando Arduino");
   // Config pinMode brake
+  pinMode(pinReaderBrakeDel, INPUT);
+  pinMode(pinReaderBrakeTras, INPUT);
   pinMode(DIR_MPP1, OUTPUT);
   pinMode(DIR_MPP2, OUTPUT);
   pinMode(STEP_MPP1, OUTPUT);
@@ -120,7 +127,16 @@ void loop() {
     accelController();
     dirController();
     brakeController();
-    
+    // Test lectura switch
+    readBrakeDel = digitalRead(pinReaderBrakeDel);
+    if (readBrakeDel == HIGH) {
+      nh.loginfo("Lectura del freno delantero True");
+    } 
+    readBrakeDel = digitalRead(pinReaderBrakeTras);
+    if (readBrakeDel == HIGH) {
+      nh.loginfo("Lectura del freno trasero True");
+    }
+
     // Publicar pulsos tacometro
     unsigned long current_time = millis();
     if (current_time - last_time >= limit_time) {
@@ -137,9 +153,8 @@ void loop() {
     publishMsgStatus();
   } else {  // Si ros esta desactivado o fue apagado
     analogWrite(acceleratorPin, minAcceleratorValue); // Colocar accelerador al minimo
-
+    digitalWrite(enableDirPin, LOW);
   }
-  delay(10);
 }
 
 void countPulse() {
@@ -173,29 +188,35 @@ void accelController(){
 
 void dirController(){
   sensorPositionValue = analogRead(sensorPositionPin);
+  positionGoal = int(angleGoal / Analog2Rad) + zero_position;
   angleCurrent = (sensorPositionValue - zero_position) * Analog2Rad;
 
   // Checking if can turn on direction
   if(sensorPositionValue > limit_min){
     stop_dir_right = false;
   } else {
-    nh.logwarn("Direccion a la derecha maxima alcanzada");
+    if (!stop_dir_right) {
+      nh.logwarn("Direccion a la derecha maxima alcanzada");
+    }
     stop_dir_right = true;
   }
   if(sensorPositionValue < limit_max){
     stop_dir_left = false;
-  } else {
-    nh.logwarn("Direccion a la izquierda maxima alcanzada");
+  } else {  
+    if (!stop_dir_left) {
+      nh.logwarn("Direccion a la izquierda maxima alcanzada");
+    }
     stop_dir_left = true;
   }
 
-  bool is_diff_angle_positiv = ((angleCurrent*1.05) < angleGoal) && (sensorPositionValue <= limit_max) && (sensorPositionValue >= limit_min);
-  bool is_diff_angle_negativ = ((angleCurrent*0.95) > angleGoal) && (sensorPositionValue <= limit_max) && (sensorPositionValue >= limit_min);
+  bool is_missing_goal = (positionGoal - 10 > sensorPositionValue ) || (positionGoal + 10 < sensorPositionValue );
+  bool is_diff_angle_positiv = (angleCurrent < angleGoal) && (sensorPositionValue <= limit_max) && (sensorPositionValue >= limit_min-20);
+  bool is_diff_angle_negativ = (angleCurrent > angleGoal) && (sensorPositionValue <= limit_max+20) && (sensorPositionValue >= limit_min);
 
-  if (is_diff_angle_negativ && enablePinDirection){
+  if (is_diff_angle_negativ && enablePinDirection && is_missing_goal){
     analogWrite(left_dir,0);
     analogWrite(right_dir,150);
-  } else if (is_diff_angle_positiv && enablePinDirection){
+  } else if (is_diff_angle_positiv && enablePinDirection && is_missing_goal){
     analogWrite(right_dir,0);
     analogWrite(left_dir,150);
   } else {

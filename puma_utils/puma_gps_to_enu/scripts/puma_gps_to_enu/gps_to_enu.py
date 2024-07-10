@@ -7,12 +7,14 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 class GpsToEnu():
   def __init__(self):
     # Gets params from rosparams
-    topic_gps = rospy.get_param('~gps_to_enu/topic_gps', 'gps/fix')
+    # topic_gps = rospy.get_param('~gps_to_enu/topic_gps', 'gps/fix')
+    topic_gps = rospy.get_param('~gps_to_enu/topic_gps', 'ublox/fix')
+
     topic_publish = rospy.get_param('~gps_to_enu/topic_publish', 'puma/sensors/gps/enu')
     self.frame_id = rospy.get_param('~gps_to_enu/frame_id', 'map')
     latitude_ref = rospy.get_param('~gps_to_enu/latitude_ref', -33.42196309675523)
     longitude_ref = rospy.get_param('~gps_to_enu/longitude_ref', -70.5818018059048)
-    altitude_ref = rospy.get_param('~gps_to_enu/altitude_ref', 570)
+    altitude_ref = rospy.get_param('~gps_to_enu/altitude_ref', 674)
     self.apply_offset_yaw = rospy.get_param('~gps_to_enu/apply_offset_yaw', True)
     
     # Subscriber and publisher

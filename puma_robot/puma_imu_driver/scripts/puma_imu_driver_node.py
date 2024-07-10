@@ -7,12 +7,7 @@ if __name__ == "__main__":
     rospy.init_node('puma_imu')
     imu_driver = Bno08xDriver()
     
-    frequency = rospy.get_param('~imu/frequency', 60)
-    with_gravity = rospy.get_param('~imu/with_gravity', True)
-    
-    rospy.loginfo("Iniciando calibración de IMU")
-    imu_driver.calibrate_acceleration(with_gravity)
-    rospy.loginfo("Acceleracion lineal y velocidad angular calibrados")
+    frequency = rospy.get_param('/bno08x_driver/frequency', 60)
     
     rate = rospy.Rate(frequency)
     while not rospy.is_shutdown():
