@@ -15,4 +15,4 @@ if __name__ == "__main__":
       rate.sleep()
     
   except:
-    rospy.logwarn("Nodo " + rospy.get_caller_id + " se ha desactivado!!")
+    rospy.logwarn("Nodo " + rospy.get_caller_id() + " se ha desactivado!!")

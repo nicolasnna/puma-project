@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import rospy
 from sensor_msgs.msg import MagneticField, Imu
-from diagnostic_msgs.msg import DiagnosticStatus
+from diagnostic_msgs.msg import DiagnosticStatus, KeyValue
 import board
 import busio
 from adafruit_bno08x import (
@@ -31,7 +31,7 @@ class Bno08xDriver():
     i2c = busio.I2C(board.SCL_1, board.SDA_1) 
     self.bno = BNO08X_I2C(i2c, address=0x4b) # BNO080 (0x4b) BNO085 (0x4a)
     # Init calibration
-    self.bno.begin_calibration()
+    #self.bno.begin_calibration()
     # Activate feature
     self.bno.enable_feature(BNO_REPORT_ACCELEROMETER)
     self.bno.enable_feature(BNO_REPORT_GYROSCOPE)
@@ -45,32 +45,60 @@ class Bno08xDriver():
     imu_msg = Imu()
     mag_msg = MagneticField()
     diagnostic_msg = DiagnosticStatus()
-    try: 
-      # --- IMU RAW DATA --- #
-      imu_msg.header.stamp = rospy.Time.now()
-      imu_msg.header.frame_id = self.frame
+    key_value = KeyValue()
+    total_error = 0 
       
-      accel_x, accel_y, accel_z = self.bno.acceleration
-      imu_msg.linear_acceleration.x = accel_x - self.acceleration_offset[0]
-      imu_msg.linear_acceleration.y = accel_y - self.acceleration_offset[1]
-      imu_msg.linear_acceleration.z = accel_z - self.acceleration_offset[2]
-      
+    # --- IMU RAW DATA --- #
+    imu_msg.header.stamp = rospy.Time.now()
+    imu_msg.header.frame_id = self.frame
+    
+    key_value.key = "acceleration linear"
+    try:
+      accel_x, accel_y, accel_z = self.bno.linear_acceleration
+      imu_msg.linear_acceleration.x = accel_x
+      imu_msg.linear_acceleration.y = accel_y
+      imu_msg.linear_acceleration.z = accel_z
+      key_value.value = "works"
+    except:
+      rospy.logwarn_once("Error al obtener las acceleraciones lineales")
+      key_value.value = "not works"
+      total_error += 1
+    diagnostic_msg.values.append(key_value)
+    
+    key_value.key = "gyroscope"
+    try:
       gyro_x, gyro_y, gyro_z = self.bno.gyro
       imu_msg.angular_velocity.x = gyro_x
       imu_msg.angular_velocity.y = gyro_y
       imu_msg.angular_velocity.z = gyro_z
-      
+      key_value.value = "works"
+    except:
+      rospy.logwarn_once("Error al obtener valores del gyroscopio")
+      key_value.value = "not works"
+      total_error += 1
+    diagnostic_msg.values.append(key_value)
+    
+    key_value.key = "orientation"
+    try:
       quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
       imu_msg.orientation.w = quat_i
       imu_msg.orientation.x = quat_j
       imu_msg.orientation.y = quat_k
       imu_msg.orientation.z = quat_real
-      
-      imu_msg.orientation_covariance[0] = 0
-      imu_msg.linear_acceleration_covariance[0] = 0
-      imu_msg.angular_velocity_covariance[0] = 0
-      
-      # --- Magnetic data --- #
+      key_value.value = "works"
+    except:
+      rospy.logwarn_once("Error al obtener los quaterniones")
+      key_value.value = "not works"
+      total_error += 1
+    diagnostic_msg.values.append(key_value)
+    
+    imu_msg.orientation_covariance[0] = 0
+    imu_msg.linear_acceleration_covariance[0] = 0
+    imu_msg.angular_velocity_covariance[0] = 0
+    
+    # --- Magnetic data --- #
+    key_value.key = "magnetic"
+    try:
       mag_x, mag_y, mag_z = self.bno.magnetic
       mag_msg.header.stamp = rospy.Time.now()
       mag_msg.header.frame_id = self.frame
@@ -78,18 +106,25 @@ class Bno08xDriver():
       mag_msg.magnetic_field.y = mag_y
       mag_msg.magnetic_field.z = mag_z
       mag_msg.magnetic_field_covariance[0] = 0
-      
-      # --- Diagnostic data --- #
-      diagnostic_msg.level = 0
-      diagnostic_msg.name = "bno08x IMU"
-      diagnostic_msg.message = "Imu is running"
-    except: 
+      key_value.value = "works"
+    except:
+      rospy.logwarn_once("Error al obtener el valor del magnetometro")
+      key_value.value = "not works"
+      total_error += 1
+    diagnostic_msg.values.append(key_value)
+    
+    # --- Diagnostic data --- #
+    diagnostic_msg.level = 0
+    diagnostic_msg.name = "bno08x IMU"
+    diagnostic_msg.message = "Imu is running"
+    
+    if total_error >= 4:
       # --- Diagnostic data --- #
       diagnostic_msg.level = 2
       diagnostic_msg.name = "bno08x IMU"
       diagnostic_msg.message = "Imu doesn't work"
-    finally:
-      self.publish_data(imu_msg, mag_msg, diagnostic_msg)
+    
+    self.publish_data(imu_msg, mag_msg, diagnostic_msg)
       
   def publish_data(self, imu_msg, mag_msg, diagnostic_msg):
     self.imu_pub.publish(imu_msg)

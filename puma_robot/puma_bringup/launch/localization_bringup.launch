@@ -20,9 +20,9 @@
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
   <!-- Static Tf between map and odom -->
-  <node pkg="tf2_ros" pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
   <!-- Gps -->
-  <node pkg="ublox_gps" type="ublox_gps" name="ublox" output="screen" clear_params="true" respawn="true" respawm_delay="30">
+  <node pkg="ublox_gps" type="ublox_gps" name="ublox" output="screen" clear_params="true" respawn="true" respawn_delay="30">
     <rosparam command="load" file="$(find puma_bringup)/config/zed_f9p.yaml"/>
     <remap from="ublox/fix" to="puma/sensors/gps/fix"/>
     <remap from="ublox/fix_velocity" to="puma/sensors/gps/fix_velocity"/>
