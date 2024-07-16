@@ -6,54 +6,109 @@
 #include <rviz/display_context.h>
 #include <rviz/tool_manager.h>
 
-namespace buttons_waypoints {
+namespace buttons_waypoints
+{
 
-  class ReadyPath : public rviz::Tool {
+  class ReadyPath : public rviz::Tool
+  {
     Q_OBJECT
-    public:
-      ros::Publisher publisher_;
+  public:
+    ros::Publisher publisher_;
 
-      ReadyPath();
-      ~ReadyPath();
+    ReadyPath();
+    ~ReadyPath();
 
-      virtual void onInitialize();
+    virtual void onInitialize();
 
-      virtual void activate();
-      virtual void deactivate();
+    virtual void activate();
+    virtual void deactivate();
 
-      void Publish(); 
+    void Publish();
   };
 
-  class ResetPath : public rviz::Tool {
+  class ResetPath : public rviz::Tool
+  {
     Q_OBJECT
-    public:
-      ros::Publisher publisher_;
+  public:
+    ros::Publisher publisher_;
 
-      ResetPath();
-      ~ResetPath();
+    ResetPath();
+    ~ResetPath();
 
-      virtual void onInitialize();
+    virtual void onInitialize();
 
-      virtual void activate();
-      virtual void deactivate();
+    virtual void activate();
+    virtual void deactivate();
 
-      void Publish(); 
+    void Publish();
   };
 
-  class StopPlan : public rviz::Tool {
+  class StopPlan : public rviz::Tool
+  {
     Q_OBJECT
-    public:
-      ros::Publisher publisher_;
+  public:
+    ros::Publisher publisher_;
 
-      StopPlan();
-      ~StopPlan();
+    StopPlan();
+    ~StopPlan();
 
-      virtual void onInitialize();
+    virtual void onInitialize();
 
-      virtual void activate();
-      virtual void deactivate();
+    virtual void activate();
+    virtual void deactivate();
 
-      void Publish(); 
+    void Publish();
+  };
+
+  class SavePlan : public rviz::Tool
+  {
+    Q_OBJECT
+  public:
+    ros::Publisher publisher_;
+
+    SavePlan();
+    ~SavePlan();
+
+    virtual void onInitialize();
+
+    virtual void activate();
+    virtual void deactivate();
+
+    void Publish();
+  };
+
+  class UploadPlan : public rviz::Tool
+  {
+    Q_OBJECT
+  public:
+    ros::Publisher publisher_;
+
+    UploadPlan();
+    ~UploadPlan();
+
+    virtual void onInitialize();
+
+    virtual void activate();
+    virtual void deactivate();
+
+    void Publish();
+  };
+
+  class ChargeCar : public rviz::Tool
+  {
+    Q_OBJECT
+  public:
+    ros::Publisher publisher_;
+
+    ChargeCar();
+    ~ChargeCar();
+
+    virtual void onInitialize();
+
+    virtual void activate();
+    virtual void deactivate();
+
+    void Publish();
   };
 
 }

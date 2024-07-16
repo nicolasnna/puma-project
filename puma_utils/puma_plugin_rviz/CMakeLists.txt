@@ -37,6 +37,9 @@ set(SRC_FILES
   src/button_ready_path.cpp
   src/button_reset_path.cpp
   src/button_stop_plan.cpp
+  src/button_save_plan.cpp
+  src/button_upload_plan.cpp
+  src/button_charge_car.cpp
 )
 set(HEADER_FILES
   src/buttons_waypoints.h

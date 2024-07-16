@@ -2,7 +2,7 @@
   <class type="buttons_waypoints::ReadyPath"
          base_class_type="rviz::Tool">
     <description>
-      Button tool in rviz for activate path follow in puma_waypoints
+      Button tool in rviz for activate path follow in puma_waypoints.
     </description>
   </class>
 </library>
@@ -11,7 +11,7 @@
   <class type="buttons_waypoints::ResetPath"
          base_class_type="rviz::Tool">
     <description>
-      Button tool in rviz for rest path plan in puma_waypoints
+      Button tool in rviz for reset path plan in puma_waypoints.
     </description>
   </class>
 </library>
@@ -20,7 +20,34 @@
   <class type="buttons_waypoints::StopPlan"
          base_class_type="rviz::Tool">
     <description>
-      Button tool in rviz for rest stop current plan in puma_waypoints
+      Button tool in rviz for stop current puma_waypoints's plan.
+    </description>
+  </class>
+</library>
+
+<library path="lib/libpuma_plugin_rviz">
+  <class type="buttons_waypoints::SavePlan"
+         base_class_type="rviz::Tool">
+    <description>
+      Button tool in rviz for save current puma_waypoints's plan in default.
+    </description>
+  </class>
+</library>
+
+<library path="lib/libpuma_plugin_rviz">
+  <class type="buttons_waypoints::UploadPlan"
+         base_class_type="rviz::Tool">
+    <description>
+      Button tool in rviz for upload default puma_waypoints's plan.
+    </description>
+  </class>
+</library>
+
+<library path="lib/libpuma_plugin_rviz">
+  <class type="buttons_waypoints::ChargeCar"
+         base_class_type="rviz::Tool">
+    <description>
+      Button tool in rviz for change mode ChargeCar in puma_waypoints.
     </description>
   </class>
 </library>

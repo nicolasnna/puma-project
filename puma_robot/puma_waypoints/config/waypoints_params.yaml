@@ -1,0 +1,20 @@
+waypoints_select:
+  add_pose_topic: /initialpose
+  pose_array_topic: /puma/waypoints/path_planned
+  goal_frame_id: map
+
+waypoints_follow:
+  goal_frame_id: map
+  odom_frame_id: odom
+  base_frame_id: base_link
+  wait_duration: 4.0
+  distance_tolerance: 1.2
+
+waypoints_charge_mode:
+  enable_topic: /puma/tag_detector/enable
+  teb_for_charge:
+    xy_goal_tolerance: 0.5
+    yaw_goal_tolerance: 0.1
+  teb_origin:
+    xy_goal_tolerance: 1.0
+    yaw_goal_tolerance: 0.7

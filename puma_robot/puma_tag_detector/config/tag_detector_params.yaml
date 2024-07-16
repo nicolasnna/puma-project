@@ -1,0 +1,5 @@
+tag_detector:
+  tag_names: [/tag_0]
+  output_frame: /map
+  wait_duration: 3.0
+  enable_topic: /puma/tag_detector/enable

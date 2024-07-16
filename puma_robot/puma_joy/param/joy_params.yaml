@@ -14,7 +14,6 @@ puma_joy:
   min_accel: 0
   max_accel: 40 # max value 126
 
-
   # --- Params for controller --- #
   lt_left_index: 2
   rt_right_index: 5

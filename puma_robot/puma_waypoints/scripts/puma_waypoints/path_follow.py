@@ -15,14 +15,14 @@ class PathFollow(smach.State):
   """ Smach test of path follow """
   def __init__(self):
     smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan'], output_keys=['waypoints'])
-    self.ns = '~waypoints'
+    self.ns = '/waypoints_follow/'
     self.ns_robot = '/puma/waypoints'
     
     # Get params 
-    self.frame_id = rospy.get_param(self.ns+'/goal_frame_id', 'map')
-    self.odom_frame_id = rospy.get_param(self.ns+'/odom_frame_id', 'odom')
-    self.base_frame_id = rospy.get_param(self.ns+'/base_frame_id', 'base_link')
-    self.duration = rospy.get_param(self.ns+'/wait_duration', 0.0)
+    self.frame_id = rospy.get_param(self.ns+'goal_frame_id', 'map')
+    self.odom_frame_id = rospy.get_param(self.ns+'odom_frame_id', 'odom')
+    self.base_frame_id = rospy.get_param(self.ns+'base_frame_id', 'base_link')
+    self.duration = rospy.get_param(self.ns+'wait_duration', 4.0)
     
     # Get a move_base action client
     self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
@@ -31,7 +31,7 @@ class PathFollow(smach.State):
     rospy.loginfo('Connected to move_base.')
     rospy.loginfo('Starting a tf listener.')
     self.listener = tf.TransformListener()
-    self.distance_tolerance = rospy.get_param(self.ns+'/waypoint_distance_tolerance', 1.2)
+    self.distance_tolerance = rospy.get_param(self.ns+'/distance_tolerance', 1.2)
     
     # Publisher 
     self.pose_array_planned = rospy.Publisher(self.ns_robot+'/path_planned',PoseArray,queue_size=1)
@@ -109,7 +109,7 @@ class PathFollow(smach.State):
             self.client.send_goal(goal)
             
           now = rospy.Time.now()
-          self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, now, rospy.Duration(4.0))
+          self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, now, rospy.Duration(self.duration))
           trans,rot = self.listener.lookupTransform(self.odom_frame_id, self.base_frame_id, now)
           distance = math.sqrt(pow(goal_pos_x-trans[0],2) + pow(goal_pos_y-trans[1],2))
           

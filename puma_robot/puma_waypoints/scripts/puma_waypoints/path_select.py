@@ -11,12 +11,12 @@ import tf
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success'], output_keys=['waypoints','path_plan','aborted'], input_keys=['waypoints'])
-    self.ns = '~waypoints'
+    smach.State.__init__(self, outcomes=['success', 'charge_mode'], output_keys=['waypoints','path_plan','aborted'], input_keys=['waypoints'])
+    self.ns = '/waypoints_select/'
     self.ns_robot = '/puma/waypoints'
     # Get params
-    self.add_pose_topic = rospy.get_param(self.ns+'/add_pose_topic', '/initialpose')
-    pose_array_topic = rospy.get_param(self.ns+'/pose_array_topic', self.ns_robot+'/path_planned')
+    self.add_pose_topic = rospy.get_param(self.ns+'add_pose_topic', '/initialpose')
+    pose_array_topic = rospy.get_param(self.ns+'pose_array_topic', self.ns_robot+'/path_planned')
     # Publisher for visualization
     self.pose_array_publisher = rospy.Publisher(pose_array_topic, PoseArray, queue_size=1)
 
@@ -85,6 +85,7 @@ class PathSelect(smach.State):
       self.initialize_path_waypoints()
       self.path_selected = False
     self.path_ready = False
+    self.charge_mode = False
     
     # Load saved path
     def wait_for_upload_path():
@@ -156,7 +157,16 @@ class PathSelect(smach.State):
     wait_for_ready_thread = threading.Thread(target=wait_for_path_ready, daemon=True)
     wait_for_ready_thread.start()
       
-    while not (self.path_ready and self.path_selected):
+    # Wait for charge mode
+    # Thread for charge car mode
+    def wait_for_charge_mode():
+      rospy.wait_for_message(self.ns_robot+'/run_charge_mode',Empty)
+      rospy.loginfo("Change to charge car mode")
+      self.charge_mode = True
+    wait_for_charge_thread = threading.Thread(target=wait_for_charge_mode, daemon=True)
+    wait_for_charge_thread.start()
+    
+    while not (self.path_ready and self.path_selected) and not self.charge_mode and not rospy.is_shutdown():
       try:
         pose = rospy.wait_for_message(self.add_pose_topic, PoseWithCovarianceStamped, timeout=1)
       except rospy.ROSException:
@@ -170,10 +180,9 @@ class PathSelect(smach.State):
       self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
       self.path_selected = True
       
-      if rospy.is_shutdown():
-        return 'aborted'
-      
     # Finish while
     userdata.path_plan = self.convert_poseCov_to_poseArray(self.waypoints)
     userdata.waypoints = self.waypoints
+    if self.charge_mode:
+      return 'charge_mode'
     return 'success'
