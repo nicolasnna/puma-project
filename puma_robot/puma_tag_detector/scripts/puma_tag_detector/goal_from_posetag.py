@@ -23,8 +23,8 @@ class GoalFromPoseTag:
     
     goal.target_pose.header.stamp = rospy.Time.now()
     goal.target_pose.header.frame_id = "map"
-    goal.target_pose.pose.position.x = pose_received.pose.position.x - 4*math.cos(euler[2]+math.pi/2)
-    goal.target_pose.pose.position.y = pose_received.pose.position.y - 4*math.sin(euler[2]+math.pi/2)
+    goal.target_pose.pose.position.x = pose_received.pose.position.x - 6*math.cos(euler[2]+math.pi/2)
+    goal.target_pose.pose.position.y = pose_received.pose.position.y - 6*math.sin(euler[2]+math.pi/2)
     goal.target_pose.pose.position.z = 0
     goal.target_pose.pose.orientation.x = result[0]
     goal.target_pose.pose.orientation.y = result[1]

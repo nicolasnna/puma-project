@@ -26,8 +26,8 @@
 #   ]
 standalone_tags: # For simulation
   [
-    {id: 0, size: 0.820, name: tag_0},
-    {id: 1, size: 0.820, name: tag_1},
+    {id: 0, size: 0.50, name: tag_0},
+    {id: 1, size: 0.50, name: tag_1},
   ]
 # ## Tag bundle definitions
 # ### Remarks
