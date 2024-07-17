@@ -46,7 +46,7 @@ class PathComplete(smach.State):
     wait_for_charge_thread.start()
 
     # Loop for waiting message
-    while True:
+    while not rospy.is_shutdown():
       time.sleep(0.5)
       
       if self.select_plan:

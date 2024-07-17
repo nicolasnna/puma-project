@@ -13,8 +13,8 @@ waypoints_follow:
 waypoints_charge_mode:
   enable_topic: /puma/tag_detector/enable
   teb_for_charge:
-    xy_goal_tolerance: 0.5
-    yaw_goal_tolerance: 0.1
+    xy_goal_tolerance: 0.65
+    yaw_goal_tolerance: 0.04
   teb_origin:
     xy_goal_tolerance: 1.0
     yaw_goal_tolerance: 0.7

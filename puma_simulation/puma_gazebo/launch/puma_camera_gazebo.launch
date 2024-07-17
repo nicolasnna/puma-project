@@ -5,7 +5,7 @@
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
-  <arg name="model" default="$(find puma_model_camera)/urdf/puma_model_v2_baselink.urdf.xacro"/>
+  <arg name="model" default="$(find puma_model_camera)/urdf/puma_model.urdf.xacro"/>
   <arg name="name" default="camera" />
   <arg name="topics_ns" default="camera" />
   <arg name="add_plug" default="false" />

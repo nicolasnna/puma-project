@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Params -->
+  <rosparam command="load" file="$(find puma_tag_detector)/config/tag_detector_params.yaml"/>
+  <node name="puma_tag_detector" pkg="puma_tag_detector" type="tag_detector_node.py" output="screen"/>
+  
+</launch>

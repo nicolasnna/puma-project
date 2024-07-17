@@ -6,8 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF scale 1001/Frames1
-        - /Navigation1/local cost1
-        - /Navigation1/Global costmap1
+        - /Navigation1
+        - /Waypoints1/planned1
         - /Waypoints1/completed1
         - /grid for changemap1/Offset1
         - /TF1/Frames1
@@ -420,7 +420,7 @@ Visualization Manager:
     - Class: rviz/Group
       Displays:
         - Alpha: 1
-          Arrow Length: 2.5
+          Arrow Length: 1.5
           Axes Length: 0.30000001192092896
           Axes Radius: 0.009999999776482582
           Class: rviz/PoseArray
@@ -437,7 +437,7 @@ Visualization Manager:
           Unreliable: false
           Value: true
         - Alpha: 1
-          Arrow Length: 2.5
+          Arrow Length: 1.5
           Axes Length: 0.30000001192092896
           Axes Radius: 0.009999999776482582
           Class: rviz/PoseArray
@@ -528,6 +528,8 @@ Visualization Manager:
           Value: false
         odom:
           Value: false
+        tag_0:
+          Value: true
         wheel_left_back_link:
           Value: false
         wheel_left_front_link:
@@ -556,7 +558,8 @@ Visualization Manager:
                         {}
                     camera_color_frame:
                       camera_color_optical_frame:
-                        {}
+                        tag_0:
+                          {}
                     camera_depth_frame:
                       camera_depth_optical_frame:
                         {}
@@ -608,11 +611,13 @@ Visualization Manager:
     - Class: buttons_waypoints::StopPlan
     - Class: rviz/Measure
     - Class: buttons_waypoints::ChargeCar
+    - Class: buttons_waypoints::SavePlan
+    - Class: buttons_waypoints::UploadPlan
   Value: true
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 6.269704818725586
+      Distance: 7.473482608795166
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -620,17 +625,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6020860075950623
-        Y: -2.9627645015716553
-        Z: 2.3639168739318848
+        X: 4.249100685119629
+        Y: -1.3972973823547363
+        Z: 8.352560043334961
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.44787418842315674
+      Pitch: 1.0947957038879395
       Target Frame: <Fixed Frame>
-      Yaw: 4.153240203857422
+      Yaw: 3.1032357215881348
     Saved: ~
 Window Geometry:
   Displays:

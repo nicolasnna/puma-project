@@ -19,6 +19,7 @@ class PathSelect(smach.State):
     pose_array_topic = rospy.get_param(self.ns+'pose_array_topic', self.ns_robot+'/path_planned')
     # Publisher for visualization
     self.pose_array_publisher = rospy.Publisher(pose_array_topic, PoseArray, queue_size=1)
+    self.pose_array_completed = rospy.Publisher(self.ns_robot+'/path_completed',PoseArray,queue_size=1)
 
     # Variables
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
@@ -43,6 +44,7 @@ class PathSelect(smach.State):
     """ Initialize or reset path waypoints """
     self.waypoints = []
     self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray([]))
+    self.pose_array_completed.publish(self.convert_poseCov_to_poseArray([]))
     rospy.loginfo("Path array has been reseted")
     
   def convert_frame_pose(self, waypoint, target_frame):

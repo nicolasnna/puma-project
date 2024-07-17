@@ -6,6 +6,7 @@ import time
 import actionlib
 import roslaunch
 from std_msgs.msg import Empty, Bool
+from actionlib_msgs.msg import GoalID
 from apriltag_ros.msg import AprilTagDetectionArray
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 import dynamic_reconfigure.client
@@ -41,19 +42,30 @@ class ChargeMode(smach.State):
     self.activate_transform_tag(is_activate=True)
     detections = []
     client_movebase = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+    
+    # Thread for stop mode
+    def wait_for_stop():
+      rospy.wait_for_message('/puma/waypoints/plan_stop', Empty)
+      rospy.loginfo("Stoping charge mode...")
+      stop_msg = GoalID()
+      rospy.Publisher('/move_base/cancel', GoalID, queue_size=1).publish(stop_msg)
+    wait_for_stop_thread = threading.Thread(target=wait_for_stop, daemon=True)
+    wait_for_stop_thread.start()
+    
     # Wait for detections
     rospy.loginfo("-> waiting for apriltag detections...")
     while len(detections) == 0:
-      msg = rospy.wait_for_message('/tag_detections', AprilTagDetectionArray)
+      msg = rospy.wait_for_message('/tag_detections', AprilTagDetectionArray,timeout=3)
+      self.activate_transform_tag(is_activate=True)
       if len(msg.detections)>0:
         rospy.loginfo("-> Is detected apriltag")
         detections = msg.detections
       time.sleep(0.5)
-      
+      rospy.loginfo("-> waiting for apriltag detections...")
+    
     # Reconfigure TEB tolerance
     rospy.loginfo("-> Change teb tolerance params")
     teb_for_charge = rospy.get_param(self.ns+'teb_for_charge', {})
-    rospy.loginfo(teb_for_charge)
     client_teb = dynamic_reconfigure.client.Client("move_base/TebLocalPlannerROS", timeout=30)
     client_teb.update_configuration(teb_for_charge)
     
