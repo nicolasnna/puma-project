@@ -35,7 +35,7 @@ class GpsToEnu():
     self.lat_array = []
     self.lon_array = []
     self.alt_array = []
-    self.finish_calibrate = False
+    self.finish_calibrate = not self.auto_calculate_ref
   
   def reset_calibration(self, empty):
     ''' reset calibration data '''
@@ -65,7 +65,7 @@ class GpsToEnu():
       self.lat_array.append(lat)
       self.lon_array.append(lon)
       self.alt_array.append(alt)
-      if len(self.lat_array) > 10:
+      if len(self.lat_array) > 5:
         latitude_ref = np.mean(self.lat_array)
         longitude_ref = np.mean(self.lon_array)
         altitude_ref = np.mean(self.alt_array)

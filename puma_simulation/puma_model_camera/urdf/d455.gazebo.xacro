@@ -50,8 +50,8 @@ This is the Gazebo URDF model for the Intel RealSense D455 camera with gazebo
         <camera name="${camera_name}">
           <horizontal_fov>${85.2*deg_to_rad}</horizontal_fov>
           <image>
-            <width>1280</width>
-            <height>720</height>
+            <width>640</width>
+            <height>480</height>
             <format>L_INT8</format>
           </image>
           <clip>
@@ -72,8 +72,8 @@ This is the Gazebo URDF model for the Intel RealSense D455 camera with gazebo
         <camera name="${camera_name}">
           <horizontal_fov>${85.2*deg_to_rad}</horizontal_fov>
           <image>
-            <width>1280</width>
-            <height>720</height>
+            <width>640</width>
+            <height>480</height>
             <format>L_INT8</format>
           </image>
           <clip>
@@ -94,8 +94,8 @@ This is the Gazebo URDF model for the Intel RealSense D455 camera with gazebo
         <camera name="${camera_name}">
           <horizontal_fov>${85.2*deg_to_rad}</horizontal_fov>
           <image>
-            <width>1280</width>
-            <height>720</height>
+            <width>640</width>
+            <height>480</height>
           </image>
           <clip>
             <near>0.1</near>
