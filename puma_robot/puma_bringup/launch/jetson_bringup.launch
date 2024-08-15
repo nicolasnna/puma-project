@@ -12,14 +12,12 @@
   <node name="puma_reverse" pkg="puma_reverse" type="puma_reverse_node.py" output="screen"/>
   <!-- Parking manage -->
   <node name="puma_parking" pkg="puma_parking" type="puma_parking_node.py" output="screen"/>
-  <!-- joy -->
-  <node respawn="true" pkg="joy" type="joy_node" name="joy_node" >
-    <param name="dev" type="string" value="/dev/input/js0" />
-    <param name="deadzone" value="0.12" />
-    <param name="default_trig_val" value="true" />
+  <!-- Gps -->
+  <node pkg="ublox_gps" type="ublox_gps" name="ublox" output="screen" clear_params="true" respawn="true" respawn_delay="30">
+    <rosparam command="load" file="$(find puma_bringup)/config/zed_f9p.yaml"/>
+    <remap from="ublox/fix" to="puma/sensors/gps/fix"/>
+    <remap from="ublox/fix_velocity" to="puma/sensors/gps/fix_velocity"/>
   </node>
-  <!-- joy puma -->
-  <node name="puma_joy" pkg="puma_joy" type="puma_joy_node.py" output="screen"/>
   <!-- IMU -->
   <node name="puma_imu_driver" pkg="puma_imu_driver" type="puma_imu_driver_node.py" output="screen"/>
   

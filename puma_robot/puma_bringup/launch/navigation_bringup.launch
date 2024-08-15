@@ -26,7 +26,4 @@
     <rosparam command="load" file="$(arg path)/teb_cmdvel.yaml"/>
     <param name="clearing_rotation_allowed" value="false" /> 
   </node>
-  <!-- RVIZ -->
-  <arg name="use_rviz" value="true"/>
-  <node if="$(arg use_rviz)" name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_bringup)/rviz/navigation.rviz" required="true"/>
 </launch>

@@ -42,7 +42,6 @@ class InterfaceJoy():
         self.__pub_topic_brake = rospy.get_param(ns+'/brake_topic','puma/brake/command')
         self.__pub_topic_dir = rospy.get_param(ns+'/dir_topic','puma/direction/command')
         self.__pub_topic_accel_puma = rospy.get_param(ns+'/accel_puma_topic','puma/accelerator/command')
-        self.pos_range = [rospy.get_param(ns+'/pos_min', 0), rospy.get_param(ns+'/pos_max',1000)]
         self.accel_puma_range = [rospy.get_param(ns+'/min_accel', 0), rospy.get_param(ns+'/max_accel', 10)]
         self.angle_range = np.deg2rad([rospy.get_param(ns+'/angle_min_degree', -30), rospy.get_param(ns+'/angle_max_degree', 30)])
         
@@ -150,8 +149,7 @@ class InterfaceJoy():
         '''
         try: 
             # --- Control brake --- #
-            self.msg_send_brake.position = int(self.__convertTriggerToRange(self.lt_left, self.pos_range[0], self.pos_range[1]))
-            self.msg_send_brake.button_repeat = self.LB_button
+            self.msg_send_brake.activate_brake = True if self.lt_left < 0.0 else False 
                 
             # --- Control direction --- #
             self.msg_send_dir.angle = self.__convertTriggerToRange(self.x_left*-1, self.angle_range[0], self.angle_range[1])
@@ -166,13 +164,12 @@ class InterfaceJoy():
             if self.level_joy != 0:
                 self.msg_send_accel_puma.data = 0
                 self.msg_send_dir.activate = False
-                self.msg_send_brake.position = 1000
+                self.msg_send_brake.activate_brake = False
                 self.msg_diagnostic.message = "Interface is not working"
             
         except: 
             # Cierre
-            self.msg_send_brake.position = 0
-            self.msg_send_brake.button_repeat = True
+            self.msg_send_brake.activate_brake = True
             self.msg_send_dir.activate = False
             self.msg_send_accel_puma.data = 0
         finally: 

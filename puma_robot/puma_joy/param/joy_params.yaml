@@ -3,8 +3,6 @@ puma_joy:
 
   # --- Params for brake controller --- #
   brake_topic: "puma/brake/command"
-  pos_min: 0
-  pos_max: 1000
 
   # --- params for dir controller --- #
   dir_topic: "puma/direction/command"

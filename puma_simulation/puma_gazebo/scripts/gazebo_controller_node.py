@@ -25,6 +25,8 @@ if __name__ == "__main__":
       # Set evaluate status dir
       dir_position = direction_controller.current_position
       enable_dir = direction_controller.current_enable
+      activate_brake = wheel_controller._activate_brake
+      arduino_controlller.set_status_brake(activate_brake)
       arduino_controlller.set_status_direction(dir_position,enable_dir,False,False)
       # Send msg
       wheel_controller.publish_velocity()

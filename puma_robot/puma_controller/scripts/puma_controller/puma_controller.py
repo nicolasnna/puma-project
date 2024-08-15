@@ -16,8 +16,6 @@ class PumaController():
     reverse_topic = rospy.get_param(ns+'/revese_topic', 'puma/reverse/command')
     ackermann_topic = rospy.get_param(ns+'/ackermann_topic', 'puma/control/ackermann/command')
     direction_topic = rospy.get_param(ns+'/direction_topic', 'puma/direction/command')
-    self.max_value_brake = rospy.get_param(ns+'/max_value_brake', 1000)
-    self.min_value_brake = rospy.get_param(ns+'/min_value_brake', 0)
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
@@ -34,10 +32,10 @@ class PumaController():
     # Variable
     self.reverse_msg = Bool(False)
     self.brake_msg = BrakeCmd()
+    self.brake_msg.activate_brake = False
     self.accel_msg = Int16()
     self.direction_msg = DirectionCmd()
     self.direction_msg.activate = False
-    self.brake_value = 0
     self.vel_linear = 0
     self.enable_joy = False
     self.diagnostic_msg = DiagnosticStatus()
@@ -68,11 +66,11 @@ class PumaController():
     '''
     self.vel_linear = acker_data.drive.speed
     self.reverse_msg.data = self.vel_linear < 0 
-    self.brake_value = 1000 if self.vel_linear == 0 else 0
-    self.brake_msg.position = self.brake_value
+    self.brake_msg.activate_brake = True if self.vel_linear == 0 else False
     self.direction_msg.angle = acker_data.drive.steering_angle
+    self.direction_msg.activate = True
     
-    self.accel_msg.data = int(self.linear_converter_pwm(abs(self.vel_linear), 28, 100, 0.01, 9.8))
+    self.accel_msg.data = int(self.linear_converter_pwm(abs(self.vel_linear), 22, 100, 0.01, 9.8))
 
   def linear_converter_pwm(self, input_value, pwm_min, pwm_max, speed_min, speed_max):
     """

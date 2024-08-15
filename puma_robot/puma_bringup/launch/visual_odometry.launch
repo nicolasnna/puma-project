@@ -12,7 +12,7 @@
   <arg name="gui_cfg"                 default="~/.ros/rtabmap_gui.ini" />
   <arg name="rviz_cfg"                default="$(find rtabmap_launch)/launch/config/rgbd.rviz" />
 
-  <arg name="frame_id"                default="camera_link"/>     <!-- Fixed frame id, you may set "base_link" or "base_footprint" if they are published -->
+  <arg name="frame_id"                default="base_link"/>     <!-- Fixed frame id, you may set "base_link" or "base_footprint" if they are published -->
   <arg name="odom_frame_id"           default=""/>                <!-- If set, TF is used to get odometry instead of the topic -->
   <arg name="odom_frame_id_init"      default=""/>                <!-- If set, TF map->odom is published even if no odometry topic has been received yet. The frame id should match the one in the topic. -->
   <arg name="map_frame_id"            default="map"/>
@@ -36,10 +36,15 @@
   <arg name="approx_sync_max_interval"  default="0"/> <!-- (sec) 0 means infinite interval duration (used with approx_sync=true) -->
 
   <!-- RGB-D related topics -->
-  <arg name="rgb_topic"               value="/camera/color/image_raw"/>
+  <!-- <arg name="rgb_topic"               value="/camera/color/image_raw"/>
   <arg name="depth_topic"             value="/camera/depth/image_raw"/>
   <arg name="camera_info_topic"       value="/camera/color/camera_info"/>
-  <arg name="depth_camera_info_topic" value="/camera/depth/camera_info"/>
+  <arg name="depth_camera_info_topic" value="/camera/depth/camera_info"/> -->
+
+  <arg name="rgb_topic"               value="/puma/camera/color/image_raw"/>
+  <arg name="depth_topic"             value="/puma/camera/aligned_depth_to_color/image_raw"/>
+  <arg name="camera_info_topic"       value="/puma/camera/color/camera_info"/>
+  <arg name="depth_camera_info_topic" value="/puma/camera/aligned_depth_to_color/camera_info"/>
 
   <!-- Already synchronized RGB-D related topic, with rtabmap_sync/rgbd_sync nodelet -->
   <arg name="rgbd_sync"               default="false"/>         <!-- pre-sync rgb_topic, depth_topic, camera_info_topic -->
@@ -66,7 +71,7 @@
   <arg name="odom_guess_min_rotation"    default="0"/>
   <arg name="odom_max_rate"            default="0"/>
   <arg name="odom_expected_rate"       default="0"/>
-  <arg name="imu_topic"                default="/camera/imu"/>          <!-- only used with VIO approaches -->
+  <arg name="imu_topic"                default="/puma/camera/imu"/>          <!-- only used with VIO approaches -->
   <arg name="wait_imu_to_init"         default="false"/>
   <arg name="use_odom_features"        default="false"/>
 
@@ -80,7 +85,7 @@
 
   
   <!-- VIsual odometry -->
-  <node pkg="rtabmap_odom" type="rgbd_odometry" name="rgbd_odometry" clear_params="true" output="screen" args="$(arg args) $(arg odom_args)" >
+  <node pkg="rtabmap_odom" ns="puma/rtabmap" type="rgbd_odometry" name="rgbd_odometry" clear_params="true" output="screen" args="$(arg args) $(arg odom_args)" >
     <remap from="rgb/image"       to="$(arg rgb_topic_relay)"/>
     <remap from="depth/image"     to="$(arg depth_topic_relay)"/>
     <remap from="rgb/camera_info" to="$(arg camera_info_topic)"/>

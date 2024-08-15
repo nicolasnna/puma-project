@@ -2,7 +2,7 @@
   <arg name="device_type"         default="d455"/>
   <arg name="camera"              default="camera"/>
 
-  <group ns="$(arg camera)">
+  <group ns="puma/camera">
     <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
       <arg name="output"                   value="screen"/>
       <arg name="respawn"                  value="true"/>
@@ -23,8 +23,6 @@
 
       <arg name="enable_gyro"       value="true"/>
       <arg name="enable_accel"      value="true"/>
-      <arg name="gyro_fps"          value="200"/>
-      <arg name="accel_fps"         value="100"/>
       <arg name="linear_accel_cov"  value="1.0"/>
       <arg name="unite_imu_method"  value="linear_interpolation"/>
       <arg name="enable_pose"       value="true"/>

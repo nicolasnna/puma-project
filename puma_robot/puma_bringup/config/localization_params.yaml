@@ -3,7 +3,7 @@ odometry:
   frame_id: odom
   child_frame_id: base_link
   direction_zero: 395
-  odometry_topic: puma/odom
+  odometry_topic: puma/localization/odom_wheel
   arduino_status_topic: puma/arduino/status
   reverse_topic: puma/reverse/command
 
@@ -40,7 +40,7 @@ ekf_odom:
   base_link_frame: base_link
   world_frame: odom
 
-  odom0: puma/odom
+  odom0: puma/localization/odom_wheel
   odom0_config: [false, false, false,
                  false, false, false,
                  true,  true,  true,
@@ -49,18 +49,29 @@ ekf_odom:
   odom0_queue_size: 10
   odom0_nodelay: true
   odom0_differential: false
-  odom0_relative: false
+  odom0_relative: true
 
-  pose0: puma/sensors/gps/enu
-  pose0_config: [true,  true,  true,
-                 false, false, false,
-                 false, false, false,
+  odom1: puma/rtabmap/odom_visual
+  odom1_config: [false, false, false,
+                 false, false, true,
+                 true,  true,  true,
                  false, false, false,
                  false, false, false]
-  pose0_queue_size: 4
-  pose0_nodelay: true
-  pose0_differential: false
-  pose0_relative: false
+  odom1_queue_size: 5
+  odom1_nodelay: true
+  odom1_differential: false
+  odom1_relative: true
+
+  # pose0: puma/sensors/gps/enu
+  # pose0_config: [true,  true,  true,
+  #                false, false, false,
+  #                false, false, false,
+  #                false, false, false,
+  #                false, false, false]
+  # pose0_queue_size: 4
+  # pose0_nodelay: true
+  # pose0_differential: false
+  # pose0_relative: false
 
   imu0: puma/sensors/imu/raw
   imu0_config: [false, false, false,
@@ -73,6 +84,18 @@ ekf_odom:
   imu0_relative: false
   imu0_queue_size: 10
   imu0_remove_gravitational_acceleration: true
+
+  imu1: puma/camara/imu
+  imu1_config: [false, false, false,
+                false,  false,  false,
+                false, false, false,
+                true,  true,  true,
+                false,  false,  false]
+  imu1_nodelay: false
+  imu1_differential: false
+  imu1_relative: true
+  imu1_queue_size: 10
+  imu1_remove_gravitational_acceleration: true
 
   use_control: false
 

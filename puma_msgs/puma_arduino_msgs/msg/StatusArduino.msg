@@ -1,8 +1,12 @@
 string  topic_brake
-    int16   position_brake
-    bool    is_move_brake
+    bool    activate_brake
+    bool    switch_a
+    bool    switch_b
+    bool    is_moving_brake
 string  topic_dir    
     int16   current_position_dir
+    float32 current_angle_rad_dir
+    float32 current_angle_deg_dir
     bool    enable_dir
     bool    is_limit_right_dir
     bool    is_limit_left_dir

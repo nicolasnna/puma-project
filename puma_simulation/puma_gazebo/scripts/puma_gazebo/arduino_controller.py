@@ -10,8 +10,7 @@ class ArduinoController():
     
     # default values
     self.status_msg.topic_brake = 'puma/brake/command'
-    self.status_msg.position_brake = 0
-    self.status_msg.is_move_brake = False
+    self.status_msg.activate_brake = False
     
     self.status_msg.topic_dir = 'puma/direction/command'
     self.status_msg.current_position_dir = 395
@@ -39,12 +38,11 @@ class ArduinoController():
     self.status_msg.is_limit_right_dir = limit_right
     self.status_msg.is_limit_left_dir = limit_left
     
-  def set_status_brake(self, position, is_move):
+  def set_status_brake(self, activate):
     '''
     Set brake puma status
     '''
-    self.status_msg.position_brake = position
-    self.status_msg.is_move_brake = is_move
+    self.status_msg.activate_brake = activate
     
   def send_msg(self):
     '''

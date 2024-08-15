@@ -6,28 +6,25 @@
 #include <std_msgs/Int16.h>
 
 #define Analog2Rad 0.006135937
+#define Rad2Degree 57.2958279
 
 // Variables freno
-const int MS[3] = {51,49,47};
 const int DIR_MPP1 = 8;
 const int STEP_MPP1 = 9;
 const int DIR_MPP2 = 10;
 const int STEP_MPP2 = 11;
-
-int positionCurrent = 0;
-int positionToReach = 0;
-int positionMissing = 0;
-bool positiveRunMotor = true;
-bool moveBrake = false;
-const int pinReaderBrakeDel = 29;
-const int pinReaderBrakeTras = 28;
-int readBrakeDel = 0;
+bool enableBrake = false;
+const int pinReaderSwitchA = 29;
+const int pinReaderSwitchB = 28;
+const int posFinishBrake = 400;
+int currentPosBrake = 0;
+bool initialCalibration = true;
 
 // Variables direccion
 const int sensorPositionPin = A2;
 const int enableDirPin = 14;
-const int right_dir = 4;
-const int left_dir = 3;
+const int right_dir = 3;
+const int left_dir = 4;
 // 45 grados limite
 //const int limit_min = 263;
 //const int limit_max = 521;
@@ -45,7 +42,7 @@ bool stop_dir_left = true;
 bool enablePinDirection = false;
 
 // Variables acelerador
-const int acceleratorPin = 5;
+const int acceleratorPin = 12;
 const int minAcceleratorValue = 43;
 const int maxAcceleratorValue = 169;
 int acceleratorValue = minAcceleratorValue;
@@ -78,6 +75,7 @@ ros::Publisher tacometerStatusPub("puma/sensors/tachometer", &tacometer_pub);
 
 void setup() {
   // Config ros
+  //Serial.begin(115200);
   nh.getHardware()->setBaud(115200);
   nh.initNode();
   nh.subscribe(brake_sub);
@@ -87,20 +85,12 @@ void setup() {
   nh.advertise(tacometerStatusPub);
   nh.loginfo("Inicializando Arduino");
   // Config pinMode brake
-  pinMode(pinReaderBrakeDel, INPUT);
-  pinMode(pinReaderBrakeTras, INPUT);
+  pinMode(pinReaderSwitchA, INPUT);
+  pinMode(pinReaderSwitchB, INPUT);
   pinMode(DIR_MPP1, OUTPUT);
   pinMode(DIR_MPP2, OUTPUT);
   pinMode(STEP_MPP1, OUTPUT);
   pinMode(STEP_MPP2, OUTPUT);
-  // Resolution brake
-  pinMode(MS[0], OUTPUT);
-  pinMode(MS[1], OUTPUT);
-  pinMode(MS[2], OUTPUT);
-  digitalWrite(MS[0],HIGH);
-  digitalWrite(MS[1],LOW);
-  digitalWrite(MS[2],LOW);
-  digitalWrite(DIR_MPP1, HIGH);
   // Config pinMode dir
   pinMode(enableDirPin, OUTPUT);
   pinMode(right_dir, OUTPUT);
@@ -111,7 +101,6 @@ void setup() {
   // Config tacometro
   pinMode(tacometroPin, INPUT_PULLUP); 
   attachInterrupt(digitalPinToInterrupt(tacometroPin), countPulse, RISING); 
-
   // Write topics to msg status
   status_msg.topic_brake = "puma/brake/command";
   status_msg.topic_dir = "puma/direction/command";
@@ -120,22 +109,28 @@ void setup() {
 
 void loop() {
   nh.spinOnce();
-
+  // int readSwitchA = digitalRead(pinReaderSwitchA);
+  // int readSwitchB = digitalRead(pinReaderSwitchB);
+  // if (readSwitchA==1) {
+  //   Serial.println("switch A high");
+  // } else {
+  //   Serial.println("switch A low");
+  //   useBrake(false,true);
+  // }
+  // if (readSwitchB==1) {
+  //   Serial.println("switch B high");
+  // } else {
+  //   Serial.println("switch B low");
+  //   useBrake(true,false);
+  // }
   // Si ros esta activado
   if (nh.connected()) {
+    // Cuando ejecute por primera vez
+    if (initialCalibration) {calibrateBrakes();}
     // Controladores
     accelController();
     dirController();
     brakeController();
-    // Test lectura switch
-    readBrakeDel = digitalRead(pinReaderBrakeDel);
-    if (readBrakeDel == HIGH) {
-      nh.loginfo("Lectura del freno delantero True");
-    } 
-    readBrakeDel = digitalRead(pinReaderBrakeTras);
-    if (readBrakeDel == HIGH) {
-      nh.loginfo("Lectura del freno trasero True");
-    }
 
     // Publicar pulsos tacometro
     unsigned long current_time = millis();
@@ -153,8 +148,29 @@ void loop() {
     publishMsgStatus();
   } else {  // Si ros esta desactivado o fue apagado
     analogWrite(acceleratorPin, minAcceleratorValue); // Colocar accelerador al minimo
-    digitalWrite(enableDirPin, LOW);
+    digitalWrite(enableDirPin, LOW); // Desactivar direccion
   }
+}
+
+void calibrateBrakes() {
+  // Calibrar frenos
+  digitalWrite(DIR_MPP1, LOW);
+  digitalWrite(DIR_MPP2, LOW);
+  int readSwitchA = digitalRead(pinReaderSwitchA);
+  int readSwitchB = digitalRead(pinReaderSwitchB);
+  while (readSwitchA == 1) {
+    useBrake(false,true);
+    status_msg.is_moving_brake = true;
+    readSwitchA = digitalRead(pinReaderSwitchA);
+  }
+  delay(100);
+  while (readSwitchB == 1) {
+    useBrake(true,false);
+    status_msg.is_moving_brake = true;
+    readSwitchB = digitalRead(pinReaderSwitchB);
+  }
+  nh.loginfo("Calibracion inicial de frenos completada");
+  initialCalibration = false;
 }
 
 void countPulse() {
@@ -163,10 +179,23 @@ void countPulse() {
 
 void publishMsgStatus() {
   // Brake info
-  status_msg.position_brake = positionCurrent;
-  status_msg.is_move_brake = moveBrake;
+  status_msg.activate_brake = enableBrake;
+  int readSwitchA = digitalRead(pinReaderSwitchA);
+  int readSwitchB = digitalRead(pinReaderSwitchB);
+  if (readSwitchA == 1) {
+    status_msg.switch_a = true;
+  } else {
+    status_msg.switch_a = false;
+  }
+  if (readSwitchB == 1) {
+    status_msg.switch_b = true;
+  } else {
+    status_msg.switch_b = false;
+  }
   // Dir info
   status_msg.current_position_dir = sensorPositionValue;
+  status_msg.current_angle_rad_dir = sensorPositionValue*Analog2Rad;
+  status_msg.current_angle_deg_dir = sensorPositionValue*Analog2Rad*Rad2Degree;
   status_msg.enable_dir = enablePinDirection;
   status_msg.is_limit_right_dir = stop_dir_right;
   status_msg.is_limit_left_dir = stop_dir_left;
@@ -226,30 +255,59 @@ void dirController(){
 }
 
 void brakeController(){
-  if (moveBrake){
-    if (positiveRunMotor){
-      for (int x = 0; x < positionMissing; x++) {
-        digitalWrite(STEP_MPP1, HIGH);
-        digitalWrite(STEP_MPP2, HIGH);
-        delayMicroseconds(500);
-        digitalWrite(STEP_MPP1, LOW);
-        digitalWrite(STEP_MPP2, LOW);
-        delayMicroseconds(300);
-        positionCurrent++;
-      }
-      moveBrake = false;
-    } else {
-      for (int x = 0; x > positionMissing; x--) {
-        digitalWrite(STEP_MPP1, HIGH);
-        digitalWrite(STEP_MPP2, HIGH);
-        delayMicroseconds(500);
-        digitalWrite(STEP_MPP1, LOW);
-        digitalWrite(STEP_MPP2, LOW);
-        delayMicroseconds(300);
-        positionCurrent--;
-      }
-      moveBrake = false;
+  int readSwitchA = digitalRead(pinReaderSwitchA);
+  int readSwitchB = digitalRead(pinReaderSwitchB);
+  if (enableBrake && currentPosBrake != posFinishBrake) {
+    for (int x = 0; x<posFinishBrake; x++){
+      useBrake(true,true);
+      status_msg.is_moving_brake = true;
     }
+    currentPosBrake = posFinishBrake;
+  } else if (!enableBrake) {
+    if(readSwitchA == 0 && readSwitchB == 0) {
+      for(int i = 0; i <5; i++) {
+        useBrake(true,true);
+        status_msg.is_moving_brake = true;
+        readSwitchA = digitalRead(pinReaderSwitchA);
+        readSwitchB = digitalRead(pinReaderSwitchB);
+      }
+    }
+    else if(readSwitchA == 0) {
+      for(int i = 0; i<5; i++) {
+        useBrake(false, true);
+        status_msg.is_moving_brake = true;
+        readSwitchA = digitalRead(pinReaderSwitchA);
+      }
+    } else if(readSwitchB == 0) {
+      for(int i=0; i<5; i++) {
+      useBrake(true, false);
+      status_msg.is_moving_brake = true;
+      readSwitchB = digitalRead(pinReaderSwitchB);
+      }
+    }
+    currentPosBrake = 0;
+  }
+  status_msg.is_moving_brake = false;
+}
+
+void useBrake(bool step1, bool step2) {
+  if (step1 && step2) {
+    digitalWrite(STEP_MPP1, HIGH);
+    digitalWrite(STEP_MPP2, HIGH);
+    delayMicroseconds(500);
+    digitalWrite(STEP_MPP1, LOW);
+    digitalWrite(STEP_MPP2, LOW);
+    delayMicroseconds(300);
+  } else if (step1 && !step2) {
+    digitalWrite(STEP_MPP1, HIGH);
+    delayMicroseconds(500);
+    digitalWrite(STEP_MPP1, LOW);
+    delayMicroseconds(300);
+  } else if (!step1 && step2) {
+    digitalWrite(STEP_MPP2, HIGH);
+    delayMicroseconds(500);
+    digitalWrite(STEP_MPP2, LOW);
+    delayMicroseconds(300);
   }
 }
 
@@ -279,16 +337,12 @@ void dirCallback( const puma_direction_msgs::DirectionCmd& data_received) {
 }
 
 void brakeCallback( const puma_brake_msgs::BrakeCmd& data_received ) {
-  positionToReach = (data_received.position/100)*100;
-  if (positionToReach >= positionCurrent) {
+  enableBrake = data_received.activate_brake;
+  if (enableBrake) {
     digitalWrite(DIR_MPP1, HIGH);
-    digitalWrite(DIR_MPP2, HIGH);
-    positiveRunMotor = true;   
+    digitalWrite(DIR_MPP2, HIGH);   
   } else {
     digitalWrite(DIR_MPP1, LOW);
     digitalWrite(DIR_MPP2, LOW);
-    positiveRunMotor = false;
   }
-  positionMissing = (positionToReach - positionCurrent);
-  moveBrake = true;
 }

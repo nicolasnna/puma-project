@@ -1,2 +1,1 @@
-int16 position
-bool  button_repeat
+bool  activate_brake

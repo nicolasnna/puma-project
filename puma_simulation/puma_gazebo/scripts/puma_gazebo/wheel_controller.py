@@ -30,10 +30,7 @@ class WheelController():
     '''
     set brake
     '''
-    if data_received.position > 500:
-      self._activate_brake = True
-    else:
-      self._activate_brake = False
+    self._activate_brake = data_received.activate_brake
   
   def __brake_electric_callback(self, data_received):
     '''
