@@ -3,7 +3,7 @@ import rospy
 from ackermann_msgs.msg import AckermannDriveStamped
 from puma_brake_msgs.msg import BrakeCmd
 from puma_direction_msgs.msg import DirectionCmd
-from std_msgs.msg import Bool, Int16
+from std_msgs.msg import Bool, Int16, String
 from diagnostic_msgs.msg import DiagnosticStatus
 from nav_msgs.msg import Odometry
 
@@ -19,8 +19,9 @@ class PumaController():
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
-    rospy.Subscriber('/puma/joy/diagnostic', DiagnosticStatus, self.diagnostic_joy_callback)
+
     rospy.Subscriber('/puma/odometry/filtered', Odometry, self.odometry_callback)
+    rospy.Subscriber('/puma/mode_selector', String, self.selector_mode_callback)
 
     # Publishers
     self.reverse_pub = rospy.Publisher(reverse_topic, Bool, queue_size=10)
@@ -37,28 +38,24 @@ class PumaController():
     self.direction_msg = DirectionCmd()
     self.direction_msg.activate = False
     self.vel_linear = 0
-    self.enable_joy = False
+    self.mode_puma = 'autonomous'
     self.diagnostic_msg = DiagnosticStatus()
     self.diagnostic_msg.name = 'Puma controller node'
     self.diagnostic_msg.level = 0
     self.diagnostic_msg.message = 'Is works controller between ackerman and puma'
   
+  def selector_mode_callback(self, mode):
+    self.mode_puma = mode.data
+    if mode.data == "autonomous":
+      self.diagnostic_msg.level = 0
+      self.diagnostic_msg.message = 'Controller works between ackerman and puma'
+    else:
+      self.diagnostic_msg.level = 1
+      self.diagnostic_msg.message = 'Controller doesnt works'
+  
   def odometry_callback(self, odom):
     """ Get current velocity and calculate break value"""
     pass
-  
-  def diagnostic_joy_callback(self, status):
-    '''
-    Callback diagnostic joy status
-    '''
-    if status.level == 0:
-      self.enable_joy = True
-      self.diagnostic_msg.level = 1
-      self.diagnostic_msg.message = 'Controller doesnt work, use joy'
-    else: 
-      self.enable_joy = False
-      self.diagnostic_msg.level = 0
-      self.diagnostic_msg.message = 'Controller works between ackerman and puma'
   
   def ackermann_callback(self, acker_data):
     '''
@@ -83,7 +80,7 @@ class PumaController():
     Puublish velocity linear control periodically
     '''
     self.diagnostic_pub.publish(self.diagnostic_msg)
-    if not self.enable_joy:
+    if self.mode_puma == "autonomous":
       self.accel_pub.publish(self.accel_msg)
       self.brake_pub.publish(self.brake_msg)
       self.reverse_pub.publish(self.reverse_msg)

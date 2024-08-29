@@ -1,12 +1,11 @@
 #include <ros.h>
 #include <std_msgs/Float32.h>
 
-int sensorVoltage = A7;
-float voltageValue = 0.0;
+const int sensorVoltage = A7;
+const float voltageFactor = 25.0 / 1024.0;
 
 // Variables ROS
 ros::NodeHandle nh;
-
 std_msgs::Float32 battery_voltage;
 ros::Publisher batteryVoltagePub("puma/sensors/battery/raw_12v", &battery_voltage);
 
@@ -16,16 +15,18 @@ void setup() {
 }
 
 void loop() {
-
   if (nh.connected()) {
-    float sumVoltage = 0.0;
-    for (int i = 0; i<25; i++) {
-      float volt = (float)25*analogRead(sensorVoltage)/1024.0;
-      sumVoltage += volt;
+    uint32_t sumVoltage = 0;  // Usar enteros en lugar de floats para sumar las lecturas
+
+    for (uint8_t i = 0; i < 25; i++) {
+      sumVoltage += analogRead(sensorVoltage);
     }
-    battery_voltage.data = sumVoltage/25;
-    batteryVoltagePub.publish( &battery_voltage );
+
+    // Convertir el promedio a voltaje una vez
+    battery_voltage.data = (float)(sumVoltage * voltageFactor / 25.0);
+    batteryVoltagePub.publish(&battery_voltage);
   }
+
   delay(100);
   nh.spinOnce();
 }

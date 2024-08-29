@@ -10,6 +10,7 @@
   <arg name="topics_ns" default="camera" />
   <arg name="add_plug" default="false" />
   <arg name="publish_pointcloud" default="true"/>
+  <arg name="controler" default="true"/>
 
   <!-- Launch Gazebo -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -37,7 +38,7 @@
 
   <!-- Puma controller - accel, brake, dir -->
   <!-- <node name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/> -->
-  <node name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
+  <node if="$(arg controler)" name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
 
   <!-- Converter gps to enu -->
   <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/>
