@@ -16,6 +16,8 @@ class PumaController():
     reverse_topic = rospy.get_param(ns+'/revese_topic', 'puma/reverse/command')
     ackermann_topic = rospy.get_param(ns+'/ackermann_topic', 'puma/control/ackermann/command')
     direction_topic = rospy.get_param(ns+'/direction_topic', 'puma/direction/command')
+    self.range_accel_converter = rospy.get_param(ns+'/range_accel_converter', [25,100])
+    self.range_vel_converter = rospy.get_param(ns+'/range_vel_converter', [0.01, 9.8])
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
@@ -67,7 +69,12 @@ class PumaController():
     self.direction_msg.angle = acker_data.drive.steering_angle
     self.direction_msg.activate = True
     
-    self.accel_msg.data = int(self.linear_converter_pwm(abs(self.vel_linear), 22, 100, 0.01, 9.8))
+    self.accel_msg.data = int(self.linear_converter_pwm(
+      abs(self.vel_linear), 
+      self.range_accel_converter[0], 
+      self.range_accel_converter[1], 
+      self.range_vel_converter[0], 
+      self.range_vel_converter[1]))
 
   def linear_converter_pwm(self, input_value, pwm_min, pwm_max, speed_min, speed_max):
     """

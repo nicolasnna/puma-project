@@ -1,27 +1,8 @@
-odometry:
-  wheels_base: 1.1
-  frame_id: odom
-  child_frame_id: base_link
-  direction_zero: 395
-  odometry_topic: puma/localization/odom_wheel
-  arduino_status_topic: puma/arduino/status
-  reverse_topic: puma/reverse/command
-
-tachometer:
-  calibrate_max_rpm_motor: 1654
-  calibrate_max_velocity: 22
-  wheels_diameter: 0.53
-  kalman_q_noise: 0.0007
-  kalman_r_noise: 0.001
-
 gps_to_enu:
   topic_gps: 'puma/sensors/gps/fix'
   topic_publish: 'puma/sensors/gps/enu'
   topic_reset: 'puma/sensors/gps/reset'
   frame_id: 'map'
-  latitude_ref: -33.42196309675523
-  longitude_ref: -70.5818018059048
-  altitude_ref: 570
   apply_offset_90_yaw: true
   auto_calculate_ref: true
 
@@ -40,62 +21,50 @@ ekf_odom:
   base_link_frame: base_link
   world_frame: odom
 
-  odom0: puma/odom
+  odom0: puma/rtabmap/odom_visual
   odom0_config: [false, false, false,
                  false, false, false,
                  true,  true,  true,
-                 false, false, false,
+                 false, false, true,
                  false, false, false]
   odom0_queue_size: 10
   odom0_nodelay: true
   odom0_differential: false
-  odom0_relative: true
+  odom0_relative: false
 
-  odom1: puma/rtabmap/odom_visual
+  odom1: puma/odom
   odom1_config: [false, false, false,
-                 false, false, true,
+                 false, false, false,
                  true,  true,  true,
                  false, false, false,
                  false, false, false]
-  odom1_queue_size: 5
+  odom1_queue_size: 10
   odom1_nodelay: true
   odom1_differential: false
-  odom1_relative: true
+  odom1_relative: false
 
-  # pose0: puma/sensors/gps/enu
-  # pose0_config: [true,  true,  true,
-  #                false, false, false,
-  #                false, false, false,
-  #                false, false, false,
-  #                false, false, false]
-  # pose0_queue_size: 4
-  # pose0_nodelay: true
-  # pose0_differential: false
-  # pose0_relative: false
+  pose0: puma/sensors/gps/enu
+  pose0_config: [true,  true,  true,
+                 false, false, false,
+                 false, false, false,
+                 false, false, false,
+                 false, false, false]
+  pose0_queue_size: 4
+  pose0_nodelay: true
+  pose0_differential: false
+  pose0_relative: false
 
-  imu0: puma/sensors/imu/raw
+  imu0: puma/camera/imu/raw
   imu0_config: [false, false, false,
-                true,  true,  true,
+                false,  false,  false,
                 false, false, false,
-                false,  false,  true,
+                true,  true,  true,
                 false,  false,  false]
   imu0_nodelay: false
   imu0_differential: false
   imu0_relative: false
   imu0_queue_size: 10
   imu0_remove_gravitational_acceleration: true
-
-  imu1: puma/camara/imu
-  imu1_config: [false, false, false,
-                false,  false,  false,
-                false, false, false,
-                true,  true,  true,
-                false,  false,  false]
-  imu1_nodelay: false
-  imu1_differential: false
-  imu1_relative: true
-  imu1_queue_size: 10
-  imu1_remove_gravitational_acceleration: true
 
   use_control: false
 

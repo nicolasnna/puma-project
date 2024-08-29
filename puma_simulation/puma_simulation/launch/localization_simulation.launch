@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <rosparam command="load" file="$(find puma_simulation)/config/localization_params.yaml"/>
+  <node name="ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
+    <remap from="odometry/filtered" to="puma/odometry/filtered"/>
+  </node>
+
+  <include file="$(find puma_simulation)/launch/visual_odometry.launch"/>
+</launch>

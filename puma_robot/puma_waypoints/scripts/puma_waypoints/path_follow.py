@@ -7,7 +7,7 @@ from actionlib_msgs.msg import GoalID
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from geometry_msgs.msg import PoseArray
 from puma_manage_map_msgs.msg import ManageCmd
-from std_msgs.msg import Empty
+from std_msgs.msg import Empty, String
 import tf
 import math
 
@@ -36,7 +36,7 @@ class PathFollow(smach.State):
     # Publisher 
     self.pose_array_planned = rospy.Publisher(self.ns_robot+'/path_planned',PoseArray,queue_size=1)
     self.pose_array_completed = rospy.Publisher(self.ns_robot+'/path_completed',PoseArray,queue_size=1)
-    
+    self.mode_selector_pub = rospy.Publisher('/puma/mode_selector', String, queue_size=1)
     # var
     self.is_aborted = False
     self.is_changing_map = False
@@ -47,6 +47,10 @@ class PathFollow(smach.State):
     path_planned = userdata.path_plan
     path_complete = PoseArray()
     path_complete.header.frame_id = path_planned.header.frame_id
+    # Activate autonomous mode
+    mode_selector_msg = String()
+    mode_selector_msg.data = 'autonomous'
+    self.mode_selector_pub.publish(mode_selector_msg)
     # Aborted current plan
     def wait_for_stop_plan():
       rospy.wait_for_message('/puma/waypoints/plan_stop', Empty)

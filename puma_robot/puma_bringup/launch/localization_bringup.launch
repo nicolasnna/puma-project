@@ -25,6 +25,8 @@
   <!-- Odometry -->
   <node name="puma_odometry_node" pkg="puma_odometry" type="puma_odometry_node.py" output="screen"/>
   <!-- Fusion ekf -->
-  <node name="ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true"/>
+  <node name="ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
+    <remap from="odometry/filtered" to="puma/odometry/filtered"/>
+  </node>
   
 </launch>
