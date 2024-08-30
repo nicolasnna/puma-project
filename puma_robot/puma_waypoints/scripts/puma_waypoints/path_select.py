@@ -3,10 +3,94 @@ import rospy
 import smach
 import threading
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
+from puma_waypoints_msgs.msg import GoalGpsArray
+from geographiclib.geodesic import Geodesic
 from std_msgs.msg import Empty, String
+from sensor_msgs.msg import NavSatFix
+from nav_msgs.msg import Odometry
+import math
 import rospkg
 import csv
 import tf
+import numpy as np
+
+def calc_goal_from_gps(origin_lat, origin_long, goal_lat, goal_long):
+  # Source: https://github.com/danielsnider/gps_goal/blob/master/src/gps_goal/gps_goal.py
+  geod = Geodesic.WGS84
+  g = geod.Inverse(origin_lat, origin_long, goal_lat, goal_long)
+  hypotenuse = distance = g['s12']
+  azimuth = g['azi1']
+  
+  azimuth = math.radians(azimuth)
+  
+  y = adjacent = math.cos(azimuth) * hypotenuse
+  x = opposite = math.sin(azimuth) * hypotenuse
+  
+  return x,y
+
+def calculate_bearing(lat1, lon1, lat2, lon2):
+    """
+    Calculate the bearing between two points.
+
+    Parameters:
+    lat1, lon1 -- origin point (latitude, longitude)
+    lat2, lon2 -- destination point (latitude, longitude)
+
+    Returns:
+    bearing in degrees
+    """
+    # Convert latitude and longitude from degrees to radians
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
+
+    # Calculate the difference in longitude
+    dLon = lon2 - lon1
+
+    # Calculate bearing
+    y = math.sin(dLon) * math.cos(lat2)
+    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon)
+    bearing = math.atan2(y, x)
+
+    # Convert bearing from radians to degrees
+    bearing = math.degrees(bearing)
+
+    # Normalize bearing to 0 - 360 degrees
+    bearing = (bearing + 360) % 360
+
+    return bearing
+
+def yaw_to_quaternion(yaw):
+    """
+    Convert a yaw angle (in degrees) to a quaternion.
+    
+    Parameters:
+    yaw -- yaw angle in degrees
+    
+    Returns:
+    (w, x, y, z) -- tuple representing the quaternion
+    """
+    # Convert yaw from degrees to radians
+    yaw = math.radians(yaw)
+    
+    # Calculate the quaternion components
+    w = math.cos(yaw / 2)
+    x = 0.0
+    y = 0.0
+    z = math.sin(yaw / 2)
+    
+    return (x, y, z, w)
+
+def apply_offset_90_deg_clockwise(enu_x, enu_y):
+    ''' Apply offset in Z axis '''
+    # Rotation matrix
+    rotation_matrix = np.array([
+      [0, 1],
+      [-1, 0]
+    ])
+    en_rotated = rotation_matrix @ np.array([enu_x, enu_y])
+    return en_rotated
 
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
@@ -88,6 +172,8 @@ class PathSelect(smach.State):
       self.path_selected = False
     self.path_ready = False
     self.charge_mode = False
+    self.gps_mode = False
+    self.arrayPoseGoalFromGps = []
     
     # Load saved path
     def wait_for_upload_path():
@@ -168,17 +254,58 @@ class PathSelect(smach.State):
     wait_for_charge_thread = threading.Thread(target=wait_for_charge_mode, daemon=True)
     wait_for_charge_thread.start()
     
+    # wait for gps goal
+    # Thread for gps goal
+    def wait_for_goal_gps():
+      gps_goals = rospy.wait_for_message(self.ns_robot+'/planned_goal_gps', GoalGpsArray)
+      self.gps_mode = True
+      rospy.loginfo("Get goal from gps data")
+      rospy.loginfo("Wait for current gps fix value")
+      gps_current = rospy.wait_for_message('/puma/sensors/gps/fix', NavSatFix)
+      rospy.loginfo("Wait for local position")
+      pos_current = rospy.wait_for_message('/puma/odometry/filtered', Odometry)
+      prev = {"latitude": gps_current.latitude ,"longitude": gps_current.longitude}
+      PoseGoal = PoseWithCovarianceStamped()
+      PoseGoal.header.frame_id = 'map'
+      self.arrayPoseGoalFromGps = []
+      i = 0
+      for LatLonGoal in gps_goals.data:
+        #try:)
+        x, y = calc_goal_from_gps(gps_current.latitude, gps_current.longitude, LatLonGoal.latitude, LatLonGoal.longitude)
+        x_fixed, y_fixed = apply_offset_90_deg_clockwise(x,y)
+        yaw = calculate_bearing(prev["latitude"], prev["longitude"], LatLonGoal.latitude, LatLonGoal.longitude)
+        
+        PoseGoal.pose.pose.position.x = x + pos_current.pose.pose.position.x
+        PoseGoal.pose.pose.position.y = y + pos_current.pose.pose.position.y
+        x_rot, y_rot, z_rot, w_rot = yaw_to_quaternion(yaw)
+        PoseGoal.pose.pose.orientation.x = x_rot
+        PoseGoal.pose.pose.orientation.y = y_rot
+        PoseGoal.pose.pose.orientation.z = z_rot
+        PoseGoal.pose.pose.orientation.w = w_rot
+        
+        self.waypoints.append(PoseGoal)
+        #except Exception as e:
+          #rospy.logerr("Error to calculate gps converter %s", e)
+        prev = {"latitude": LatLonGoal.latitude, "longitude": LatLonGoal.longitude}
+      rospy.loginfo("Transform from global goal to local goal is complete")
+      
+    wait_for_goal_gps_thread = threading.Thread(target=wait_for_goal_gps, daemon=True)
+    wait_for_goal_gps_thread.start()
+    
     while not (self.path_ready and self.path_selected) and not self.charge_mode and not rospy.is_shutdown():
-      try:
-        pose = rospy.wait_for_message(self.add_pose_topic, PoseWithCovarianceStamped, timeout=1)
-      except rospy.ROSException:
-        continue
-      except Exception as e:
-        raise e
-      self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray([]))
-      rospy.loginfo("Recieved new waypoint to x: %.3f, y: %.3f", pose.pose.pose.position.x, pose.pose.pose.position.y)
-      # Transform to pose "map"
-      self.waypoints.append(self.convert_frame_pose(pose,'map'))
+      if not self.gps_mode:
+        try:
+          pose = rospy.wait_for_message(self.add_pose_topic, PoseWithCovarianceStamped, timeout=1)
+        except rospy.ROSException:
+          continue
+        except Exception as e:
+          raise e
+        self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray([]))
+        rospy.loginfo("Recieved new waypoint to x: %.3f, y: %.3f", pose.pose.pose.position.x, pose.pose.pose.position.y)
+        # Transform to pose "map"
+        self.waypoints.append(self.convert_frame_pose(pose,'map'))
+      # else:
+      #   self.waypoints = self.arrayPoseGoalFromGps  
       self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
       self.path_selected = True
       

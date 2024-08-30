@@ -9,6 +9,7 @@ from geometry_msgs.msg import PoseArray
 from puma_manage_map_msgs.msg import ManageCmd
 from std_msgs.msg import Empty, String
 import tf
+import time
 import math
 
 class PathFollow(smach.State):
@@ -59,7 +60,9 @@ class PathFollow(smach.State):
       rospy.loginfo('####################################')
       self.is_aborted = True
       stop_msg = GoalID()
-      rospy.Publisher('/move_base/cancel',GoalID,queue_size=1).publish(stop_msg)
+      for i in range(0,5):
+        rospy.Publisher('/move_base/cancel',GoalID,queue_size=5).publish(stop_msg)
+        time.sleep(0.2)
     # Init thread
     stop_thread = threading.Thread(target=wait_for_stop_plan, daemon=True)
     stop_thread.start()

@@ -3,6 +3,7 @@ import rospy, math
 from geometry_msgs.msg import Twist
 from ackermann_msgs.msg import AckermannDriveStamped
 from puma_arduino_msgs.msg import StatusArduino
+from std_msgs.msg import String
 import numpy as np
 
 class CmdVelToAckermann():
@@ -16,6 +17,7 @@ class CmdVelToAckermann():
     # Subscribers
     rospy.Subscriber(cmd_vel_topic, Twist, self.cmd_vel_callback)
     rospy.Subscriber(arduino_status_topic, StatusArduino, self.status_callback)
+    rospy.Subscriber('/puma/mode_selector', String, self.mode_callback)
     
     # Publishers
     self.ackermann_pub = rospy.Publisher(acker_topic, AckermannDriveStamped, queue_size=10)
@@ -30,6 +32,10 @@ class CmdVelToAckermann():
     self.vel = 0.0
     self.current_angle = 0.0
     self.steering_angle = 0.0
+    self.mode = "autonomous"
+    
+  def mode_callback(self, mode):
+    self.mode = mode.data
     
   def status_callback(self, status_data):
     analog_angle = status_data.current_position_dir
@@ -44,6 +50,8 @@ class CmdVelToAckermann():
     self.steering_angle = self.calculate_steering_angle(linear_velocity, angular_velocity)
     self.vel = linear_velocity
     
+    if self.mode == 'autonomous':
+      self.publish_ackermann()
   
   def calculate_steering_angle(self, linear_velocity, angular_velocity):
     """
@@ -71,5 +79,4 @@ class CmdVelToAckermann():
     ackermann_msg.header.frame_id = 'odom'
     ackermann_msg.drive.steering_angle = self.steering_angle
     ackermann_msg.drive.speed = self.vel
-    
     self.ackermann_pub.publish(ackermann_msg)

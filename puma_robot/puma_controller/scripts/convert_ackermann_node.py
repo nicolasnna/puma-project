@@ -8,8 +8,8 @@ if __name__ == '__main__':
     convert_ackermann = CmdVelToAckermann()
   except:
     rospy.logerr("Error al instanciar la clase CmdVelToAckermann")
-  rate = rospy.Rate(30)
+
   while not rospy.is_shutdown():
     convert_ackermann.publish_ackermann()
-    rate.sleep()
+    rospy.spin()
   
