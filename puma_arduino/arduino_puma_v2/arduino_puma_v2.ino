@@ -21,7 +21,7 @@ int currentPosBrake = 0;
 bool initialCalibration = true;
 
 // Variables direccion
-const int sensorPositionPin = A2;
+const int sensorPositionPin = A1;
 const int enableDirPin = 14;
 const int right_dir = 3;
 const int left_dir = 4;
