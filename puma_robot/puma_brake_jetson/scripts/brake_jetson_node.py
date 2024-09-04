@@ -1,4 +1,4 @@
-#!usr/bin/env python3
+#!/usr/bin/env python3
 import rospy
 from puma_brake_jetson.brake_controller import BrakeController
 

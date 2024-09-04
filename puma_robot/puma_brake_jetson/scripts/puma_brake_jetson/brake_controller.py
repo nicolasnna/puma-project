@@ -1,4 +1,4 @@
-#!usr/bin/env python3
+#!/usr/bin/env python3
 import rospy
 import time
 import Jetson.GPIO as GPIO
@@ -68,7 +68,7 @@ class BrakeController():
       msg_status.level = 0
       msg_status.message = "Brake controller is calibrating"
       rospy.loginfo("Wait for command in /start_calibration ")
-      rospy.wait_for_message(self.topic_brake+"/start_calibration", Empty, timeout=3)
+      rospy.wait_for_message(self.topic_brake+"/start_calibration", Empty)
       rospy.loginfo("Start calibration")
       
       while not self.switch_status:
@@ -80,6 +80,7 @@ class BrakeController():
         self.runSpin(is_positive=False)  
         self.status_pub.publish(msg_status)
       rospy.loginfo("Is set brake in zero position")
+      self.is_calibrated = True
     
     elif self.is_calibrated and diff_time < 3:
       msg_status.level = 0
@@ -87,6 +88,7 @@ class BrakeController():
       
       while self.activate and not self.switch_status:
         self.runSpin(is_positive=True)
+        self.count += 1
         self.status_pub.publish(msg_status)
       
       while not self.activate and self.count >= 1:

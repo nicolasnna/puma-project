@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+    
+  <node name="note_sytem_monitor" pkg="puma_system_monitor" type="system_monitor_node.py" ns="/puma/note_test" output="log" respawn="true" respawn_delay="1">
+    <param name="thermal_zone" value="9"/>
+    <remap from="/cpu_usage" to="/puma/note_test/cpu_usage"/>
+    <remap from="/cpu_temperature" to="/puma/note_test/cpu_temperature"/>
+    <remap from="/memory_usage" to="/puma/note_test/memory_usage"/>
+  </node>
+
+</launch>
