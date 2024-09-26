@@ -8,7 +8,6 @@ raytrace_range: 12
 
 obstacle_layer:
   footprint_clearing_enabled: true
-  inflation_radius: 2
   observation_sources: camera_sensor
   camera_sensor:
     {

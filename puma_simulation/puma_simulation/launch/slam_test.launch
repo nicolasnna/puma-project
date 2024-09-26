@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="path" value="$(find puma_simulation)/config/nav"/>
+  
+  <!-- RTAB-Map (mapeo y SLAM) -->
+  <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="screen">
+    <param name="subscribe_depth" value="true" /> <!-- Si usas la cámara Realsense -->
+    <param name="subscribe_rgbd" value="true" />
+    <param name="subscribe_scan" value="false" /> <!-- Si no usas LiDAR -->
+    <param name="subscribe_scan_cloud" value="false" />
+    <param name="frame_id" value="camera_link" />
+    <param name="approx_sync" value="true" />
+
+    <!-- Parámetros del SLAM -->
+    <param name="RGBD/LinearUpdate" value="0.1" />
+    <param name="RGBD/AngularUpdate" value="0.1" />
+    <param name="RGBD/CreateOccupancyGrid" value="true" /> <!-- Genera un grid de ocupación para la navegación -->
+    <param name="Grid/FromDepth" value="true" />
+    <param name="Grid/3D" value="false" /> <!-- Si quieres usar un mapa 2D para el costmap -->
+    
+    <!-- Usa odometría fusionada con robot localization -->
+    <remap from="odom" to="/puma/odometry/filtered" />
+
+    <!-- Tópicos de la cámara Realsense -->
+    <remap from="rgb/image" to="/puma/camera/color/image_raw" />
+    <remap from="depth/image" to="/puma/camera/aligned_depth_to_color/image_raw" />
+    <remap from="rgb/camera_info" to="/puma/camera/color/camera_info" />
+    <remap from="depth/camera_info" to="/puma/camera/aligned_depth_to_color/camera_info" />
+  </node>
+
+  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
+    <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
+    <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
+
+    <param name="base_global_planner" value="global_planner/GlobalPlanner" />
+		<param name="planner_frequency" value="1.0" />
+		<param name="planner_patience" value="5.0" />
+
+		<!-- <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" /> -->
+		<param name="controller_frequency" value="5.0" />
+		<param name="controller_patience" value="15.0" /> 
+
+    <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/>
+    <rosparam command="load" file="$(arg path)/teb_cmdvel.yaml"/>
+    <param name="clearing_rotation_allowed" value="false" /> 
+    <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" />
+
+  </node>
+</launch>

@@ -7,4 +7,13 @@
   </node>
 
   <include file="$(find puma_simulation)/launch/visual_odometry.launch"/>
+
+  <!-- <node pkg="rtabmap_odom" type="rgbd_odometry" name="odom" output="screen" clear_params="true">
+    <param name="frame_id" value="camera_link" />
+    <remap from="rgb/image" to="/puma/camera/color/image_raw" />
+    <remap from="depth/image" to="/puma/camera/aligned_depth_to_color/image_raw" />
+    <remap from="rgb/camera_info" to="/puma/camera/color/camera_info" />
+    <remap from="odom"            to="/odometry_visual"/>
+  </node> -->
+
 </launch>
