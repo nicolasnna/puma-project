@@ -15,7 +15,7 @@ const int pinReaderSwitchB = 28;
 
 // Variables direccion
 const int sensorPositionPin = A1;
-const int enableDirPin = 14;
+const int enableDirPin = 5;
 const int right_dir = 3;
 const int left_dir = 4;
 // 45 grados limite
@@ -35,7 +35,7 @@ bool stop_dir_left = true;
 bool enablePinDirection = false;
 
 // Variables acelerador
-const int acceleratorPin = 12;
+const int acceleratorPin = 6;
 const int minAcceleratorValue = 43;
 const int maxAcceleratorValue = 169;
 int acceleratorValue = minAcceleratorValue;

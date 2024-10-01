@@ -6,3 +6,8 @@ topic_brake_rear: "/puma/brake/rear_wheels"
 
 extra_steps_front: 200
 extra_steps_rear: 200
+
+pin_dir_front: 37
+pin_step_front: 36
+pin_dir_rear: 35
+pin_step_rear: 33

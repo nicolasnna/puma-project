@@ -14,17 +14,22 @@ if __name__ == "__main__":
   extra_steps_front = rospy.get_param('extra_steps_front', 200)
   extra_steps_rear = rospy.get_param('extra_steps_rear', 200)
   
+  pin_dir_front = rospy.get_param('pin_dir_front', 37)
+  pin_step_front = rospy.get_param('pin_step_front', 36)
+  pin_dir_rear = rospy.get_param('pin_dir_rear', 35)
+  pin_step_rear = rospy.get_param('pin_step_rear', 33)
+  # Instance class
   brake_controller_front = BrakeController(
-    pinDir=37, 
-    pinStep=36, 
+    pinDir=pin_dir_front, 
+    pinStep=pin_step_front, 
     topic_switch=topic_switch_a, 
     topic_brake=topic_brake_front, 
     step_extra=extra_steps_front
   )
   
   brake_controller_rear = BrakeController(
-    pinDir=35, 
-    pinStep=33, 
+    pinDir=pin_dir_rear, 
+    pinStep=pin_step_rear, 
     topic_switch=topic_switch_b,
     topic_brake=topic_brake_rear, 
     step_extra=extra_steps_rear

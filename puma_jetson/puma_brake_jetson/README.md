@@ -6,7 +6,7 @@ Paquete ROS noetic para el control de motores paso a paso usando los GPIO de una
 
 ## Instalación
 
-Para la instalación se realiza por catkin build (no se ha testeado con catkin make)
+Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/en/latest/):
 
     catkin build puma_brake_jetson
 
@@ -15,73 +15,106 @@ Para la instalación se realiza por catkin build (no se ha testeado con catkin m
 - [Robot Operating System (ROS)](http://wiki.ros.org)
 - [diagnostic_msgs](http://wiki.ros.org/diagnostic_msgs)
 - puma_brake_msgs
+- [Jetson.GPIO](https://github.com/NVIDIA/jetson-gpio)
 
-## Usage
+## Ejecución
 
-Describe the quickest way to run this software, for example:
+Se puede ejecutar directamente el nodo:
 
-Run the main node with
+    rosrun puma_brake_jetson brake_jetson_node.py
 
-    roslaunch ros_package_template ros_package_template.launch
+o por el archivo _launch_ para considerar el archivo de configuración:
 
-## Config files
+    roslaunch puma_brake_jetson brake_jetson.launch
 
-Config file folder/set 1
+## Parámetros
 
-- **config_file_1.yaml** Shortly explain the content of this config file
+Entre los parámetros configurables se tiene:
 
-Config file folder/set 2
+## Launch
 
-- **...**
+- **brake_jetson.launch:** Lanzador del nodo _brake_jetson_node.py_, considerando los parámetros definidos en _config/brake_params.yaml_.
 
-## Launch files
+## Nodo
 
-- **launch_file_1.launch:** shortly explain what is launched (e.g standard simulation, simulation with gdb,...)
+### brake_controller
 
-  Argument set 1
+Controla el freno delantero y trasero del Puma, usando los GPIO de la jetson y los driver A4988. Al inicio se requiere un mensaje del tipo _std_msgs/Empty_ para iniciar la calibración y luego, al control de los frenos.
 
-  - **`argument_1`** Short description (e.g. as commented in launch file). Default: `default_value`.
+#### Suscriptores
 
-  Argument set 2
+- **`/puma/brake/switch_a`** (std_msgs/Bool)
 
-  - **`...`**
+  Comprueba el estado del switch del freno delantero.
 
-- **...**
+- **`/puma/brake/switch_b`** (std_msgs/Bool)
 
-## Nodes
+  Comprueba el estado del switch del freno trasero.
 
-### ros_package_template
+- **`/puma/brake/front_wheels/command`** (puma_brake_msgs/BrakeCmd)
 
-Reads temperature measurements and computed the average.
+  Activa o desactiva el freno delantero.
 
-#### Subscribed Topics
+- **`/puma/brake/front_wheels/start_calibration`** (std_msgs/Empty)
 
-- **`/temperature`** ([sensor_msgs/Temperature])
+  Inicia la calibración del freno delantero. (Solo se usa al iniciar el nodo).
 
-  The temperature measurements from which the average is computed.
+- **`/puma/brake/rear_wheels/command`** (puma_brake_msgs/BrakeCmd)
 
-#### Published Topics
+  Activa o desactiva el freno trasero.
 
-...
+- **`/puma/brake/rear_wheels/start_calibration`** (std_msgs/Empty)
 
-#### Services
+  Inicia la calibración del freno trasero. (Solo se usa al iniciar el nodo).
 
-- **`get_average`** ([std_srvs/Trigger])
+#### Publicadores
 
-  Returns information about the current average. For example, you can trigger the computation from the console with
+- **`/puma/brake/front_wheels/diagnostic`** (diagnostic_msgs/DiagnosticStatus)
 
-      rosservice call /ros_package_template/get_average
+  Publica un diagnóstico del estado actual del control del freno delantero.
 
-#### Parameters
+- **`/puma/brake/rear_wheels/diagnostic`** (diagnostic_msgs/DiagnosticStatus)
 
-- **`subscriber_topic`** (string, default: "/temperature")
+  Publica un diagnóstico del estado actual del control del freno trasero.
 
-  The name of the input topic.
+#### Parámetros
 
-- **`cache_size`** (int, default: 200, min: 0, max: 1000)
+- **`switch_topic_a`** (string, default: "/puma/brake/switch_a"")
 
-  The size of the cache.
+  Tópico de suscripción para el switch A (freno delantero).
 
-### NODE_B_NAME
+- **`switch_topic_b`** (string, default: "/puma/brake/switch_b")
 
-...
+  Tópico de suscripción para el switch B (freno trasero).
+
+- **`topic_brake_front`** (string, default: "/puma/brake/front_wheels")
+
+  Tópico base del freno delantero.
+
+- **`topic_brake_rear`** (string, default: "/puma/brake/rear_wheels")
+
+  Tópico base del freno trasero.
+
+- **`extra_steps_front`** (int, default: 200)
+
+  Offset pasos del motor después de detectar el switch A.
+
+- **`extra_steps_rear`** (int, default: 200)
+
+  Offset pasos del motor despues de detectar el switch B.
+
+- **`pin_dir_front`** (int, default: 37)
+
+  Pin GPIO de salida para la dirección del motor encargado del freno delantero.
+
+- **`pin_step_front`** (int, default: 36)
+
+  Pin GPIO de salida para los pasos del motor encargado del freno delantero.
+
+- **`pin_dir_rear`** (int, default: 35)
+
+  Pin GPIO de salida para la dirección del motor encargado del freno delantero.
+
+- **`pin_step_rear`** (int, default: 33)
+
+  Pin GPIO de salida para los pasos del motor encargado del freno delantero.
