@@ -6,8 +6,8 @@ from std_msgs.msg import Bool, Empty
 from puma_brake_msgs.msg import BrakeCmd
 from diagnostic_msgs.msg import DiagnosticStatus
 
-class BrakeController():
-  def __init__(self, pinDir, pinStep, topic_switch, topic_brake):
+class BrakeController:
+  def __init__(self, pinDir, pinStep, topic_switch, topic_brake, step_extra):
     '''
     Initialize brake controller class
     
@@ -21,6 +21,8 @@ class BrakeController():
       Topic for subscriber status switch
     topic_brake : str
       Topic base for brake
+    step_extra  : int
+      Offset for step of motor
     '''
     GPIO.setmode(GPIO.BOARD)
     rospy.Subscriber(topic_switch, Bool, self.switchCallback)
@@ -36,7 +38,9 @@ class BrakeController():
     self.current_time = time.time()
     self.activate = False
     self.count = 0
+    self.STEP_EXTRA = step_extra
     self.count_max = 500
+    self.count_extra = 0
     self.is_calibrated = False
     
   def switchCallback(self, switch_data): 
@@ -45,6 +49,7 @@ class BrakeController():
     
   def brakeCmdCallback(self, brake_cmd):
     self.activate = brake_cmd.activate_brake
+    
   
   def runSpin(self, is_positive):
     if is_positive:
@@ -70,12 +75,12 @@ class BrakeController():
       rospy.loginfo("Wait for command in /start_calibration ")
       rospy.wait_for_message(self.topic_brake+"/start_calibration", Empty)
       rospy.loginfo("Start calibration")
-      
+      # First detect switch HIGH
       while not self.switch_status:
         self.runSpin(is_positive=True)  
         self.status_pub.publish(msg_status)
       rospy.loginfo("Is detected switch")
-      
+      # Go to zero position
       for i in range(0, self.count_max):
         self.runSpin(is_positive=False)  
         self.status_pub.publish(msg_status)
@@ -85,18 +90,26 @@ class BrakeController():
     elif self.is_calibrated and diff_time < 3:
       msg_status.level = 0
       msg_status.message = "Brake controller is run"
-      
-      while self.activate and not self.switch_status:
+      # Go until detect switch
+      if self.activate and not self.switch_status:
         self.runSpin(is_positive=True)
         self.count += 1
-        self.status_pub.publish(msg_status)
-      
-      while not self.activate and self.count >= 1:
+      # Go until extra step
+      elif self.activate and self.switch_status and self.count_extra < self.STEP_EXTRA:
+        self.runSpin(is_positive=True)
+        self.count += 1
+        self.count_extra += 1
+      # Return to zero position
+      elif not self.activate and self.count >= 1:
         self.runSpin(is_positive=False)
         self.count -= 1
-        self.status_pub.publish(msg_status)
         
+      # reset count extra
+      if not self.switch_status: 
+        self.count_extra = 0
+    
     elif diff_time >= 3:
       msg_status.level = 1
       msg_status.message = "Doesn't received state of switch"
-      self.status_pub.publish(msg_status)
+      
+    self.status_pub.publish(msg_status)

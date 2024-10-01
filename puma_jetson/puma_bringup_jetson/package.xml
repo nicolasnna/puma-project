@@ -23,7 +23,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>puma_reverse</build_depend>
   <build_depend>puma_parking</build_depend>
-  <build_depend>ublox</build_depend>
+  <build_depend>ublox_gps</build_depend>
   <build_depend>puma_reverse</build_depend>
   <build_depend>puma_brake_jetson</build_depend>
   <build_depend>puma_imu_driver</build_depend>

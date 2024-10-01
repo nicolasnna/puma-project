@@ -28,7 +28,7 @@ class Bno08xDriver():
     self.mag_pub = rospy.Publisher(topic_mag, MagneticField, queue_size=10)
     self.diagnostic_pub = rospy.Publisher(topic_diagnostic, DiagnosticStatus, queue_size=10)
     
-    i2c = busio.I2C(board.SCL_1, board.SDA_1) 
+    i2c = busio.I2C(board.SCL_0, board.SDA_0) 
     self.bno = BNO08X_I2C(i2c, address=0x4b) # BNO080 (0x4b) BNO085 (0x4a)
     # Init calibration
     #self.bno.begin_calibration()
