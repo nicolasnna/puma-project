@@ -7,7 +7,7 @@ from puma_brake_msgs.msg import BrakeCmd
 from diagnostic_msgs.msg import DiagnosticStatus
 
 class BrakeController:
-  def __init__(self, pinDir, pinStep, topic_switch, topic_brake, step_extra):
+  def __init__(self, pinDir, pinStep, topic_switch, topic_brake, step_extra, count_max):
     '''
     Initialize brake controller class
     
@@ -23,10 +23,14 @@ class BrakeController:
       Topic base for brake
     step_extra  : int
       Offset for step of motor
+    count_max   : int
+      Count of step between zero and switch touch
     '''
     GPIO.setmode(GPIO.BOARD)
     rospy.Subscriber(topic_switch, Bool, self.switchCallback)
     rospy.Subscriber(topic_brake+"/command", BrakeCmd, self.brakeCmdCallback)
+    rospy.Subscriber(self.topic_brake+"/start_calibration", Bool, self.calibrationCallback)
+
     self.status_pub = rospy.Publisher(topic_brake+'/diagnostic', DiagnosticStatus, queue_size=4)
     self.topic_brake = topic_brake
     self.STEPPER_DIR = pinDir
@@ -39,9 +43,13 @@ class BrakeController:
     self.activate = False
     self.count = 0
     self.STEP_EXTRA = step_extra
-    self.count_max = 500
+    self.count_max = count_max
     self.count_extra = 0
     self.is_calibrated = False
+    self.run_calibrate = False
+    
+  def calibrationCallback(self, data):
+    self.run_calibrate = data.data
     
   def switchCallback(self, switch_data): 
     self.switch_status = switch_data.data
@@ -50,7 +58,6 @@ class BrakeController:
   def brakeCmdCallback(self, brake_cmd):
     self.activate = brake_cmd.activate_brake
     
-  
   def runSpin(self, is_positive):
     if is_positive:
       GPIO.output(self.STEPPER_DIR, GPIO.HIGH)
@@ -69,12 +76,9 @@ class BrakeController:
     msg_status.name = "brake jetson"
     msg_status.message = "It doesn't run"
     
-    if not self.is_calibrated:
+    if not self.is_calibrated and self.run_calibrate:
       msg_status.level = 0
       msg_status.message = "Brake controller is calibrating"
-      rospy.loginfo("Wait for command in /start_calibration ")
-      rospy.wait_for_message(self.topic_brake+"/start_calibration", Empty)
-      rospy.loginfo("Start calibration")
       # First detect switch HIGH
       while not self.switch_status:
         self.runSpin(is_positive=True)  

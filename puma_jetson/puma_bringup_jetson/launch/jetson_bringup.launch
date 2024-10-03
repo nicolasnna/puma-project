@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <!-- Load params-->
-  <rosparam command="load" file="$(find puma_bringup)/config/jetson_params.yaml"/>
+  <rosparam command="load" file="$(find puma_bringup_jetson)/config/jetson_params.yaml"/>
   
   <!-- Arduino -->
   <node name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen" respawn="true">
@@ -14,11 +14,13 @@
   <node name="puma_parking" pkg="puma_parking" type="puma_parking_node.py" output="screen"/>
   <!-- Gps -->
   <node pkg="ublox_gps" type="ublox_gps" name="ublox" output="screen" clear_params="true" respawn="true" respawn_delay="30">
-    <rosparam command="load" file="$(find puma_bringup)/config/zed_f9p.yaml"/>
+    <rosparam command="load" file="$(find puma_bringup_jetson)/config/zed_f9p.yaml"/>
     <remap from="ublox/fix" to="puma/sensors/gps/fix"/>
     <remap from="ublox/fix_velocity" to="puma/sensors/gps/fix_velocity"/>
   </node>
   <!-- IMU -->
-  <node name="puma_imu_driver" pkg="puma_imu_driver" type="puma_imu_driver_node.py" output="screen"/>
+  <!-- <node name="puma_imu_driver" pkg="puma_imu_driver" type="puma_imu_driver_node.py" output="screen"/> -->
+  <!-- Monitor pc -->
+  <include file="$(find puma_system_monitor)/launch/jetson_monitor.launch"/>
   
 </launch>

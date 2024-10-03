@@ -24,7 +24,8 @@ if __name__ == "__main__":
     pinStep=pin_step_front, 
     topic_switch=topic_switch_a, 
     topic_brake=topic_brake_front, 
-    step_extra=extra_steps_front
+    step_extra=extra_steps_front,
+    count_max=500
   )
   
   brake_controller_rear = BrakeController(
@@ -32,7 +33,8 @@ if __name__ == "__main__":
     pinStep=pin_step_rear, 
     topic_switch=topic_switch_b,
     topic_brake=topic_brake_rear, 
-    step_extra=extra_steps_rear
+    step_extra=extra_steps_rear,
+    count_max=500
   )
   
   try:

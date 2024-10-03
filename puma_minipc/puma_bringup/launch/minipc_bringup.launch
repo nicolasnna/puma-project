@@ -11,4 +11,7 @@
   <include file="$(find puma_bringup)/launch/navigation_bringup.launch"/>
   <!-- visual odometry -->
   <include file="$(find puma_bringup)/launch/visual_odometry.launch"/>
+  <!-- Monitor temperature -->
+  <include file="$(find puma_system_monitor)/launch/minipc_monitor.launch"/>
+  
 </launch>
