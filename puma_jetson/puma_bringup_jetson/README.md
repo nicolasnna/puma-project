@@ -50,3 +50,27 @@ Debido a que es una agrupación de paquetes para la Jetson Nano, solo se tiene u
 
     - **`ublox/fix`** -> **`puma/sensors/gps/fix`**
     - **`ublox/fix_velocity`** -> **`puma/sensors/gps/fix_velocity`**
+
+## Config files
+
+Se tiene archivos **`yaml`** en el directorio **`config`** para la configuración de los nodos:
+
+- **zed_f9p.yaml:** Parámetros para el ublox GPS.
+
+  - **`device`** (string, valor: "/dev/ttyACM0")
+
+    Puerto de conexión del ublox.
+
+  - **`frame_id`** (string, valor: "gps")
+
+    Marco de referencia de coordenadas del GPS.
+
+  - **`uart1`**
+
+    - **`~baudrate`** (int, valor: 38400)
+
+      Velocidad de conexión con el dispositivo.
+
+  - **`config_on_startup`** (bool, valor: false)
+
+  - **`dynamic_model`** (string, valor: "automotive")
