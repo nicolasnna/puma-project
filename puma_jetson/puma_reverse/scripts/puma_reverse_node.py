@@ -9,12 +9,14 @@ class ControlReverse():
     '''
     def __init__(self):
         rospy.init_node('puma_reverse_node')
-        rospy.Subscriber('puma/reverse/command', Bool, self._reverseCallback)
+        topic_reverse = rospy.get_param("topic_reverse", "puma/reverse")
+        
+        rospy.Subscriber(topic_reverse+'/command', Bool, self._reverseCallback)
         
         # Set GPIO
         GPIO.setmode(GPIO.BOARD)
         
-        self._reversePin = 13
+        self._reversePin = rospy.get_param("reverse_pin", 13)
         self._stateReverse = False
         GPIO.setup(self._reversePin, GPIO.OUT, initial=False)
         

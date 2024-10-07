@@ -9,12 +9,14 @@ class ControlBrakeElectric():
     '''
     def __init__(self):
         rospy.init_node('puma_parking_node')
-        rospy.Subscriber('puma/parking/command', Bool, self._brakeCallback)
+        topic_parking = rospy.get_param("topic_parking", "puma/parking")
+        
+        rospy.Subscriber(topic_parking + "/command", Bool, self._brakeCallback)
         
         # Set GPIO
         GPIO.setmode(GPIO.BOARD)
         
-        self._brakeElectricPin = 15
+        self._brakeElectricPin = rospy.get_param("parking_pin", 15)
         self._stateBrakeElectric = False
         GPIO.setup(self._brakeElectricPin, GPIO.OUT, initial=False)
         

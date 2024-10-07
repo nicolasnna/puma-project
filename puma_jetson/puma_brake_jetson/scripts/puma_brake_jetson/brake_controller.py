@@ -29,7 +29,7 @@ class BrakeController:
     GPIO.setmode(GPIO.BOARD)
     rospy.Subscriber(topic_switch, Bool, self.switchCallback)
     rospy.Subscriber(topic_brake+"/command", BrakeCmd, self.brakeCmdCallback)
-    rospy.Subscriber(self.topic_brake+"/start_calibration", Bool, self.calibrationCallback)
+    rospy.Subscriber(topic_brake+"/start_calibration", Bool, self.calibrationCallback)
 
     self.status_pub = rospy.Publisher(topic_brake+'/diagnostic', DiagnosticStatus, queue_size=4)
     self.topic_brake = topic_brake

@@ -37,7 +37,7 @@ bool enablePinDirection = false;
 // Variables acelerador
 const int acceleratorPin = 6;
 const int minAcceleratorValue = 43;
-const int maxAcceleratorValue = 169;
+const int maxAcceleratorValue = 130; //169
 int acceleratorValue = minAcceleratorValue;
 int newAcceleratorValue = 0;
 bool enableAccelerator = false;

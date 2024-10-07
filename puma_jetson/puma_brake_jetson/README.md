@@ -27,10 +27,6 @@ o por el archivo _launch_ para considerar el archivo de configuración:
 
     roslaunch puma_brake_jetson brake_jetson.launch
 
-## Parámetros
-
-Entre los parámetros configurables se tiene:
-
 ## Launch
 
 - **brake_jetson.launch:** Lanzador del nodo _brake_jetson_node.py_, considerando los parámetros definidos en _config/brake_params.yaml_.

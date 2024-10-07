@@ -9,19 +9,27 @@
 #define Rad2Degree 57.2958279
 
 // Variables freno
-const int DIR_MPP1 = 8;
-const int STEP_MPP1 = 9;
-const int DIR_MPP2 = 10;
-const int STEP_MPP2 = 11;
+const int STEP_FRONT = 11;
+const int DIR_FRONT = 10;
+const int STEP_REAR = 9;
+const int DIR_REAR = 8;
 bool enableBrake = false;
-const int pinReaderSwitchA = 29;
-const int pinReaderSwitchB = 28;
-const int posFinishBrake = 400;
-int currentPosBrake = 0;
+const int pinReaderSwitchA = 28;
+const int pinReaderSwitchB = 27;
 bool initialCalibration = true;
+bool firstStepCalibration = true;
+  // Contadores
+int currentStepFront = 0;
+int currentStepRear = 0;
+int currentExtraStepFront = 0;
+int currentExtraStepRear = 0;
+
+#define posFinishBrake 400
+#define ExtraStepFront 200
+#define ExtraStepRear 200
 
 // Variables direccion
-const int sensorPositionPin = A1;
+const int sensorPositionPin = A2;
 const int right_dir = 3;
 const int left_dir = 4;
 const int enableDirPin = 5;
@@ -29,9 +37,9 @@ const int enableDirPin = 5;
 //const int limit_min = 263;
 //const int limit_max = 521;
 // 30 grados limite
-const int limit_min = 310;
-const int limit_max = 480;
-const int zero_position = 392;
+#define limit_min 310
+#define limit_max 480
+#define zero_position 392
 
 float angleGoal = 0; // Is save angle goal in rads
 int positionGoal = 0;
@@ -83,14 +91,13 @@ void setup() {
   nh.subscribe(accel_sub);
   nh.advertise(arduinoStatusPub);
   nh.advertise(tacometerStatusPub);
-  nh.loginfo("Inicializando Arduino");
   // Config pinMode brake
   pinMode(pinReaderSwitchA, INPUT);
   pinMode(pinReaderSwitchB, INPUT);
-  pinMode(DIR_MPP1, OUTPUT);
-  pinMode(DIR_MPP2, OUTPUT);
-  pinMode(STEP_MPP1, OUTPUT);
-  pinMode(STEP_MPP2, OUTPUT);
+  pinMode(DIR_FRONT, OUTPUT);
+  pinMode(DIR_REAR, OUTPUT);
+  pinMode(STEP_FRONT, OUTPUT);
+  pinMode(STEP_REAR, OUTPUT);
   // Config pinMode dir
   pinMode(enableDirPin, OUTPUT);
   pinMode(right_dir, OUTPUT);
@@ -108,41 +115,30 @@ void setup() {
 }
 
 void loop() {
-  nh.spinOnce();
-  // int readSwitchA = digitalRead(pinReaderSwitchA);
-  // int readSwitchB = digitalRead(pinReaderSwitchB);
-  // if (readSwitchA==1) {
-  //   Serial.println("switch A high");
-  // } else {
-  //   Serial.println("switch A low");
-  //   useBrake(false,true);
-  // }
-  // if (readSwitchB==1) {
-  //   Serial.println("switch B high");
-  // } else {
-  //   Serial.println("switch B low");
-  //   useBrake(true,false);
-  // }
   // Si ros esta activado
   if (nh.connected()) {
-    // Cuando ejecute por primera vez
-    if (initialCalibration) {calibrateBrakes();}
-    // Controladores
-    accelController();
-    dirController();
-    brakeController();
+    // Calibrar primero
+    if (initialCalibration) {
+      nh.loginfo("Realizando calibracion frenos...");
+      calibrateBrakes();
+    } else {
+      // Controladores
+      accelController();
+      dirController();
+      brakeController();
 
-    // Publicar pulsos tacometro
-    unsigned long current_time = millis();
-    if (current_time - last_time >= limit_time) {
-      noInterrupts();
-      tacometer_pub.pulsos = pulsoContador;
-      pulsoContador = 0;
-      interrupts();
-      tacometer_pub.time_millis = limit_time;
-      tacometerStatusPub.publish(&tacometer_pub);
+      // Publicar pulsos tacometro
+      unsigned long current_time = millis();
+      if (current_time - last_time >= limit_time) {
+        noInterrupts();
+        tacometer_pub.pulsos = pulsoContador;
+        pulsoContador = 0;
+        interrupts();
+        tacometer_pub.time_millis = limit_time;
+        tacometerStatusPub.publish(&tacometer_pub);
 
-      last_time = current_time;
+        last_time = current_time;
+      }
     }
     // Publish msg
     publishMsgStatus();
@@ -150,27 +146,52 @@ void loop() {
     analogWrite(acceleratorPin, minAcceleratorValue); // Colocar accelerador al minimo
     digitalWrite(enableDirPin, LOW); // Desactivar direccion
   }
+  nh.spinOnce();
 }
 
 void calibrateBrakes() {
   // Calibrar frenos
-  digitalWrite(DIR_MPP1, LOW);
-  digitalWrite(DIR_MPP2, LOW);
   int readSwitchA = digitalRead(pinReaderSwitchA);
   int readSwitchB = digitalRead(pinReaderSwitchB);
-  while (readSwitchA == 1) {
-    useBrake(false,true);
-    status_msg.is_moving_brake = true;
-    readSwitchA = digitalRead(pinReaderSwitchA);
+
+  if (firstStepCalibration) {
+    digitalWrite(DIR_FRONT, HIGH);
+    digitalWrite(DIR_REAR, HIGH);
+    // if (readSwitchA == 0) {
+    //   // for (int i = 0; i<50; i++){
+    //   //   useBrake(true,false);
+    //   //   status_msg.is_moving_brake = true;
+    //   // }
+    //   analogWrite(STEP_FRONT, 100);
+    // }
+    if (readSwitchB == 0) {
+      // for (int i = 0; i<10; i++) {
+      //   useBrake(false,true);
+      //   status_msg.is_moving_brake = true;
+      // }
+      analogWrite(STEP_REAR, 100);
+    }
+    if (readSwitchA == 1 ) {
+      firstStepCalibration = false;
+      analogWrite(STEP_FRONT, 0);
+      nh.loginfo("Detectado el switch 1");
+    }
+    if (readSwitchB == 1 ) {
+      firstStepCalibration = false;
+      analogWrite(STEP_REAR, 0);
+      nh.loginfo("Detectado el switch 2");
+    }
+  } else {
+    digitalWrite(DIR_FRONT, LOW);
+    digitalWrite(DIR_REAR, LOW);
+    for (int i = 0; i<posFinishBrake; i++) {
+      //useBrake(true,true);
+      useBrake(false,true);
+    }
+    nh.loginfo("Calibracion de frenos completada");
+    initialCalibration = false;
+
   }
-  delay(100);
-  while (readSwitchB == 1) {
-    useBrake(true,false);
-    status_msg.is_moving_brake = true;
-    readSwitchB = digitalRead(pinReaderSwitchB);
-  }
-  nh.loginfo("Calibracion inicial de frenos completada");
-  initialCalibration = false;
 }
 
 void countPulse() {
@@ -180,18 +201,6 @@ void countPulse() {
 void publishMsgStatus() {
   // Brake info
   status_msg.activate_brake = enableBrake;
-  int readSwitchA = digitalRead(pinReaderSwitchA);
-  int readSwitchB = digitalRead(pinReaderSwitchB);
-  if (readSwitchA == 1) {
-    status_msg.switch_a = true;
-  } else {
-    status_msg.switch_a = false;
-  }
-  if (readSwitchB == 1) {
-    status_msg.switch_b = true;
-  } else {
-    status_msg.switch_b = false;
-  }
   // Dir info
   status_msg.current_position_dir = sensorPositionValue;
   status_msg.current_angle_rad_dir = sensorPositionValue*Analog2Rad;
@@ -255,58 +264,113 @@ void dirController(){
 }
 
 void brakeController(){
+  // Switch A -> freno delantero --- Switch B -> freno trasero 
   int readSwitchA = digitalRead(pinReaderSwitchA);
   int readSwitchB = digitalRead(pinReaderSwitchB);
-  if (enableBrake && currentPosBrake != posFinishBrake) {
-    for (int x = 0; x<posFinishBrake; x++){
-      useBrake(true,true);
-      status_msg.is_moving_brake = true;
-    }
-    currentPosBrake = posFinishBrake;
-  } else if (!enableBrake) {
-    if(readSwitchA == 0 && readSwitchB == 0) {
-      for(int i = 0; i <5; i++) {
-        useBrake(true,true);
-        status_msg.is_moving_brake = true;
-        readSwitchA = digitalRead(pinReaderSwitchA);
-        readSwitchB = digitalRead(pinReaderSwitchB);
-      }
-    }
-    else if(readSwitchA == 0) {
-      for(int i = 0; i<5; i++) {
-        useBrake(false, true);
-        status_msg.is_moving_brake = true;
-        readSwitchA = digitalRead(pinReaderSwitchA);
-      }
-    } else if(readSwitchB == 0) {
-      for(int i=0; i<5; i++) {
-      useBrake(true, false);
-      status_msg.is_moving_brake = true;
-      readSwitchB = digitalRead(pinReaderSwitchB);
-      }
-    }
-    currentPosBrake = 0;
+  if (readSwitchA == 1) {
+    status_msg.switch_a = true;
+  } else {
+    status_msg.switch_a = false;
   }
-  status_msg.is_moving_brake = false;
+  if (readSwitchB == 1) {
+    status_msg.switch_b = true;
+  } else {
+    status_msg.switch_b = false;
+  }
+  int x = 0;
+  // currentStepFront currentStepRear
+  status_msg.is_moving_brake = true;
+  // if (enableBrake) { // Giro sentido horario --- Activar freno
+  //   if (readSwitchA == 0 && readSwitchB == 0) {
+  //     // Falta a ambos frenos
+  //     for (x = 0; x < 5; x++) {
+  //       useBrake(true, true);
+  //     }
+  //     currentStepFront += x;
+  //     currentStepRear += x;
+  //   } else if (readSwitchA == 0) {
+  //     // Caso donde falta al freno delantero
+  //     for (x = 0; x < 5; x++) {
+  //       useBrake(true, false);
+  //     }
+  //     currentStepFront += x;
+  //   } else if (readSwitchB == 0) {
+  //     // Caso donde falta al freno trasero
+  //     for (x = 0; x < 5; x++) {
+  //       useBrake(false, true);
+  //     }
+  //     currentStepRear += x;
+  //   } else {
+  //     status_msg.is_moving_brake = false;
+  //   }
+  // } 
+  // else { // Giro sentido antihorario --- Desactivar freno
+  //   if (currentStepFront > 6 && currentStepRear > 6) {
+  //     // Para ambos frenos
+  //     for (x = 0; x < 5; x++) {
+  //       useBrake(true, true);
+  //     }
+  //     currentStepFront -= x;
+  //     currentStepRear -= x;
+  //   } else if (currentStepFront > 6 ) {
+  //     // Caso donde falta al freno delantero
+  //     for (x = 0; x < 5; x++) {
+  //       useBrake(true, false);
+  //     }
+  //     currentStepFront -= x;
+  //   } else if (currentStepRear > 6) {
+  //     // Caso donde falta al freno trasero
+  //     for (x = 0; x < 5; x++) {
+  //       useBrake(false, true);
+  //     }
+  //     currentStepRear -= x;
+  //   } else {
+  //     status_msg.is_moving_brake = false;
+  //   }
+  // }
+
+  if (enableBrake) { // Giro sentido horario --- Activar freno
+    if (readSwitchA == 0 ) {
+      // Falta a ambos frenos
+      for (x = 0; x < 5; x++) {
+        useBrake(true, false);
+      }
+      currentStepFront += x;
+    } else {
+      status_msg.is_moving_brake = false;
+    }
+  } 
+  else { // Giro sentido antihorario --- Desactivar freno
+    if (currentStepFront > 6) {
+      // Para ambos frenos
+      for (x = 0; x < 5; x++) {
+        useBrake(true, true);
+      }
+      currentStepFront -= x;
+    } else {
+      status_msg.is_moving_brake = false;
+    }
+  }
+
 }
 
 void useBrake(bool step1, bool step2) {
   if (step1 && step2) {
-    digitalWrite(STEP_MPP1, HIGH);
-    digitalWrite(STEP_MPP2, HIGH);
+    digitalWrite(STEP_FRONT, HIGH);
+    digitalWrite(STEP_REAR, HIGH);
     delayMicroseconds(500);
-    digitalWrite(STEP_MPP1, LOW);
-    digitalWrite(STEP_MPP2, LOW);
+    digitalWrite(STEP_FRONT, LOW);
+    digitalWrite(STEP_REAR, LOW);
     delayMicroseconds(300);
   } else if (step1 && !step2) {
-    digitalWrite(STEP_MPP1, HIGH);
+    digitalWrite(STEP_FRONT, HIGH);
     delayMicroseconds(500);
-    digitalWrite(STEP_MPP1, LOW);
+    digitalWrite(STEP_FRONT, LOW);
     delayMicroseconds(300);
   } else if (!step1 && step2) {
-    digitalWrite(STEP_MPP2, HIGH);
+    digitalWrite(STEP_REAR, HIGH);
     delayMicroseconds(500);
-    digitalWrite(STEP_MPP2, LOW);
+    digitalWrite(STEP_REAR, LOW);
     delayMicroseconds(300);
   }
 }
@@ -338,11 +402,13 @@ void dirCallback( const puma_direction_msgs::DirectionCmd& data_received) {
 
 void brakeCallback( const puma_brake_msgs::BrakeCmd& data_received ) {
   enableBrake = data_received.activate_brake;
-  if (enableBrake) {
-    digitalWrite(DIR_MPP1, HIGH);
-    digitalWrite(DIR_MPP2, HIGH);   
-  } else {
-    digitalWrite(DIR_MPP1, LOW);
-    digitalWrite(DIR_MPP2, LOW);
+  if (!initialCalibration) {
+    if (enableBrake) {
+      digitalWrite(DIR_FRONT, HIGH);
+      digitalWrite(DIR_REAR, HIGH);   
+    } else {
+      digitalWrite(DIR_FRONT, LOW);
+      digitalWrite(DIR_REAR, LOW);
+    }
   }
 }
