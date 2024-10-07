@@ -12,7 +12,7 @@ class PumaController():
     ns = '/puma_controller'
     # Get params
     accelerator_topic = rospy.get_param(ns+'/accelerator_topic', 'puma/accelerator/command')
-    brake_topic = rospy.get_param(ns+'/brake_topic', 'puma/brake/command')
+    parking_topic = rospy.get_param(ns+'/parking_topic', 'puma/parking/command')
     reverse_topic = rospy.get_param(ns+'/revese_topic', 'puma/reverse/command')
     ackermann_topic = rospy.get_param(ns+'/ackermann_topic', 'puma/control/ackermann/command')
     direction_topic = rospy.get_param(ns+'/direction_topic', 'puma/direction/command')
@@ -27,7 +27,7 @@ class PumaController():
 
     # Publishers
     self.reverse_pub = rospy.Publisher(reverse_topic, Bool, queue_size=10)
-    self.brake_pub = rospy.Publisher(brake_topic, BrakeCmd, queue_size=10)
+    self.brake_pub = rospy.Publisher(parking_topic, BrakeCmd, queue_size=10)
     self.accel_pub = rospy.Publisher(accelerator_topic, Int16, queue_size=10)
     self.direction_pub = rospy.Publisher(direction_topic, DirectionCmd, queue_size=5)
     self.diagnostic_pub = rospy.Publisher('/puma/control/controller/diagnostic', DiagnosticStatus, queue_size=5)

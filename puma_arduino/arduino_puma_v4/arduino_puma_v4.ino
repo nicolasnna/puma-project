@@ -15,7 +15,7 @@ const int STEP_REAR = 9;
 const int DIR_REAR = 8;
 bool enableBrake = false;
 const int pinReaderSwitchA = 28;
-const int pinReaderSwitchB = 27;
+const int pinReaderSwitchB = 26;
 bool initialCalibration = true;
 bool firstStepCalibration = true;
   // Contadores
@@ -24,7 +24,7 @@ int currentStepRear = 0;
 int currentExtraStepFront = 0;
 int currentExtraStepRear = 0;
 
-#define posFinishBrake 400
+#define posFinishBrake 200
 #define ExtraStepFront 200
 #define ExtraStepRear 200
 
@@ -157,36 +157,36 @@ void calibrateBrakes() {
   if (firstStepCalibration) {
     digitalWrite(DIR_FRONT, HIGH);
     digitalWrite(DIR_REAR, HIGH);
-    // if (readSwitchA == 0) {
-    //   // for (int i = 0; i<50; i++){
-    //   //   useBrake(true,false);
-    //   //   status_msg.is_moving_brake = true;
-    //   // }
-    //   analogWrite(STEP_FRONT, 100);
-    // }
-    if (readSwitchB == 0) {
-      // for (int i = 0; i<10; i++) {
-      //   useBrake(false,true);
+    if (readSwitchA == 0) {
+      // for (int i = 0; i<30; i++){
+      //   useBrake(true,false);
       //   status_msg.is_moving_brake = true;
       // }
-      analogWrite(STEP_REAR, 100);
+      analogWrite(STEP_FRONT, 100);
     }
+    // if (readSwitchB == 0) {
+    //   // for (int i = 0; i<200; i++) {
+    //   //   useBrake(false,true);
+    //   //   status_msg.is_moving_brake = true;
+    //   // }
+    //   analogWrite(STEP_REAR, 150);
+    // }
     if (readSwitchA == 1 ) {
       firstStepCalibration = false;
       analogWrite(STEP_FRONT, 0);
       nh.loginfo("Detectado el switch 1");
     }
-    if (readSwitchB == 1 ) {
-      firstStepCalibration = false;
-      analogWrite(STEP_REAR, 0);
-      nh.loginfo("Detectado el switch 2");
-    }
+    // if (readSwitchB == 1 ) {
+    //   firstStepCalibration = false;
+    //   analogWrite(STEP_REAR, 0);
+    //   nh.loginfo("Detectado el switch 2");
+    // }
   } else {
     digitalWrite(DIR_FRONT, LOW);
     digitalWrite(DIR_REAR, LOW);
     for (int i = 0; i<posFinishBrake; i++) {
-      //useBrake(true,true);
-      useBrake(false,true);
+      // useBrake(true,true);
+      // useBrake(false,true);
     }
     nh.loginfo("Calibracion de frenos completada");
     initialCalibration = false;
