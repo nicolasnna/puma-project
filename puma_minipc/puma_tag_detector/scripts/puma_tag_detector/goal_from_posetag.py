@@ -11,6 +11,8 @@ class GoalFromPoseTag:
     rospy.Subscriber('/puma/tag_detector/pose'+tag_name, PoseStamped, self.pose_from_tag)
     self.goal_pub = rospy.Publisher('/puma/tag_detector/goal'+tag_name, MoveBaseGoal, queue_size=1)
     
+    self.distance2tag = rospy.get_param('/tag_detector/distance_to_tag', 6.0)
+    
   def pose_from_tag(self, pose_received):
     goal = MoveBaseGoal()
     
@@ -23,8 +25,8 @@ class GoalFromPoseTag:
     
     goal.target_pose.header.stamp = rospy.Time.now()
     goal.target_pose.header.frame_id = "map"
-    goal.target_pose.pose.position.x = pose_received.pose.position.x - 6*math.cos(euler[2]+math.pi/2)
-    goal.target_pose.pose.position.y = pose_received.pose.position.y - 6*math.sin(euler[2]+math.pi/2)
+    goal.target_pose.pose.position.x = pose_received.pose.position.x - self.distance2tag*math.cos(euler[2]+math.pi/2)
+    goal.target_pose.pose.position.y = pose_received.pose.position.y - self.distance2tag*math.sin(euler[2]+math.pi/2)
     goal.target_pose.pose.position.z = 0
     goal.target_pose.pose.orientation.x = result[0]
     goal.target_pose.pose.orientation.y = result[1]

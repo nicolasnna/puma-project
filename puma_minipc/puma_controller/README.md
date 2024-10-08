@@ -1,4 +1,4 @@
-# Puma Brake Jetson
+# Puma Controller
 
 ## Resumen
 
@@ -151,3 +151,11 @@ Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a veloci
   - **`~arduino_status_topic`** (String, default: "puma/arduino/status")
 
     Tópico para revisar el estado del arduino.
+
+### teleop_keyboard
+
+Publica velocidad lineal y angular en el tópico **`cmd_vel`** usando las teclas `WASDX`.
+
+#### Publicadores
+
+- **`/cmd_vel`** (geometry_msgs/Twist)
