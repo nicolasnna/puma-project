@@ -36,7 +36,7 @@ El nodo se ejecuta mediante _roslaunch_:
 
 Se encarga del control de la navegación del robot mediante waypoints. Este nodo funciona mediante una maquina de estados, donde en cada uno se tiene funcionese interacciones diferentes, que se detallan a continuación:
 
-### GET_PATH
+### 1. GET_PATH
 
 Estado inicial del robot, se encarga de recibir los waypoints donde tiene que llegar el robot durante la navegación. Puede recibir estas ubicaciones mediante `nav 2d goal` de rviz o en un arreglo de puntos GPS.
 
@@ -106,7 +106,7 @@ De este estado se puede transicionar al estado **`FOLLOW_PATH`** o **`CHARGE_MOD
 
     Marco de coordenadas de referencia para las posiciones de destino.
 
-### FOLLOW_PATH
+### 2. FOLLOW_PATH
 
 Estado del robot en el que se realiza la navegación en los waypoints anteriormente indicados.
 
@@ -156,7 +156,7 @@ Si se completa correctamente, se pasa al estado **`COMPLETE_PATH`** y en caso de
 
     Distancia mínima para cambiar al siguiente destino objetivo.
 
-### COMPLETE_PATH
+### 3. COMPLETE_PATH
 
 Estado del robot ejecutado cuando se completa la navegación del estado **`FOLLOW_PATH`**. Desde este estado, se puede pasar a **`GET_PATH`**, **`FOLLOW_PATH`** y **`CHARGE_MODE`**.
 
@@ -174,7 +174,7 @@ Estado del robot ejecutado cuando se completa la navegación del estado **`FOLLO
 
   Comando para cambiar al estado **`CHARGE_MODE`**.
 
-### CHARGE_MODE
+### 4. CHARGE_MODE
 
 Estado del robot para desplazarce hasta la base de carga y quedarse estacionado. Para el desplazamiento es necesario que el apriltag este visible para la cámara del robot. Una vez finalizado, cambia al estado **`GET_PATH`**.
 
