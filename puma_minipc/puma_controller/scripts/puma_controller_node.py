@@ -10,6 +10,10 @@ if __name__ == '__main__':
     rospy.logerr("Error al instanciar la clase PumaController: %s", e)
   
   rate = rospy.Rate(30)
-  while not rospy.is_shutdown():
-    puma_controller.velocity_publish()
-    rate.sleep()
+  try:
+    while not rospy.is_shutdown():
+      puma_controller.velocity_publish()
+      rate.sleep()
+
+  except Exception as e:
+    rospy.logerr("Nodo 'puma_controller_node' desactivado!!: %s", e)

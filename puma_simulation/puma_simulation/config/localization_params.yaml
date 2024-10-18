@@ -43,16 +43,16 @@ ekf_odom:
   odom1_differential: false
   odom1_relative: false
 
-  pose0: puma/sensors/gps/enu
-  pose0_config: [true,  true,  true,
-                 false, false, false,
-                 false, false, false,
-                 false, false, false,
-                 false, false, false]
-  pose0_queue_size: 4
-  pose0_nodelay: true
-  pose0_differential: false
-  pose0_relative: false
+  # pose0: puma/sensors/gps/enu
+  # pose0_config: [true,  true,  true,
+  #                false, false, false,
+  #                false, false, false,
+  #                false, false, false,
+  #                false, false, false]
+  # pose0_queue_size: 4
+  # pose0_nodelay: true
+  # pose0_differential: false
+  # pose0_relative: false
 
   imu0: puma/camera/imu/raw
   imu0_config: [false, false, false,

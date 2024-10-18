@@ -37,12 +37,12 @@
     output="screen" args=" wheel_right_controller wheel_left_controller dir_right_controller dir_left_controller"/>
 
   <!-- Puma controller - accel, brake, dir -->
-  <rosparam command="load" file="$(find puma_controller)/config/puma_controller.yaml"/>
+  <rosparam command="load" file="$(find puma_simulation)/config/puma_controller.yaml"/>
   <node if="$(arg controller)" name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
   <node if="$(arg controller)" name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/>
 
   <!-- Converter gps to enu -->
-  <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/>
+  <!-- <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/> -->
   
   <!-- load node simulation -->
   <node name="puma_gazebo_fake" pkg="puma_fake_driver" type="gazebo_controller_node.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
@@ -55,6 +55,6 @@
   <node if="$(arg static_tf)" pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom" />
 
 
-  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_simulation)/rviz/model.rviz" required="true"/>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_simulation)/rviz/model.rviz" />
 
 </launch>

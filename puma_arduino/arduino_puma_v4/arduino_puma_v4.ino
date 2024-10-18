@@ -8,6 +8,8 @@
 #define Analog2Rad 0.006135937
 #define Rad2Degree 57.2958279
 
+unsigned long time_step_start = 0;
+
 // Variables freno
 const int STEP_FRONT = 11;
 const int DIR_FRONT = 10;
@@ -24,8 +26,8 @@ int currentStepRear = 0;
 int currentExtraStepFront = 0;
 int currentExtraStepRear = 0;
 
-#define posFinishBrake 200
-#define ExtraStepFront 200
+#define posFinishBrake 500
+#define ExtraStepFront 150
 #define ExtraStepRear 200
 
 // Variables direccion
@@ -125,7 +127,7 @@ void loop() {
       // Controladores
       accelController();
       dirController();
-      brakeController();
+      // brakeController();
 
       // Publicar pulsos tacometro
       unsigned long current_time = millis();
@@ -158,23 +160,33 @@ void calibrateBrakes() {
     digitalWrite(DIR_FRONT, HIGH);
     digitalWrite(DIR_REAR, HIGH);
     if (readSwitchA == 0) {
-      // for (int i = 0; i<30; i++){
-      //   useBrake(true,false);
-      //   status_msg.is_moving_brake = true;
-      // }
-      analogWrite(STEP_FRONT, 100);
+      for (int i = 0; i<10; i++){
+        useBrake(true,false);
+        status_msg.is_moving_brake = true;
+        currentStepFront += 1;
+      }
+      // analogWrite(STEP_FRONT, 100);
     }
     // if (readSwitchB == 0) {
     //   // for (int i = 0; i<200; i++) {
     //   //   useBrake(false,true);
     //   //   status_msg.is_moving_brake = true;
     //   // }
-    //   analogWrite(STEP_REAR, 150);
+    //   analogWrite(STEP_REAR, 100);
     // }
     if (readSwitchA == 1 ) {
       firstStepCalibration = false;
       analogWrite(STEP_FRONT, 0);
       nh.loginfo("Detectado el switch 1");
+      for (int i = 0; i<ExtraStepFront; i++){
+        useBrake(true,false);
+        status_msg.is_moving_brake = true;
+        currentStepFront += 1;
+      }
+      char log_msg[50];  // Array de caracteres suficientemente grande para almacenar el mensaje
+      snprintf(log_msg, 50, "El valor de los steps es: %d", currentStepFront);
+      nh.loginfo(log_msg);
+      time_step_start = millis();
     }
     // if (readSwitchB == 1 ) {
     //   firstStepCalibration = false;
@@ -184,13 +196,13 @@ void calibrateBrakes() {
   } else {
     digitalWrite(DIR_FRONT, LOW);
     digitalWrite(DIR_REAR, LOW);
-    for (int i = 0; i<posFinishBrake; i++) {
-      // useBrake(true,true);
-      // useBrake(false,true);
+    unsigned long stop_step = millis();
+    analogWrite(STEP_FRONT, 100);
+    if (stop_step - time_step_start > 1100) {
+      analogWrite(STEP_FRONT, 0);
+      nh.loginfo("Calibracion de frenos completada");
+      initialCalibration = false;
     }
-    nh.loginfo("Calibracion de frenos completada");
-    initialCalibration = false;
-
   }
 }
 
@@ -364,9 +376,9 @@ void useBrake(bool step1, bool step2) {
     delayMicroseconds(300);
   } else if (step1 && !step2) {
     digitalWrite(STEP_FRONT, HIGH);
-    delayMicroseconds(500);
+    delayMicroseconds(1000);
     digitalWrite(STEP_FRONT, LOW);
-    delayMicroseconds(300);
+    delayMicroseconds(1500);
   } else if (!step1 && step2) {
     digitalWrite(STEP_REAR, HIGH);
     delayMicroseconds(500);

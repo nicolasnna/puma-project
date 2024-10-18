@@ -1,0 +1,14 @@
+puma_controller:
+  accelerator_topic: puma/accelerator/command
+  brake_topic: puma/brake/command
+  reverse_topic: puma/reverse/command
+  ackermann_topic: puma/control/ackermann/command
+  direction_topic: puma/direction/command
+  range_accel_converter: [25, 100]
+  range_vel_converter: [0.01, 9.8]
+
+ackermann_converter:
+  cmd_vel_topic: cmd_vel
+  wheel_base: 1.15
+  ackermann_topic: puma/control/ackermann/command
+  arduino_status_topic: puma/arduino/status

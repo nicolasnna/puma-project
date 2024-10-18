@@ -27,7 +27,7 @@ class PumaController():
 
     # Publishers
     self.reverse_pub = rospy.Publisher(reverse_topic, Bool, queue_size=10)
-    self.brake_pub = rospy.Publisher(parking_topic, BrakeCmd, queue_size=10)
+    self.parking_pub = rospy.Publisher(parking_topic, Bool, queue_size=10)
     self.accel_pub = rospy.Publisher(accelerator_topic, Int16, queue_size=10)
     self.direction_pub = rospy.Publisher(direction_topic, DirectionCmd, queue_size=5)
     self.diagnostic_pub = rospy.Publisher('/puma/control/controller/diagnostic', DiagnosticStatus, queue_size=5)
@@ -36,6 +36,8 @@ class PumaController():
     self.reverse_msg = Bool(False)
     self.brake_msg = BrakeCmd()
     self.brake_msg.activate_brake = False
+    self.parking_msg = Bool()
+    self.parking_msg.data = False
     self.accel_msg = Int16()
     self.direction_msg = DirectionCmd()
     self.direction_msg.activate = False
@@ -48,6 +50,7 @@ class PumaController():
   
   def selector_mode_callback(self, mode):
     self.mode_puma = mode.data
+    rospy.loginfo("Received "+ mode.data + " mode...")
     if mode.data == "autonomous":
       self.diagnostic_msg.level = 0
       self.diagnostic_msg.message = 'Controller works between ackerman and puma'
@@ -89,6 +92,6 @@ class PumaController():
     self.diagnostic_pub.publish(self.diagnostic_msg)
     if self.mode_puma == "autonomous":
       self.accel_pub.publish(self.accel_msg)
-      self.brake_pub.publish(self.brake_msg)
+      self.parking_pub.publish(self.parking_msg)
       self.reverse_pub.publish(self.reverse_msg)
       self.direction_pub.publish(self.direction_msg)
