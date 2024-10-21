@@ -8,7 +8,7 @@ waypoints_follow:
   odom_frame_id: odom
   base_frame_id: base_link
   wait_duration: 4.0
-  distance_tolerance: 1.2
+  distance_tolerance: 3
 
 waypoints_charge_mode:
   enable_topic: /puma/tag_detector/enable
@@ -16,5 +16,5 @@ waypoints_charge_mode:
     xy_goal_tolerance: 0.65
     yaw_goal_tolerance: 0.04
   teb_origin:
-    xy_goal_tolerance: 1.0
+    xy_goal_tolerance: 1.5
     yaw_goal_tolerance: 0.7

@@ -12,7 +12,7 @@ if __name__ == '__main__':
   rate = rospy.Rate(30)
   try:
     while not rospy.is_shutdown():
-      puma_controller.velocity_publish()
+      puma_controller.calculate_control_inputs()
       rate.sleep()
 
   except Exception as e:
