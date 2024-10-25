@@ -73,7 +73,7 @@ ekf_odom:
   # pose0_differential: false
   # pose0_relative: false
 
-  imu0: puma/sensors/imu/raw
+  imu0: puma/sensors/imu/filtered
   imu0_config: [false, false, false,
                 true,  true,  true,
                 false, false, false,
