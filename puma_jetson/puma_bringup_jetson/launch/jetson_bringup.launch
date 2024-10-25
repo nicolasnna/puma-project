@@ -6,7 +6,7 @@
   <!-- Arduino -->
   <node name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen" respawn="true">
     <param name="port"                  value="/dev/ttyUSB0"/>
-    <param name="baud"                  value="115200" />
+    <param name="baud"                  value="250000" />
     <param name="limit_dir_analog_min"  value="310"/>
     <param name="limit_dir_analog_max"  value="480"/>
     <param name="zero_dir_analog"       value="392"/>
@@ -36,7 +36,8 @@
     <remap from="ublox/fix_velocity"  to="puma/sensors/gps/fix_velocity"/>
   </node>
   <!-- IMU -->
-  <!-- <node name="puma_imu_driver" pkg="puma_imu_driver" type="puma_imu_driver_node.py" output="screen"/> -->
+  <include file="$(find puma_bringup_jetson)/launch/imu_bringup.launch"/>
+  
   <!-- Monitor pc -->
   <include file="$(find puma_system_monitor)/launch/jetson_monitor.launch"/>
   

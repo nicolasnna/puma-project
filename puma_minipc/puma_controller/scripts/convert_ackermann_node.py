@@ -11,5 +11,5 @@ if __name__ == '__main__':
 
   while not rospy.is_shutdown():
     convert_ackermann.publish_ackermann()
-    rospy.spin()
+    rospy.Rate(30).sleep()
   

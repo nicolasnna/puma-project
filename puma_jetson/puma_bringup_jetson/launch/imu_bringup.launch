@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="imu_calibrated" pkg="imu_calib" type="apply_calib"  output="screen" respawn="true" respawn_delay="4">
+    <remap from="raw" to="puma/sensors/imu/raw"/>
+    <remap from="corrected" to="puma/sensors/imu/corrected"/>
+    <param name="calib_file" value="$(find puma_bringup_jetson)/config/imu_calib.yaml"/>
+  </node>
+  
+  <node name="imu_filter" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen">
+    <param name="use_mag" type="bool" value="true"/>
+    <remap from="/imu/mag" to="/puma/sensors/magnetometer"/>
+    <param name="_world_frame" type="string" value="enu" />
+    <remap from="/imu/data_raw" to="puma/sensors/imu/corrected"/>
+    <remap from="/imu/data" to="puma/sensors/imu/filtered"/>
+  </node>
+
+</launch>

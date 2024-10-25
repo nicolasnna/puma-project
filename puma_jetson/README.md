@@ -15,5 +15,5 @@ Los paquetes en este directorio tienen las siguientes funciones:
 - **`puma_reverse`**: Control de la activación de la reversa tanto para el motor delantero y trasero del robot.
 
 - **`puma_brake_jetson`**: Control de motores paso a paso para los frenos con los gpio de los frenos. (En pausa, se da prioridad a control a través de arduino)
-
-- **`puma_imu_driver`**: Conexión con IMU bno08x con la Jetson mediante I2C. (En pausa, debido a falla de la IMU)
+<!--
+- **`puma_imu_driver`**: Conexión con IMU bno08x con la Jetson mediante I2C. (En pausa, debido a falla de la IMU) -->

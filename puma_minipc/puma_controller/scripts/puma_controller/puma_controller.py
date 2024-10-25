@@ -20,7 +20,7 @@ class PumaController():
     direction_topic = rospy.get_param(ns+'/direction_topic', 'puma/direction/command')
     brake_topic = rospy.get_param(ns+'/brake_topic', 'puma/brake/command')
     self.range_accel_converter = rospy.get_param(ns+'/range_accel_converter', [23,100])
-    self.range_vel_converter = rospy.get_param(ns+'/range_vel_converter', [0.01, 9.8])
+  
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
@@ -40,21 +40,23 @@ class PumaController():
     self.angle = 0
     self.vel_linear_odometry = 0
     self.mode_puma = 'autonomous'
-    self.reverse_msg = Bool(False)
-    self.brake_msg = BrakeCmd(activate_brake=False)
-    self.parking_msg = Bool(data=False)
-    self.accel_msg = Int16(0)
-    self.direction_msg = DirectionCmd(activate=False)
     self.diagnostic_msg = DiagnosticStatus(
         name='Puma controller node', 
         level=0, 
         message='Is works controller between ackerman and puma'
     )
     
-    self.pid = PIDAntiWindUp(kp=2, ki=0.1, kd=0.05, min_value=self.range_accel_converter[0], max_value=self.range_accel_converter[1], anti_windup=True)
+    self.pid = PIDAntiWindUp(
+      kp=0.3, 
+      ki=0.2, 
+      kd=0.05, 
+      min_value=self.range_accel_converter[0], 
+      max_value=self.range_accel_converter[1]
+    )
 
     self.last_time_odometry = 0
     self.last_time_ackermann = 0
+    self.is_change_reverse = False
 
   def selector_mode_callback(self, mode):
     self.mode_puma = mode.data
@@ -69,7 +71,7 @@ class PumaController():
   def odometry_callback(self, odom):
     """ Get current velocity and calculate break value"""
     self.last_time_odometry = time.time()
-    self.vel_linear_odometry = odom.twist.twist.linear.x
+    self.vel_linear_odometry = round(odom.twist.twist.linear.x,4)
   
   def ackermann_callback(self, acker_data):
     '''
@@ -77,17 +79,12 @@ class PumaController():
     '''
     self.last_time_ackermann = time.time()
     
-    self.vel_linear = acker_data.drive.speed
+    self.vel_linear = round(acker_data.drive.speed,3)
     self.angle = acker_data.drive.steering_angle
+    
+    self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0) or (self.vel_linear < 0 and self.vel_linear_odometry > 0)
 
-      
-      # self.accel_msg.data = int(self.linear_converter_pwm(
-      #   abs(self.vel_linear), 
-      #   self.range_accel_converter[0], 
-      #   self.range_accel_converter[1], 
-      #   self.range_vel_converter[0], 
-      #   self.range_vel_converter[1]))
-      
+
   def calculate_control_inputs(self):
     diagnostic = DiagnosticStatus(
       name='Puma controller node', 
@@ -95,10 +92,20 @@ class PumaController():
       message='Not received odometry or ackermann msgs'
       )
     if self.mode_puma == "autonomous":
-      accel_msg = Int16(int(self.pid.update(self.vel_linear, self.vel_linear_odometry)))
-      rospy.loginfo("PWM calculado: %d", accel_msg.data)
+      if self.vel_linear == 0:
+        self.pid.clean_acumulative_error()
+      
+      if self.is_change_reverse:
+        accel_msg = Int16(0)
+        brake_msg = BrakeCmd(activate_brake=True)
+        self.pid.clean_acumulative_error()
+        rospy.loginfo("Cambiando sentido de aceleracion: %d", accel_msg.data)
+      else:
+        accel_msg = Int16(int(self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry)))) if self.vel_linear != 0 else Int16(self.range_accel_converter[0])
+        brake_msg = BrakeCmd(activate_brake=(self.vel_linear == 0))
+        rospy.loginfo("PWM calculado: %d", accel_msg.data)
+      
       reverse_msg = Bool(self.vel_linear < 0) 
-      brake_msg = BrakeCmd(activate_brake=(self.vel_linear == 0))
       direction_msg = DirectionCmd(angle=self.angle, activate=True)
       
       current_time = time.time()
@@ -108,6 +115,7 @@ class PumaController():
         brake_msg = BrakeCmd(activate_brake=False)
         direction_msg = DirectionCmd(angle=0, activate=False)
         diagnostic.level = 1
+        self.pid.clean_acumulative_error()
       
       self.accel_pub.publish(accel_msg)
       self.reverse_pub.publish(reverse_msg)
@@ -115,10 +123,3 @@ class PumaController():
       self.brake_pub.publish(brake_msg)
     
     self.diagnostic_pub.publish(self.diagnostic_msg if diagnostic.level == 0 else diagnostic)
-
-  def linear_converter_pwm(self, input_value, pwm_min, pwm_max, speed_min, speed_max):
-    """
-    Converts linear velocity to a PWM signal for motor control
-    """
-    return (pwm_max - pwm_min) / (speed_max - speed_min) * (input_value - speed_min) + pwm_min
-  

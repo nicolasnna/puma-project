@@ -26,7 +26,9 @@
   <build_depend>ublox_gps</build_depend>
   <build_depend>puma_reverse</build_depend>
   <build_depend>puma_brake_jetson</build_depend>
-  <build_depend>puma_imu_driver</build_depend>
+  <build_depend>imu_calib</build_depend>
+  <build_depend>imu_filter_madgwick</build_depend>
+  <!-- <build_depend>puma_imu_driver</build_depend> -->
   <build_depend>puma_system_monitor</build_depend>
 
   <!-- The export tag contains other, unspecified, tags -->

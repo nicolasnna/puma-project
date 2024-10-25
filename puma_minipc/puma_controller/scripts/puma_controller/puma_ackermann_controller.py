@@ -49,9 +49,7 @@ class CmdVelToAckermann():
     angular_velocity = data_received.angular.z
     self.steering_angle = self.calculate_steering_angle(linear_velocity, angular_velocity)
     self.vel = linear_velocity
-    
-    if self.mode == 'autonomous':
-      self.publish_ackermann()
+
   
   def calculate_steering_angle(self, linear_velocity, angular_velocity):
     """
@@ -74,9 +72,10 @@ class CmdVelToAckermann():
   
   def publish_ackermann(self):
     # Messages
-    ackermann_msg = AckermannDriveStamped()  
-    ackermann_msg.header.stamp = rospy.Time.now()
-    ackermann_msg.header.frame_id = 'odom'
-    ackermann_msg.drive.steering_angle = self.steering_angle
-    ackermann_msg.drive.speed = self.vel
-    self.ackermann_pub.publish(ackermann_msg)
+    if self.mode == 'autonomous':
+      ackermann_msg = AckermannDriveStamped()  
+      ackermann_msg.header.stamp = rospy.Time.now()
+      ackermann_msg.header.frame_id = 'odom'
+      ackermann_msg.drive.steering_angle = self.steering_angle
+      ackermann_msg.drive.speed = self.vel
+      self.ackermann_pub.publish(ackermann_msg)

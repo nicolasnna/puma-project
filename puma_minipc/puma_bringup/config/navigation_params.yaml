@@ -3,7 +3,8 @@ puma_controller:
   brake_topic: puma/brake/command
   reverse_topic: puma/reverse/command
   ackermann_topic: puma/control/ackermann/command
-
+  direction_topic: puma/direction/command
+  range_accel_converter: [22, 100]
 
 ackermann_converter:
   cmd_vel_topic: cmd_vel

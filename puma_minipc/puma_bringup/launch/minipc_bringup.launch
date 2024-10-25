@@ -8,7 +8,7 @@
   <!-- Localization -->
   <include file="$(find puma_bringup)/launch/localization_bringup.launch"/>
   <!-- Navigation -->
-  <include file="$(find puma_bringup)/launch/navigation_bringup.launch"/>
+  <include file="$(find puma_bringup)/launch/dwa_navigation_bringup.launch"/>
   <!-- visual odometry -->
   <include file="$(find puma_bringup)/launch/visual_odometry.launch"/>
   <!-- Monitor temperature -->
