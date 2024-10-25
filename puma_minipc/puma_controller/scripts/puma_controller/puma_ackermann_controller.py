@@ -17,7 +17,7 @@ class CmdVelToAckermann():
     # Subscribers
     rospy.Subscriber(cmd_vel_topic, Twist, self.cmd_vel_callback)
     rospy.Subscriber(arduino_status_topic, StatusArduino, self.status_callback)
-    rospy.Subscriber('/puma/mode_selector', String, self.mode_callback)
+    rospy.Subscriber('/puma/control/current_mode', String, self.mode_callback)
     
     # Publishers
     self.ackermann_pub = rospy.Publisher(acker_topic, AckermannDriveStamped, queue_size=10)

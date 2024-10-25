@@ -19,13 +19,13 @@ class PumaController():
     ackermann_topic = rospy.get_param(ns+'/ackermann_topic', 'puma/control/ackermann/command')
     direction_topic = rospy.get_param(ns+'/direction_topic', 'puma/direction/command')
     brake_topic = rospy.get_param(ns+'/brake_topic', 'puma/brake/command')
-    self.range_accel_converter = rospy.get_param(ns+'/range_accel_converter', [23,100])
+    self.range_accel_converter = rospy.get_param(ns+'/range_accel_converter', [22,100])
   
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
     rospy.Subscriber('/puma/odometry/filtered', Odometry, self.odometry_callback)
-    rospy.Subscriber('/puma/mode_selector', String, self.selector_mode_callback)
+    rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
 
     # Publishers
     self.reverse_pub = rospy.Publisher(reverse_topic, Bool, queue_size=10)
@@ -60,7 +60,7 @@ class PumaController():
 
   def selector_mode_callback(self, mode):
     self.mode_puma = mode.data
-    rospy.loginfo("Received "+ mode.data + " mode...")
+    #rospy.loginfo("Received "+ mode.data + " mode...")
     if mode.data == "autonomous":
       self.diagnostic_msg.level = 0
       self.diagnostic_msg.message = 'Controller works between ackerman and puma'

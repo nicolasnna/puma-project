@@ -40,5 +40,10 @@
   
   <!-- Monitor pc -->
   <include file="$(find puma_system_monitor)/launch/jetson_monitor.launch"/>
+  <!-- Joy-->
+  <include file="$(find puma_joy)/launch/puma_joy.launch"/>
+  <!-- mode selector -->
+  <node name="puma_control_mode" pkg="puma_control_mode_selector" type="control_mode_node.py" output="screen"/>
+  
   
 </launch>

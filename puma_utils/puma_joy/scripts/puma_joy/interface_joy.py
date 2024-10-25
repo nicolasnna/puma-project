@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import rospy
 import numpy as np
+import time
 from puma_brake_msgs.msg import BrakeCmd
 from puma_direction_msgs.msg import DirectionCmd
-from std_msgs.msg import Int16, Bool
+from std_msgs.msg import Int16, Bool, String
 from sensor_msgs.msg import Joy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
 
@@ -65,12 +66,15 @@ class InterfaceJoy():
         # Create topics
         rospy.Subscriber(self.__sub_topic, Joy, self.__subCallBack)
         rospy.Subscriber('diagnostics', DiagnosticArray, self._diagnostic_callback)
+        rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
         self._publisher_brake = rospy.Publisher(self.__pub_topic_brake, BrakeCmd, queue_size=5)  # Is modifly
         self._publisher_dir = rospy.Publisher(self.__pub_topic_dir, DirectionCmd, queue_size=5)
         self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
         self._publisher_reverse = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
         self._publisher_brake_electric = rospy.Publisher('puma/parking/command', Bool, queue_size=5)
         self._publisher_diagnostic = rospy.Publisher('puma/joy/diagnostic', DiagnosticStatus, queue_size=5)
+        self._publisher_mode_controller = rospy.Publisher('puma/control/change_mode', String, queue_size=4)
+        
         # Create variable to send
         self.msg_send_brake = BrakeCmd()
         self.msg_send_dir = DirectionCmd()
@@ -89,7 +93,12 @@ class InterfaceJoy():
         self.msg_diagnostic.message = "Interface is working"
         
         self.level_joy = 2
+        self.current_mode = "none"
         
+        self.time_change_mode_press = 0
+        
+    def selector_mode_callback(self, mode):
+        self.current_mode = mode.data
         
     def __subCallBack(self, data_received):
         '''
@@ -124,9 +133,23 @@ class InterfaceJoy():
         #if self.back_button and self.start_button:
         self.msg_send_reverse.data = self.LB_button
         
+        if self.start_button and self.back_button:
+            if self.time_change_mode_press == 0:
+                self.time_change_mode_press = time.time()
+            if time.time() - self.time_change_mode_press >= 1:
+                self.change_mode_publish("joystick" if self.current_mode != "joystick" else "autonomous")
+                time.sleep(0.1)
+                self.change_mode_publish("joystick" if self.current_mode != "joystick" else "autonomous")
+        else:
+            self.time_change_mode_press = 0
+        
         # Accelerator status
         if self.start_button:
             self.ready_send_accel = True
+
+    def change_mode_publish(self, newMode):
+        msg = String(data=newMode)
+        self._publisher_mode_controller.publish(msg)
 
     def _diagnostic_callback(self, data_received):
         status = data_received.status
@@ -158,14 +181,18 @@ class InterfaceJoy():
             
             # --- Control Accelerator puma --- #
             self.msg_send_accel_puma.data = int(self.__convertTriggerToRange(self.rt_right, self.accel_puma_range[0], self.accel_puma_range[1]))
-            
+            self.msg_diagnostic.level = 0
             self.msg_diagnostic.message = "Interface is working"
             
             if self.level_joy != 0:
                 self.msg_send_accel_puma.data = 0
                 self.msg_send_dir.activate = False
                 self.msg_send_brake.activate_brake = False
-                self.msg_diagnostic.message = "Interface is not working"
+                self.msg_diagnostic.level = 2
+                self.msg_diagnostic.message = "No se detecta joystick"
+            elif self.current_mode != "joystick":
+                self.msg_diagnostic.level = 1
+                self.msg_diagnostic.message = "Puma control no esta en modo 'joystick'"
             
         except: 
             # Cierre
@@ -173,10 +200,11 @@ class InterfaceJoy():
             self.msg_send_dir.activate = False
             self.msg_send_accel_puma.data = 0
         finally: 
+            if self.current_mode == "joystick":
+                self._publisher_brake.publish(self.msg_send_brake)
+                self._publisher_dir.publish(self.msg_send_dir)
+                if self.ready_send_accel:
+                    self._publisher_accel_puma.publish(self.msg_send_accel_puma)
+                self._publisher_reverse.publish(self.msg_send_reverse)
+                self._publisher_brake_electric.publish(self.msg_send_brake_electric)
             self._publisher_diagnostic.publish(self.msg_diagnostic)
-            self._publisher_brake.publish(self.msg_send_brake)
-            self._publisher_dir.publish(self.msg_send_dir)
-            if self.ready_send_accel:
-                self._publisher_accel_puma.publish(self.msg_send_accel_puma)
-            self._publisher_reverse.publish(self.msg_send_reverse)
-            self._publisher_brake_electric.publish(self.msg_send_brake_electric)

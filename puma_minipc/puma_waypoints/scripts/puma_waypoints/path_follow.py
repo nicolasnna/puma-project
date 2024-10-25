@@ -37,7 +37,7 @@ class PathFollow(smach.State):
     # Publisher 
     self.pose_array_planned = rospy.Publisher(self.ns_robot+'/path_planned',PoseArray,queue_size=1)
     self.pose_array_completed = rospy.Publisher(self.ns_robot+'/path_completed',PoseArray,queue_size=1)
-    self.mode_selector_pub = rospy.Publisher('/puma/mode_selector', String, queue_size=1)
+    self.mode_selector_pub = rospy.Publisher('/puma/control/change_mode', String, queue_size=1)
     # var
     self.is_aborted = False
     self.is_changing_map = False
