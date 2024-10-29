@@ -13,7 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
   nav_core
   pluginlib
   roscpp
+  tf
+
 )
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -91,8 +94,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 # generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
+#   cfg/PumaHybridAStarPlanner.cfg
 # )
 
 ###################################
@@ -105,9 +107,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES puma_hybrid_astar_planner
-#  CATKIN_DEPENDS costmap_2d geometry_msgs nav_core pluginlib roscpp
+  INCLUDE_DIRS include
+  LIBRARIES puma_hybrid_astar_planner
+  CATKIN_DEPENDS costmap_2d geometry_msgs nav_core pluginlib roscpp tf
 #  DEPENDS system_lib
 )
 
@@ -118,14 +120,14 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/puma_hybrid_astar_planner.cpp
-# )
+add_library(puma_hybrid_astar_planner
+  src/puma_hybrid_astar_planner.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -148,9 +150,9 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(puma_hybrid_astar_planner
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -168,10 +170,12 @@ include_directories(
 
 ## Mark executables for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
-# install(TARGETS ${PROJECT_NAME}_node
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
-
+install(TARGETS puma_hybrid_astar_planner
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIN_DESTINATION}
+)
+install(FILES puma_hybrid_astar_planner.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
 # install(TARGETS ${PROJECT_NAME}

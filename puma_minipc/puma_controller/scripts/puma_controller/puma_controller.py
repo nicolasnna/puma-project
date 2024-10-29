@@ -82,7 +82,7 @@ class PumaController():
     self.vel_linear = round(acker_data.drive.speed,3)
     self.angle = acker_data.drive.steering_angle
     
-    self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0) or (self.vel_linear < 0 and self.vel_linear_odometry > 0)
+    self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
 
 
   def calculate_control_inputs(self):
@@ -95,15 +95,15 @@ class PumaController():
       if self.vel_linear == 0:
         self.pid.clean_acumulative_error()
       
-      if self.is_change_reverse:
-        accel_msg = Int16(0)
-        brake_msg = BrakeCmd(activate_brake=True)
-        self.pid.clean_acumulative_error()
-        rospy.loginfo("Cambiando sentido de aceleracion: %d", accel_msg.data)
-      else:
-        accel_msg = Int16(int(self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry)))) if self.vel_linear != 0 else Int16(self.range_accel_converter[0])
-        brake_msg = BrakeCmd(activate_brake=(self.vel_linear == 0))
-        rospy.loginfo("PWM calculado: %d", accel_msg.data)
+      # if self.is_change_reverse:
+      #   accel_msg = Int16(0)
+      #   brake_msg = BrakeCmd(activate_brake=True)
+      #   self.pid.clean_acumulative_error()
+      #   rospy.loginfo("Cambiando sentido de aceleracion: %d", accel_msg.data)
+      # else:
+      accel_msg = Int16(int(self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry)))) if self.vel_linear != 0 else Int16(self.range_accel_converter[0])
+      brake_msg = BrakeCmd(activate_brake=(self.vel_linear == 0))
+      #rospy.loginfo("PWM calculado: %d", accel_msg.data)
       
       reverse_msg = Bool(self.vel_linear < 0) 
       direction_msg = DirectionCmd(angle=self.angle, activate=True)

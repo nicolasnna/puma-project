@@ -13,6 +13,8 @@
     <param name="_world_frame" type="string" value="enu" />
     <remap from="/imu/data_raw" to="puma/sensors/imu/corrected"/>
     <remap from="/imu/data" to="puma/sensors/imu/filtered"/>
+    <param name="publish_tf" value="false"/>
+    
   </node>
 
 </launch>

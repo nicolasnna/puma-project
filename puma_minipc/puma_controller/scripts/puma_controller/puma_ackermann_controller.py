@@ -23,7 +23,7 @@ class CmdVelToAckermann():
     self.ackermann_pub = rospy.Publisher(acker_topic, AckermannDriveStamped, queue_size=10)
     
     # Calculate max radius
-    self.ang_max = np.deg2rad(30)
+    self.ang_max = np.deg2rad(45)
     self.radius_max = self.wheel_base/np.arctan(self.ang_max)  # 4.4912
     #rospy.loginfo("Radius max: %f", self.radius_max)
     self.speed_acker = 0.0

@@ -11,13 +11,13 @@
     <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
     <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
 
-    <param name="base_local_planner" value="mpc_ros/MPCPlannerROS"  />
+    <param name="base_local_planner" value="hybrid_local_planner/HybridPlannerROS" /> 
     <!-- <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" /> -->
     <!-- <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/> -->
 
     <!-- <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/> -->
     <!-- <rosparam command="load" file="$(arg path)/teb_cmdvel.yaml"/> -->
-    <rosparam command="load" file="$(arg path)/mcp_planner.yaml"/>
+    <rosparam command="load" file="$(arg path)/dwa_planner.yaml"/>
     <param name="clearing_rotation_allowed" value="false" /> 
 
   </node>

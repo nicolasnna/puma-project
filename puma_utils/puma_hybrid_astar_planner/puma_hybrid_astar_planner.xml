@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<library path="lib/libpuma_hybrid_astar_planner">
+  <class name="puma_hybrid_astar_planner/PumaHybridAStarPlanner" type="puma_hybrid_astar_planner::PumaHybridAStarPlanner" base_class_type="nav_core::BaseGlobalPlanner">
+    <description>Hybrid A* Planner for Ackermann steering robots. PUMA.</description>
+  </class>
+</library>

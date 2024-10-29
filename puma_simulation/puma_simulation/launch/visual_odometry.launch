@@ -10,7 +10,7 @@
   <arg name="camera_info_topic" value="/puma/camera/color/camera_info"/>
   <arg name="depth_camera_info_topic" value="/puma/camera/aligned_depth_to_color/camera_info"/>
   <arg name="imu_topic" default="/puma/camera/imu"/>
-  <arg name="output" default="screen"/>
+  <arg name="output" default="log"/>
   <arg name="approx_sync" default="true"/>
   <arg name="args" default="--delete_db_on_start"/>
 
@@ -19,7 +19,7 @@
 
   <!-- Nodo de odometría RGB-D -->
   <node pkg="rtabmap_odom" ns="puma/rtabmap" type="rgbd_odometry" 
-        name="rgbd_odometry" output="$(arg output)" args="$(arg args)">
+        name="rgbd_odometry" args="$(arg args)">
     
     <!-- Remapeo de tópicos -->
     <remap from="rgb/image" to="$(arg rgb_topic)"/>

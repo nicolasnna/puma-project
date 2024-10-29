@@ -158,7 +158,7 @@ Visualization Manager:
       Blocks: 3
       Class: rviz_plugins/AerialMapDisplay
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Map Frame: map
       Map transform type: NavSatFix Messages and Map Frame
       Name: AerialMapDisplay
@@ -166,7 +166,7 @@ Visualization Manager:
       Topic: /puma/sensors/gps/fix
       UTM Frame: utm
       UTM Zone: -1
-      Value: true
+      Value: false
       XY Reference: <NavSatFix Message>
       Z Offset: 0
       Z Reference: <NavSatFix Message>
@@ -244,7 +244,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /move_base/DWAPlannerROS/global_plan
+          Topic: /move_base/PumaHybridAStarPlanner/global_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -502,6 +502,16 @@ Visualization Manager:
       Use Fixed Frame: true
       Use rainbow: true
       Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /move_base/PumaHybridAStarPlanner/potential_map
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -530,7 +540,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 19.86715316772461
+      Distance: 196.53659057617188
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -538,17 +548,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 10.290294647216797
-        Y: 11.55107593536377
-        Z: -2.895559787750244
+        X: 42.45919418334961
+        Y: -88.80731201171875
+        Z: -3.5958950519561768
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.805174708366394
+      Pitch: 1.2201743125915527
       Target Frame: <Fixed Frame>
-      Yaw: 3.6435446739196777
+      Yaw: 3.0585432052612305
     Saved: ~
 Window Geometry:
   Displays:

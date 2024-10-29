@@ -1,0 +1,13 @@
+PumaHybridAStarPlanner:
+  max_step_size: 2.3
+  min_step_size: 0.6
+  orientation_tolerance: 0.5
+  xy_tolerance: 0.5
+  factor_cost_distance: 10
+  factor_cost_angle: 5
+  division_curve: 3
+  enable_dubin: true
+  max_steering_angle: 0.628 # (equivalente a M_PI / 5)
+  wheel_base: 1.15
+  final_threshold: 10.0
+  divisions: 4
