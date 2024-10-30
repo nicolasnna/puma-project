@@ -7,14 +7,14 @@ Panels:
         - /Global Options1
         - /TF scale 1001/Frames1
         - /Navigation1
-        - /Navigation1/localplanner1
         - /Navigation1/Global planner1
+        - /Navigation1/global dubin planner1
         - /Navigation1/local cost1
+        - /Navigation1/Global costmap1
         - /Waypoints1/planned1
         - /Waypoints1/completed1
         - /grid for changemap1/Offset1
         - /TF1/Frames1
-        - /PointCloud22
       Splitter Ratio: 0.5
     Tree Height: 566
   - Class: rviz/Selection
@@ -248,6 +248,30 @@ Visualization Manager:
           Unreliable: false
           Value: true
         - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 92; 53; 102
+          Enabled: true
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Lines
+          Line Width: 0.029999999329447746
+          Name: global dubin planner
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Queue Size: 10
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic: /move_base/PumaHybridAStarPlanner/global_dubin_plan
+          Unreliable: false
+          Value: true
+        - Alpha: 1
           Class: rviz/Polygon
           Color: 25; 255; 0
           Enabled: true
@@ -285,17 +309,17 @@ Visualization Manager:
           Value: false
         - Alpha: 0.6000000238418579
           Class: rviz/Map
-          Color Scheme: raw
+          Color Scheme: costmap
           Draw Behind: false
-          Enabled: true
+          Enabled: false
           Name: local cost
           Topic: /move_base/local_costmap/costmap
           Unreliable: false
           Use Timestamp: false
-          Value: true
-        - Alpha: 0.30000001192092896
+          Value: false
+        - Alpha: 0.699999988079071
           Class: rviz/Map
-          Color Scheme: map
+          Color Scheme: costmap
           Draw Behind: false
           Enabled: true
           Name: Global costmap
@@ -540,7 +564,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 196.53659057617188
+      Distance: 41.28302764892578
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -548,17 +572,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 42.45919418334961
-        Y: -88.80731201171875
-        Z: -3.5958950519561768
+        X: 15.526623725891113
+        Y: -3.6973791122436523
+        Z: -15.469588279724121
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2201743125915527
+      Pitch: 0.9951745271682739
       Target Frame: <Fixed Frame>
-      Yaw: 3.0585432052612305
+      Yaw: 2.9535419940948486
     Saved: ~
 Window Geometry:
   Displays:

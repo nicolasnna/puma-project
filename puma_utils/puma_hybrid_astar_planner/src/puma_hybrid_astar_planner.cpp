@@ -21,18 +21,7 @@ namespace puma_hybrid_astar_planner {
       ros::NodeHandle private_nh("~/"+name);
 
       // Cargar parámetros de rosparam
-      private_nh.param("max_step_size", max_step_size_, 2.3);
-      private_nh.param("min_step_size", min_step_size_, 0.6);
-      private_nh.param("orientation_tolerance", orientation_tolerance_, 0.5);
-      private_nh.param("xy_tolerance", xy_tolerance_, 0.5);
-      private_nh.param("factor_cost_distance", factor_cost_distance_, 10);
-      private_nh.param("factor_cost_angle", factor_cost_angle_, 5);
-      private_nh.param("division_curve", division_curve_, 3);
-      private_nh.param("enable_dubin", enable_dubin_, true);
-      private_nh.param("max_steering_angle", max_steering_angle_, M_PI / 5);
-      private_nh.param("wheel_base", wheel_base_, 1.15);
-      private_nh.param("final_threshold", final_threshold_, 10.0);
-      private_nh.param("divisions", divisions_, 4);
+      loadRosParam(private_nh);
 
       origin_x_costmap_ = costmap_->getOriginX();
       origin_y_costmap_ = costmap_->getOriginY();
@@ -43,10 +32,33 @@ namespace puma_hybrid_astar_planner {
       initializePotentialMap();
 
       path_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 2);
+      path_dubin_pub_= private_nh.advertise<nav_msgs::Path>("global_dubin_plan", 2);
       potential_map_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential_map", 1);
       
       initialized_ = true;
     }
+  }
+  /* Cargar rosparam */
+  void PumaHybridAStarPlanner::loadRosParam(ros::NodeHandle
+  & nh){
+    nh.param("max_step_size", max_step_size_, 2.3);
+    nh.param("min_step_size", min_step_size_, 0.6);
+    nh.param("orientation_tolerance", orientation_tolerance_, 0.5);
+    nh.param("xy_tolerance", xy_tolerance_, 0.5);
+    nh.param("factor_cost_distance", factor_cost_distance_, 10);
+    nh.param("factor_cost_angle", factor_cost_angle_, 5);
+    nh.param("division_curve", division_curve_, 3);
+    nh.param("enable_dubin", enable_dubin_, true);
+    nh.param("max_steering_angle", max_steering_angle_, M_PI / 5);
+    nh.param("wheel_base", wheel_base_, 1.15);
+    nh.param("final_threshold", final_threshold_, 10.0);
+    nh.param("division_theta_", division_theta_, 4);
+    nh.param("factor_cost_angle_goal", factor_cost_angle_goal_, 2);
+    nh.param("division_steps", division_steps_,4);
+    nh.param("divisor_factor_increment_step", divisor_factor_increment_step, 20.0);
+    nh.param("distance_threshold_step", distance_threshold_step, 25.0);
+    nh.param("max_iteration_search", max_iteration_search, 10000);
+    nh.param("factor_cost_obstacle",factor_cost_obstacle_, 10);
   }
 
   /* Inicializar potential map */
@@ -69,8 +81,17 @@ namespace puma_hybrid_astar_planner {
       return false;
     }
     plan.clear();
+    /* Limpiar mapa de potencial */
+    std::fill(potential_map_.data.begin(), potential_map_.data.end(), -1);
 
+    if (enable_dubin_) {
+      ROS_INFO("Usando curvas dubin...");
+    } else {
+      ROS_INFO("Ejecutando sin suavizado de curvas dubin...");
+    }
+    
     ROS_INFO("Iniciando con el calculo de la ruta.");
+    ROS_INFO("Busqueda hacia el destino -> x: %lf , y: %lf", goal.pose.position.x, goal.pose.position.y);
     /* Crear nodos iniciales y finales */
     auto start_node = std::make_shared<Node>(start.pose.position.x, start.pose.position.y, tf::getYaw(start.pose.orientation));
     auto goal_node = std::make_shared<Node>(goal.pose.position.x, goal.pose.position.y, tf::getYaw(goal.pose.orientation));
@@ -88,7 +109,9 @@ namespace puma_hybrid_astar_planner {
     open_set_lookup.insert(*start_node);
     int i = 0;
     /* Busqueda */
-    while(!open_set.empty()) {
+    
+    int iteration_count = 0;
+    while(!open_set.empty() && iteration_count < max_iteration_search) {
       auto current_node = std::make_shared<Node>(open_set.top());
       open_set.pop();
 
@@ -96,94 +119,97 @@ namespace puma_hybrid_astar_planner {
       if ( std::hypot(std::abs(current_node->x - goal_node->x), std::abs(current_node->y - goal_node->y)) <= xy_tolerance_
         &&  (std::abs(current_node->theta - goal_node->theta) <= orientation_tolerance_)) {
           ROS_INFO("Encontrado nodo objetivo. Transformando a ruta...");
-          ROS_INFO("Encontrado x: %lf - y: %lf --- Objetivo x: %lf - y: %lf", current_node->x, current_node->y, goal_node->x, goal_node->y);
+          ROS_INFO("Encontrado nodo final -> x: %lf , y: %lf", current_node->x, current_node->y);
 
-          nav_msgs::Path path_msg;
-          path_msg.header.stamp = ros::Time::now();
-          path_msg.header.frame_id = "map"; // Ajusta al frame de tu entorno
-          // Reconstruir el plan
+          nav_msgs::Path path_normal_msg;
+          nav_msgs::Path path_dubin_msg;
+          path_normal_msg.header.stamp = path_dubin_msg.header.stamp = ros::Time::now();
+          path_normal_msg.header.frame_id = path_dubin_msg.header.frame_id = "map"; // Ajusta al frame de tu entorno
+
+          std::vector<std::shared_ptr<Node>> plan_nodes;
+          std::vector<std::shared_ptr<Node>> plan_dubins;
+
           auto path_node = current_node;
           while (path_node) {
+            plan_nodes.push_back(path_node);
+            path_node = path_node->parent;
+          }
+          std::reverse(plan_nodes.begin(), plan_nodes.end());
+
+          /* Generar el path normal */
+          for (std::shared_ptr<Node>& node : plan_nodes) {
             geometry_msgs::PoseStamped pose;
             pose.header.stamp = ros::Time::now();
             pose.header.frame_id = "map";
-            pose.pose.position.x = path_node->x;
-            pose.pose.position.y = path_node->y;
-            pose.pose.orientation = tf::createQuaternionMsgFromYaw(path_node->theta);
-            plan.push_back(pose);
-            path_msg.poses.push_back(pose);
-            path_node = path_node->parent;
-            path_pub_.publish(path_msg);
+            pose.pose.position.x = node->x;
+            pose.pose.position.y = node->y;
+            pose.pose.orientation = tf::createQuaternionMsgFromYaw(node->theta);
+            path_normal_msg.poses.push_back(pose);
+            path_pub_.publish(path_normal_msg);
           }
-          std::reverse(path_msg.poses.begin(), path_msg.poses.end());
-          std::reverse(plan.begin(), plan.end());
-          path_pub_.publish(path_msg);
+
+          /* Generar curva dubins en nodos intermedios */
+          if (enable_dubin_) {
+            std::shared_ptr<Node> previus_node = plan_nodes.front();
+            plan_dubins.push_back(previus_node);
+            for (auto it = plan_nodes.begin() + 1; it != plan_nodes.end(); ++it) {
+              std::shared_ptr<Node> node_end = *it;
+              std::vector<std::shared_ptr<Node>> nodes_extra = generateDubinsPath(*previus_node, *node_end);
+              if (nodes_extra.empty()) {
+                ROS_WARN("Error al generar las curvas dubins");
+                return false;
+              }
+              for (std::shared_ptr<Node>& node : nodes_extra) {
+                plan_dubins.push_back(node);
+              }
+              previus_node = *it;
+            }
+            for (std::shared_ptr<Node>& node : plan_dubins) {
+              geometry_msgs::PoseStamped pose;
+              pose.header.stamp = ros::Time::now();
+              pose.header.frame_id = "map";
+              pose.pose.position.x = node->x;
+              pose.pose.position.y = node->y;
+              pose.pose.orientation = tf::createQuaternionMsgFromYaw(node->theta);
+              path_dubin_msg.poses.push_back(pose);
+              path_dubin_pub_.publish(path_dubin_msg);
+            }
+          }
+
+          /* Reconstruir plan final */
+          plan = enable_dubin_? path_dubin_msg.poses : path_normal_msg.poses;
+          
+          path_pub_.publish(path_normal_msg);
+          path_dubin_pub_.publish(path_dubin_msg);
           return true;
       }
-
       closed_set.insert(*current_node);
-      /* Calcular Step Size dinamicamente */
-      calculateDynamicStepSizeMeters(*current_node, *goal_node);
 
-      if (enable_dubin_) {
-        /* Expandir nodo con dubin */
-        std::vector<std::vector<std::shared_ptr<Node>>> vector_new_nodes = expandNodeDubins(*current_node, *goal_node);
-        updatePotentialMap(*current_node);
-        for (auto& vector_new_node : vector_new_nodes) {
-          auto previus_node = std::make_shared<Node>(*current_node);
-          for (auto& new_node : vector_new_node) {
-            /* Si el nodo esta en el conjunto cerrado, se ignora */
-            if (closed_set.find(*new_node) != closed_set.end()) {
-              continue;
-            }
-
-            /* Si el nodo no esta en el conjunto de revisados */
-            if (open_set_lookup.find(*new_node) == open_set_lookup.end()) {
-              updatePotentialMap(*new_node);
-
-              double new_cost = previus_node->total_cost + previus_node->distance(*new_node);
-              /* Verifica y actualiza si el costo es menor o el nodo es nuevo en known_costs */
-              if (known_costs.find(*new_node) == known_costs.end() || new_cost < known_costs[*new_node]) {
-                /* Actualizar costos y relacion de nodos */
-                updateCostNode(new_node, new_cost, goal_node, previus_node);
-                /* Añade el nodo a los conjuntos de datos */
-                known_costs[*new_node] = new_cost;
-                open_set.push(*new_node);
-                open_set_lookup.insert(*new_node);
-                previus_node = new_node;
-              } else {
-                break;
-              }
-            }
-          }
+      /* Expandir nodo */
+      std::vector<std::shared_ptr<Node>> new_nodes = expandNode(*current_node, *goal_node);
+      for (auto& new_node : new_nodes) {
+        /* Si el nodo está en el conjunto cerrado, se ignora */
+        if (closed_set.find(*new_node) != closed_set.end()) {
+          continue;
         }
-      } else {
-        /* Expandir nodo */
-        std::vector<std::shared_ptr<Node>> new_nodes = expandNode(*current_node, *goal_node);
-        for (auto& new_node : new_nodes) {
-          /* Si el nodo está en el conjunto cerrado, se ignora */
-          if (closed_set.find(*new_node) != closed_set.end()) {
-            continue;
-          }
 
-          /* Se realiza calculo solo si el nodo no esta en el conjunto de revisados*/
-          if (open_set_lookup.find(*new_node) == open_set_lookup.end()) {
-            updatePotentialMap(*current_node);
+        /* Se realiza calculo solo si el nodo no esta en el conjunto de revisados*/
+        if (open_set_lookup.find(*new_node) == open_set_lookup.end()) {
+          updatePotentialMap(*current_node);
 
-            double new_cost = current_node->total_cost + current_node->distance(*new_node);
-            /* Verifica y actualiza si el costo es menor o el nodo es nuevo en known_costs */
-            if (known_costs.find(*new_node) == known_costs.end() || new_cost < known_costs[*new_node]) {
-              /* Actualizar costos y relacion de nodos */
-              updateCostNode(new_node, new_cost, goal_node, current_node);
-              /* Añade el nodo a los conjuntos de datos */
-              known_costs[*new_node] = new_cost;
-              open_set.push(*new_node);
-              open_set_lookup.insert(*new_node);
-            }
+          double new_cost = current_node->total_cost + current_node->distance(*new_node);
+          /* Verifica y actualiza si el costo es menor o el nodo es nuevo en known_costs */
+          if (known_costs.find(*new_node) == known_costs.end() || new_cost < known_costs[*new_node]) {
+            /* Actualizar costos y relacion de nodos */
+            updateCostNode(new_node, new_cost, goal_node, current_node);
+            /* Añade el nodo a los conjuntos de datos */
+            known_costs[*new_node] = new_cost;
+            open_set.push(*new_node);
+            open_set_lookup.insert(*new_node);
           }
         }
       }
-
+      iteration_count += 1;
       i += 1;
       if (i % 10 == 0) { // Publica cada 10 iteraciones
           publishPotentialMap();
@@ -208,12 +234,67 @@ namespace puma_hybrid_astar_planner {
 
   /* Actualizar costo de los nodos */
   void PumaHybridAStarPlanner::updateCostNode(std::shared_ptr<Node>& new_node, double new_cost,  std::shared_ptr<Node>& goal_node, std::shared_ptr<Node>& current_node) {
+    /* Costo asociado a total anterior*/
     new_node->cost = new_cost;
+
+    /* Costo heuristica new_node -> goal */
     new_node->heuristic = pow(new_node->distance(*goal_node), factor_cost_distance_);
 
-    double angle_diff = pow(std::abs(new_node->theta - goal_node->theta)* 4, factor_cost_angle_);
-    new_node->total_cost = new_node->cost + new_node->heuristic + angle_diff;
-    
+    /* Costo asociado a cambio de angulo entre nodos cercanos */
+    double angle_diff_cost = pow(std::abs(current_node->theta - new_node->theta)* 4, factor_cost_angle_);
+
+    /* Calculo de direccion entre new_node -> goal */
+    double dist_to_goal = std::abs(new_node->distance(*goal_node));
+    double dx = goal_node->x - new_node->x;
+    double dy = goal_node->y - new_node->y;
+    double angle_diff_to_goal = normalizeAngle(atan2(dy,dx) - goal_node->theta);
+
+    /* Cambio de factor linear segun distancia a goal */
+    int factor_lineal_proximity = dist_to_goal < 8 ? 10 : 4;
+
+    /* Calculo costo asociado de la direccion de new_node -> goal */
+    double angle_goal_cost = pow(std::abs(angle_diff_to_goal)*factor_lineal_proximity, factor_cost_angle_goal_);
+
+    // /* Costo de proximidad a obstáculos */
+    // unsigned int cell_x, cell_y;
+    // costmap_->worldToMap(new_node->x, new_node->y, cell_x, cell_y);
+    // // Definir el radio para analizar proximidad a obstáculos (en celdas)
+    // double proximity_radius = 5.0; // por ejemplo, 5 metros
+    // unsigned int cells_radius = static_cast<unsigned int>(proximity_radius / costmap_->getResolution());
+    // double obstacle_proximity_cost = 0;
+    // for (int ix = -cells_radius; ix <= cells_radius; ++ix) {
+    //     for (int iy = -cells_radius; iy <= cells_radius; ++iy) {
+    //         unsigned int nx = cell_x + ix;
+    //         unsigned int ny = cell_y + iy;
+
+    //         if (nx >= costmap_->getSizeInCellsX() || ny >= costmap_->getSizeInCellsY()) {
+    //             continue; // Salir si está fuera del mapa
+    //         }
+
+    //         unsigned char cell_cost = costmap_->getCost(nx, ny);
+    //         if (cell_cost >= costmap_2d::INSCRIBED_INFLATED_OBSTACLE) {
+    //             // Calcular distancia desde el nodo al obstáculo
+    //             double distance = costmap_->getResolution() * sqrt(ix * ix + iy * iy);
+    //             // Penalización inversamente proporcional a la distancia
+    //             if (distance < proximity_radius) {
+    //                 obstacle_proximity_cost += pow((proximity_radius - distance) / proximity_radius, factor_cost_obstacle_) * (cell_cost / 255.0) * 10;
+    //             }
+    //         }
+    //     }
+    // }
+
+    /* Costo de proximidad a obstáculos */
+    unsigned int cell_x, cell_y;
+    costmap_->worldToMap(new_node->x, new_node->y, cell_x, cell_y);
+    unsigned char obstacle_cost = costmap_->getCost(cell_x, cell_y);
+
+    double obstacle_proximity_cost = 0.0;
+    if (obstacle_cost >= costmap_2d::INSCRIBED_INFLATED_OBSTACLE) {
+        // Penalización cuadrática basada en el valor del costmap, más alta cuanto mayor es el riesgo
+        obstacle_proximity_cost = pow(obstacle_cost / 255.0 * 10, factor_cost_obstacle_) ;
+    }
+
+    new_node->total_cost = new_node->cost + new_node->heuristic + angle_diff_cost + angle_goal_cost + obstacle_proximity_cost;
   }
 
   /* Expandir nodo */
@@ -221,88 +302,78 @@ namespace puma_hybrid_astar_planner {
     std::vector<std::shared_ptr<Node>> new_nodes;
     double distance_to_goal = current_node.distance(goal);
 
+    double max_step;
+    if (divisor_factor_increment_step <= 0) {
+      ROS_WARN_ONCE("Parametro -divisor_factor_increment_step- invalido. Debe ser mayor a 0.");
+      max_step = max_step_size_;
+    } else {
+      max_step = distance_to_goal < distance_threshold_step ? max_step_size_ : max_step_size_ * (distance_to_goal / divisor_factor_increment_step);
+    }
+
     if (distance_to_goal < final_threshold_) {
+      ROS_INFO("Aplicando threshold con nodo final -> x: %lf , y: %lf",goal.x, goal.y);
       auto final_node = std::make_shared<Node>(goal.x, goal.y, goal.theta);
       final_node->parent = std::make_shared<Node>(current_node);
       new_nodes.push_back(final_node);
     } else {
       /* Generar nodos para avanzar */
-      for (double angle = -theta_limit_; angle <= theta_limit_; angle+= theta_limit_ / divisions_) {
-        double new_x = current_node.x + step_size_meters_ * cos(current_node.theta + angle);
-        double new_y = current_node.y + step_size_meters_ * sin(current_node.theta + angle);
-        double new_theta = current_node.theta + angle;
+      /* Ciclo de distintos steps*/
+      double delta_steps = max_step - min_step_size_;
+      for (double step = min_step_size_; step < max_step; step += delta_steps / division_steps_) {
+        step = step > max_step ? max_step : step;
+        theta_limit_ = calculateThetaLimit(step);
+        /* Ciclo de distintos angulos*/
+        for (double angle = -theta_limit_; angle < theta_limit_; angle+= theta_limit_ / division_theta_) {
+          double new_theta = current_node.theta + angle;
+          double new_x = current_node.x + step * cos(new_theta);
+          double new_y = current_node.y + step * sin(new_theta);
 
-        auto new_node = std::make_shared<Node>(new_x, new_y, new_theta);
-        // Verificar validez del nuevo nodo
-        if (isValidNode(*new_node)) {
-          new_node->parent = std::make_shared<Node>(current_node);  // Usar puntero compartido para asignar al padre
-          new_nodes.push_back(new_node);
+          auto new_node = std::make_shared<Node>(new_x, new_y, new_theta);
+          // Verificar validez del nuevo nodo
+          if (isValidNode(*new_node)) {
+            new_node->parent = std::make_shared<Node>(current_node);  // Usar puntero compartido para asignar al padre
+            new_nodes.push_back(new_node);
+          }
         }
       }
-    
+
     }
     return new_nodes;
   }
-
-  /* Expandir nodo en curvas de dubin */
-  std::vector<std::vector<std::shared_ptr<Node>>> PumaHybridAStarPlanner::expandNodeDubins(const Node& current_node, const Node& goal) {
-    std::vector<std::vector<std::shared_ptr<Node>>> new_node_groups;
-
-    double distance_to_goal = current_node.distance(goal);
-
-    // if (distance_to_goal < final_threshold_) {
-    //   /* Curvas Dubins */
-    //   std::vector<std::shared_ptr<Node>> trajectory = generateDubinsPath(current_node, goal.theta, true, distance_to_goal);
-    //   new_node_groups.push_back(trajectory);
-
-    // } else {
-    /* Generar nodos para avanzar */
-    for (double angle = -theta_limit_; angle <= theta_limit_; angle += theta_limit_ / divisions_) {
-        /* Curvas Dubins */
-        std::vector<std::shared_ptr<Node>> trajectory = generateDubinsPath(current_node, angle, false, 0);
-
-        /* Verificar */
-        if (isValidTrajectory(trajectory)) {
-            new_node_groups.push_back(trajectory); // Añadir la trayectoria válida al grupo
-        }
-      }
-    // }
-    return new_node_groups; // Devolver el vector de vectores
-
+  /* Normalizar angulos entre pi y -pi */
+  double PumaHybridAStarPlanner::normalizeAngle(double angle) {
+    while (angle > M_PI) angle -= 2.0 * M_PI;
+    while (angle < -M_PI) angle += 2.0 * M_PI;
+    return angle;
   }
 
   /* Generar curvas Dubin */
-  std::vector<std::shared_ptr<Node>> PumaHybridAStarPlanner::generateDubinsPath(const Node& start, double steer_angle, bool final_node, double dist_final) {
+  std::vector<std::shared_ptr<Node>> PumaHybridAStarPlanner::generateDubinsPath(const Node& start, const Node& end) {
     std::vector<std::shared_ptr<Node>> path;
     std::shared_ptr<Node> previous_node = std::make_shared<Node>(start);
 
-    if (final_node) {
-      double step = dist_final / division_curve_;
-      for (double t = 0; t < dist_final; t += step) {
-        double new_x = start.x + t * cos(steer_angle);
-        double new_y = start.y + t * sin(steer_angle);
+    double delta_dist = std::hypot(end.x - start.x, end.y - start.y);
+    double delta_theta = normalizeAngle(end.theta - start.theta); 
 
-        auto new_node = std::make_shared<Node>(new_x, new_y, steer_angle);
-        new_node->parent = previous_node;
-
-        path.emplace_back(new_node);
-        previous_node = new_node;
-      }
-
-    } else {
-      double theta = start.theta + steer_angle;
-      double step = step_size_meters_ / division_curve_;
-      for (double i = 0; i < step_size_meters_; i+= step) {
-        double new_x = start.x + i * cos(theta);
-        double new_y = start.y + i * sin(theta);
-
-        auto new_node = std::make_shared<Node>(new_x, new_y, theta);
-        new_node->parent = previous_node;
-
-        path.emplace_back(new_node);
-        previous_node = new_node;
-      }
+    if (division_curve_ <= 0) {
+      ROS_ERROR("Parametro division_curve invalido. Proporcionar un valor mayor a 0.");
+      return path;
     }
+
+    /* division_curve_ determina la cantidad de pasos */
+    for (double i = 1; i < division_curve_; i+= 1) {
+      double scale = i/division_curve_;
+      double new_theta = normalizeAngle(start.theta + delta_theta * scale);
+      double new_x = start.x + delta_dist * scale * cos(new_theta);
+      double new_y = start.y + delta_dist * scale * sin(new_theta);
+
+      auto new_node = std::make_shared<Node>(new_x, new_y, new_theta);
+      new_node->parent = previous_node;
+
+      path.emplace_back(new_node);
+      previous_node = new_node;
+    }
+    
     return path;
   }
 
@@ -326,16 +397,6 @@ namespace puma_hybrid_astar_planner {
     return true;
   }
 
-  /* Validar trajectoria , arreglo de nodos */
-  bool PumaHybridAStarPlanner::isValidTrajectory(std::vector<std::shared_ptr<Node>>& trajectory) {
-    for (auto& point: trajectory) {
-      /* Si algun nodo es invalido */
-      if (!isValidNode(*point)) {
-        return false;
-      }
-    }
-    return true;
-  }
 
   /* Calcular valor de celdas ajustada */
   void PumaHybridAStarPlanner::getAdjustXYCostmap(const Node& node, int& cell_x, int& cell_y) {
@@ -348,25 +409,10 @@ namespace puma_hybrid_astar_planner {
     cell_y = static_cast<int>(adjusted_y / resolution_costmap_);
   }
 
-  /* Calcular dinamicamente los step size meters */
-  void PumaHybridAStarPlanner::calculateDynamicStepSizeMeters(const Node& current_node, const Node& goal_node) {
-    double distance_to_goal = current_node.distance(goal_node);
-
-    /* Rangos */
-    if (distance_to_goal > 15) {
-      step_size_meters_ =  max_step_size_;
-    } else if (distance_to_goal > 8 ) {
-      step_size_meters_ = (max_step_size_ + min_step_size_) / 2 ;
-    } else {
-      step_size_meters_ = min_step_size_;
-    }
-    /* Calcular nuevo theta limit */
-    calculateThetaLimit();
-  }
 
   /* Calcular theta limit segun wheel base, max sterring y step_size */
-  void PumaHybridAStarPlanner::calculateThetaLimit(){
+  double PumaHybridAStarPlanner::calculateThetaLimit(double step){
     double min_turn_radius = wheel_base_ / tan(max_steering_angle_);
-    theta_limit_ = step_size_meters_ / min_turn_radius;
+    return step / min_turn_radius;
   }
 };

@@ -1,13 +1,23 @@
 PumaHybridAStarPlanner:
-  max_step_size: 2.3
-  min_step_size: 0.6
-  orientation_tolerance: 0.5
+  max_step_size: 2
+  min_step_size: 0.3
+  orientation_tolerance: 1.4
   xy_tolerance: 0.5
-  factor_cost_distance: 10
-  factor_cost_angle: 5
-  division_curve: 3
+  # Factor exponencial
+  factor_cost_distance: 7
+  factor_cost_angle: 4
+  factor_cost_angle_goal: 10
+  # Factor lineal
+  factor_cost_obstacle: 10
+  division_curve: 10
   enable_dubin: true
-  max_steering_angle: 0.628 # (equivalente a M_PI / 5)
+  #max_steering_angle: 0.628 # (equivalente a M_PI / 5)
+  max_steering_angle: 0.785 # (equivalente a M_PI / 4)
   wheel_base: 1.15
-  final_threshold: 10.0
-  divisions: 4
+  final_threshold: 0.4
+  division_theta_: 6
+  division_steps_: 4
+  max_iteration_search: 15000
+
+  distance_threshold_step: 25.0
+  divisor_factor_increment_step: 25

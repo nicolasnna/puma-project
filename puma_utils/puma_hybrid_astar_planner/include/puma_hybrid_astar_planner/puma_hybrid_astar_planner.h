@@ -71,27 +71,27 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
                   );
     /* Expandir nodos */
     std::vector<std::shared_ptr<Node>> expandNode(const Node& current_node, const Node& goal);
-    std::vector<std::vector<std::shared_ptr<Node>>> expandNodeDubins(const Node& current_node, const Node& goal);
     /* Manejo de potential map */
     void publishPotentialMap();
     void initializePotentialMap();
     void updatePotentialMap(const Node& current_node);
+    void loadRosParam(ros::NodeHandle& nh);
 
     void updateCostNode(std::shared_ptr<Node>& new_node, double new_cost,  std::shared_ptr<Node>& goal_node, std::shared_ptr<Node>& current_node);
 
-    void calculateThetaLimit();
+    double calculateThetaLimit(double step);
 
   private:
     bool isValidNode(const Node& node);
-    bool isValidTrajectory(std::vector<std::shared_ptr<Node>>& trajectory);
-    std::vector<std::shared_ptr<Node>> generateDubinsPath(const Node& start, double steer_angle, bool final_node, double dist_final);
+    std::vector<std::shared_ptr<Node>> generateDubinsPath(const Node& start, const Node& end);
     void getAdjustXYCostmap(const Node& node, int& cell_x, int& cell_y);
-    void calculateDynamicStepSizeMeters(const Node& current_node,  const Node& goal_node);
+    double normalizeAngle(double angle);
 
     costmap_2d::Costmap2DROS* costmap_ros_;
     costmap_2d::Costmap2D* costmap_;
     bool initialized_ = false;
     ros::Publisher potential_map_pub_;
+    ros::Publisher path_dubin_pub_;
     ros::Publisher path_pub_;
     nav_msgs::OccupancyGrid potential_map_;
     /* Costmap values */
@@ -103,13 +103,15 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     double wheel_base_, max_steering_angle_;
     double orientation_tolerance_, xy_tolerance_;
     int factor_cost_distance_, factor_cost_angle_;
+    int factor_cost_angle_goal_;
+    int factor_cost_obstacle_; 
+    double divisor_factor_increment_step, distance_threshold_step;
     double penalization_distance_goal_;
     double min_step_size_, max_step_size_;
-    int division_curve_;
+    int division_curve_, division_theta_, division_steps_; 
     double final_threshold_;
-    int divisions_;
     bool enable_dubin_;
-
+    int max_iteration_search;
   };
 };
 

@@ -2,7 +2,7 @@
 <launch>
   <arg name="path" value="$(find puma_simulation)/config/nav"/>
   
-  <arg name="map_file" default="$(find puma_simulation)/maps/blank_map.yaml"/>
+  <arg name="map_file" default="$(find puma_simulation)/maps/blank_map_2.yaml"/>
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
   <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
