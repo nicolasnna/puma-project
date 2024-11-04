@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<library path="lib/libpuma_dwa_local_planner">
+  <class name="puma_dwa_local_planner/PumaDwaLocalPlanner" type="puma_dwa_local_planner::PumaDwaLocalPlanner" base_class_type="nav_core::BaseLocalPlanner">
+    <description>DWA Planner for Ackermann steering robots. PUMA.</description>
+  </class>
+</library>

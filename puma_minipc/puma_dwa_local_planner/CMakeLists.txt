@@ -14,7 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   pluginlib
   roscpp
+  nav_core
   tf
+  visualization_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,9 +109,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES puma_dwa_local_planner
-#  CATKIN_DEPENDS base_local_planner costmap_2d geometry_msgs nav_msgs pluginlib roscpp tf
+  INCLUDE_DIRS include
+  LIBRARIES puma_dwa_local_planner
+  CATKIN_DEPENDS base_local_planner costmap_2d geometry_msgs nav_msgs pluginlib roscpp tf nav_core
 #  DEPENDS system_lib
 )
 
@@ -120,14 +122,14 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/puma_dwa_local_planner.cpp
-# )
+add_library(puma_dwa_local_planner
+  src/puma_dwa_local_planner.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -150,9 +152,9 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(puma_dwa_local_planner
+  ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -173,6 +175,13 @@ include_directories(
 # install(TARGETS ${PROJECT_NAME}_node
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
+
+install(TARGETS puma_dwa_local_planner
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIN_DESTINATION}
+)
+install(FILES puma_dwa_local_planner.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 ## Mark libraries for installation
 ## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
