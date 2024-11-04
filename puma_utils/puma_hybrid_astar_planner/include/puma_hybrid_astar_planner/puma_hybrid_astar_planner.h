@@ -16,16 +16,15 @@
 using std::string;
 
 struct Node {
-  double x;
-  double y;
-  double theta;
+  double x, y, theta;
   std::shared_ptr<Node> parent;
-  double cost;
-  double heuristic;
-  double total_cost;
+  double cost, total_cost;
+  int cell_x, cell_y;
   /* Constructor */
   Node(double x_, double y_, double theta_)
-      : x(x_), y(y_), theta(theta_), parent(nullptr), cost(0), heuristic(0), total_cost(0) {}
+      : x(x_), y(y_), theta(theta_), parent(nullptr), cost(0), total_cost(0) {}
+  Node(double x_, double y_, double theta_, int cell_x_, int cell_y_)
+      : x(x_), y(y_), theta(theta_), cell_x(cell_x_), cell_y(cell_y_), parent(nullptr), cost(0), total_cost(0) {}
   /* Operador para el ordenamiento en estructuras como priority_queue */
   bool operator<(const Node& other) const {
     return total_cost > other.total_cost; // Para que el menor costo tenga mayor prioridad
@@ -35,8 +34,11 @@ struct Node {
     return std::hypot(x - other.x, y - other.y);
   }
   /* Operador de igualdad */
+  // bool operator==(const Node& other) const {
+  //   return (x == other.x) && (y == other.y) && (theta == other.theta);
+  // }
   bool operator==(const Node& other) const {
-    return (x == other.x) && (y == other.y) && (theta == other.theta);
+    return (cell_x == other.cell_x) && (cell_y == other.cell_y) ;
   }
 };
 
@@ -45,11 +47,11 @@ struct NodeHash {
   std::size_t operator()(const Node& node) const {
     /* Combinar x, y, theta en hash */
     std::hash<double> hash_fn;
-    std::size_t hash_x = hash_fn(node.x);
-    std::size_t hash_y = hash_fn(node.y);
-    std::size_t hash_theta = hash_fn(node.theta);
+    std::size_t hash_x = hash_fn(node.cell_x);
+    std::size_t hash_y = hash_fn(node.cell_y);
+    //std::size_t hash_theta = hash_fn(node.theta);
 
-    return hash_x ^ (hash_y << 1) ^ (hash_theta << 2);
+    return hash_x ^ (hash_y << 1) ;
   }
 };
 
@@ -100,18 +102,13 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     /* Parametros */
     double step_size_meters_;
     double theta_limit_;
-    double wheel_base_, max_steering_angle_;
-    double orientation_tolerance_, xy_tolerance_;
-    int factor_cost_distance_, factor_cost_angle_;
+    double xy_goal_tolerance_;
+    int factor_cost_distance_, factor_cost_angle_curve_;
     int factor_cost_angle_goal_;
     int factor_cost_obstacle_; 
-    double divisor_factor_increment_step, distance_threshold_step;
-    double penalization_distance_goal_;
-    double min_step_size_, max_step_size_;
-    int division_curve_, division_theta_, division_steps_; 
-    double final_threshold_;
+    double dist_max_to_goal;
+    int division_curve_, division_theta_; 
     bool enable_dubin_;
-    int max_iteration_search;
   };
 };
 
