@@ -11,14 +11,18 @@
     <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
     <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
 
-    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> 
-    <!-- <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" /> -->
     <param name="base_global_planner" value="puma_hybrid_astar_planner/PumaHybridAStarPlanner"/>
+    <!-- <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/> -->
     <rosparam command="load" file="$(arg path)/hybrid_puma_planner.yaml"/>
     
-    <!-- <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/> -->
+    <!-- <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />  -->
+    <!-- <param name="base_local_planner" value="teb_local_planner/TebLocalPlannerROS" /> -->
+    <param name="base_local_planner" value="puma_dwa_local_planner/PumaDwaLocalPlanner" /> 
     <!-- <rosparam command="load" file="$(arg path)/teb_cmdvel.yaml"/> -->
-    <rosparam command="load" file="$(arg path)/dwa_planner.yaml"/>
+    <!-- <rosparam command="load" file="$(arg path)/dwa_planner.yaml"/> -->
+    <rosparam command="load" file="$(arg path)/puma_dwa_planner.yaml"/>
+    <remap from="/odom" to="/puma/odometry/filtered"/>
+    
     <param name="clearing_rotation_allowed" value="false" /> 
 
   </node>

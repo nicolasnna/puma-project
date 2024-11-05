@@ -6,6 +6,7 @@ puma_controller:
   direction_topic: puma/direction/command
   range_accel_converter: [25, 100]
   range_vel_converter: [0.01, 9.8]
+  connect_to_ackermann_converter: false
 
 ackermann_converter:
   cmd_vel_topic: cmd_vel

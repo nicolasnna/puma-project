@@ -12,5 +12,5 @@ PumaHybridAStarPlanner:
   factor_cost_obstacle: 100
 
   # Suavizado en curvas de dubin
-  enable_dubin: true
+  enable_dubin: false
   division_curve: 6

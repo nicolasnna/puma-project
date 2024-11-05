@@ -108,7 +108,7 @@ namespace puma_hybrid_astar_planner {
       open_set.pop();
 
       /* Verificar si se llego al objetivo */
-      if ( std::hypot(goal_node->x - current_node->x, goal_node->y - current_node->y) < xy_goal_tolerance_) {
+      if (goal_node->cell_x == current_node->cell_x && goal_node->cell_y == current_node->cell_y ) {
           ROS_INFO("Encontrado nodo objetivo. Transformando a ruta...");
           ROS_INFO("Encontrado nodo final -> x: %lf , y: %lf", current_node->x, current_node->y);
 
@@ -253,20 +253,29 @@ namespace puma_hybrid_astar_planner {
   /* Expandir nodo */
   std::vector<std::shared_ptr<Node>> PumaHybridAStarPlanner::expandNode(const Node& current_node, const Node& goal) {
     std::vector<std::shared_ptr<Node>> new_nodes;
+    double distance_to_goal = current_node.distance(goal);
 
-    /* Generar nodos para avanzar */
-    /* Ciclo de distintos angulos*/
-    for (double angle = -theta_limit_; angle < theta_limit_; angle+= theta_limit_ / division_theta_) {
-      double new_theta = current_node.theta + angle;
-      double new_x = current_node.x + step_size_meters_ * cos(new_theta);
-      double new_y = current_node.y + step_size_meters_ * sin(new_theta);
-      auto new_node = std::make_shared<Node>(new_x, new_y, new_theta);
+    if (distance_to_goal <= xy_goal_tolerance_) {
+      ROS_INFO_THROTTLE(15,"Aplicando threshold con nodo final -> x: %lf , y: %lf",goal.x, goal.y);
+      auto new_node = std::make_shared<Node>(goal.x, goal.y, goal.theta);
       getAdjustXYCostmap(*new_node, new_node->cell_x, new_node->cell_y);
+      new_node->parent = std::make_shared<Node>(current_node);
+      new_nodes.push_back(new_node);
+    } else {
+      /* Generar nodos para avanzar */
+      /* Ciclo de distintos angulos*/
+      for (double angle = -theta_limit_; angle < theta_limit_; angle+= theta_limit_ / division_theta_) {
+        double new_theta = current_node.theta + angle;
+        double new_x = current_node.x + step_size_meters_ * cos(new_theta);
+        double new_y = current_node.y + step_size_meters_ * sin(new_theta);
+        auto new_node = std::make_shared<Node>(new_x, new_y, new_theta);
+        getAdjustXYCostmap(*new_node, new_node->cell_x, new_node->cell_y);
 
-      // Verificar validez del nuevo nodo
-      if (isValidNode(*new_node)) {
-        new_node->parent = std::make_shared<Node>(current_node);  // Usar puntero compartido para asignar al padre
-        new_nodes.push_back(new_node);
+        // Verificar validez del nuevo nodo
+        if (isValidNode(*new_node)) {
+          new_node->parent = std::make_shared<Node>(current_node);  // Usar puntero compartido para asignar al padre
+          new_nodes.push_back(new_node);
+        }
       }
     }
   
@@ -288,7 +297,7 @@ namespace puma_hybrid_astar_planner {
     double delta_theta = normalizeAngle(end.theta - start.theta); 
 
     if (division_curve_ <= 0) {
-      ROS_ERROR("Parametro division_curve invalido. Proporcionar un valor mayor a 0.");
+      ROS_ERROR_THROTTLE(10,"Parametro division_curve invalido. Proporcionar un valor mayor a 0.");
       return path;
     }
 
@@ -318,12 +327,12 @@ namespace puma_hybrid_astar_planner {
     if (cell_x < 0 || cell_y < 0 || 
         cell_x >= cells_x_costmap_ || 
         cell_y >= cells_y_costmap_) {
-        ROS_INFO("Se pasa del limite del costmap.");
+        ROS_INFO_THROTTLE(10," Nodo evaluado invalido, se pasa del limite del costmap.");
         return false;
     }
     /* Verifica colision */
     if (costmap_->getCost(cell_x, cell_y) >= costmap_2d::LETHAL_OBSTACLE) {
-      ROS_INFO("Ocurre una colision.");
+      ROS_WARN_THROTTLE(10,"Nodo evaluado invalido, ocurre una colision.");
       return false;
     }
     return true;

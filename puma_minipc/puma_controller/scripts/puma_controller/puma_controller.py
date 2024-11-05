@@ -7,6 +7,7 @@ from std_msgs.msg import Bool, Int16, String
 from diagnostic_msgs.msg import DiagnosticStatus
 from nav_msgs.msg import Odometry
 from puma_controller.pid_antiwindup import PIDAntiWindUp
+from geometry_msgs.msg import Twist;
 import time
 
 class PumaController():
@@ -20,12 +21,13 @@ class PumaController():
     direction_topic = rospy.get_param(ns+'/direction_topic', 'puma/direction/command')
     brake_topic = rospy.get_param(ns+'/brake_topic', 'puma/brake/command')
     self.range_accel_converter = rospy.get_param(ns+'/range_accel_converter', [22,100])
-  
+    self.connect_to_ackermann_converter = rospy.get_param(ns+'/connect_to_ackermann_converter', True)
     
     # Subscribers
     rospy.Subscriber(ackermann_topic, AckermannDriveStamped, self.ackermann_callback)
     rospy.Subscriber('/puma/odometry/filtered', Odometry, self.odometry_callback)
     rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
+    rospy.Subscriber('/cmd_vel', Twist, self.cmdvel_callback)
 
     # Publishers
     self.reverse_pub = rospy.Publisher(reverse_topic, Bool, queue_size=10)
@@ -72,17 +74,26 @@ class PumaController():
     """ Get current velocity and calculate break value"""
     self.last_time_odometry = time.time()
     self.vel_linear_odometry = round(odom.twist.twist.linear.x,4)
+    
+  def cmdvel_callback(self, data):
+    if not self.connect_to_ackermann_converter:
+      self.vel_linear = round(data.linear.x,3)
+      self.angle = data.angular.z
+      
+      self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
+
   
   def ackermann_callback(self, acker_data):
     '''
     Get velocity lineal of ackermann converter
     '''
-    self.last_time_ackermann = time.time()
-    
-    self.vel_linear = round(acker_data.drive.speed,3)
-    self.angle = acker_data.drive.steering_angle
-    
-    self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
+    if self.connect_to_ackermann_converter:
+      self.last_time_ackermann = time.time()
+      
+      self.vel_linear = round(acker_data.drive.speed,3)
+      self.angle = acker_data.drive.steering_angle
+      
+      self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
 
 
   def calculate_control_inputs(self):
@@ -109,7 +120,7 @@ class PumaController():
       direction_msg = DirectionCmd(angle=self.angle, activate=True)
       
       current_time = time.time()
-      if current_time-self.last_time_odometry > 0.2 or current_time-self.last_time_ackermann > 0.2:
+      if current_time-self.last_time_odometry > 0.2 :
         reverse_msg = Bool(False)
         accel_msg = Int16(0)
         brake_msg = BrakeCmd(activate_brake=False)
