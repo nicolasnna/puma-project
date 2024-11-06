@@ -1,7 +1,7 @@
 PumaHybridAStarPlanner:
   # busqueda de celdas
   step_size_meters: 0.3
-  division_theta_: 3
+  division_theta: 3
   theta_limit: 0.228 # (equivalente a M_PI / 5)
   xy_goal_tolerance: 0.4
 

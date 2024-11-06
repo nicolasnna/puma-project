@@ -41,14 +41,14 @@ namespace puma_hybrid_astar_planner {
   /* Cargar rosparam */
   void PumaHybridAStarPlanner::loadRosParam(ros::NodeHandle
   & nh){
-    nh.param("step_size_meters", step_size_meters_, 0.5);
+    nh.param("step_size_meters", step_size_meters_, 0.3);
     nh.param("xy_goal_tolerance", xy_goal_tolerance_, 0.4);
     nh.param("factor_cost_distance", factor_cost_distance_, 10);
     nh.param("factor_cost_angle_curve", factor_cost_angle_curve_, 5);
     nh.param("division_curve", division_curve_, 3);
-    nh.param("enable_dubin", enable_dubin_, true);
+    nh.param("enable_dubin", enable_dubin_, false);
     nh.param("theta_limit", theta_limit_, M_PI / 5);
-    nh.param("division_theta_", division_theta_, 4);
+    nh.param("division_theta", division_theta_, 4);
     nh.param("factor_cost_angle_goal", factor_cost_angle_goal_, 2);
     nh.param("factor_cost_obstacle",factor_cost_obstacle_, 10);
   }

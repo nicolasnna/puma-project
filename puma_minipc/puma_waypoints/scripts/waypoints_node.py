@@ -12,16 +12,14 @@ if __name__ == "__main__":
   sm = smach.StateMachine(outcomes=['success'])
   
   with sm:
-    smach.StateMachine.add('GET_PATH',PathSelect(),
-                           transitions={'success':'FOLLOW_PATH', 'charge_mode':'CHARGE_MODE'},
-                           remapping={'waypoints':'waypoints'})
-    smach.StateMachine.add('FOLLOW_PATH',PathFollow(),
-                           transitions={'success':'COMPLETE_PATH', 'aborted':'GET_PATH'}, 
-                           remapping={'waypoints':'waypoints'}) 
-    smach.StateMachine.add('COMPLETE_PATH',PathComplete(),
-                           transitions={'select_plan':'GET_PATH', 'start_plan':'FOLLOW_PATH', 'charge_mode':'CHARGE_MODE'})
+    smach.StateMachine.add('PATH_SELECT',PathSelect(),
+                           transitions={'path_follow_mode':'PATH_FOLLOW', 'charge_mode':'CHARGE_MODE'})
+    smach.StateMachine.add('PATH_FOLLOW',PathFollow(),
+                           transitions={'success':'PATH_COMPLETE', 'aborted':'PATH_SELECT'}) 
+    smach.StateMachine.add('PATH_COMPLETE',PathComplete(),
+                           transitions={'select_plan':'PATH_SELECT', 'start_plan':'PATH_FOLLOW', 'charge_mode':'CHARGE_MODE'})
     smach.StateMachine.add('CHARGE_MODE', ChargeMode(),
-                           transitions={'finish_charge':'GET_PATH'})
+                           transitions={'finish_charge':'PATH_SELECT'})
     
   # For see state machine in diagram
   sis = smach_ros.IntrospectionServer('puma', sm, '/WAYPOINTS')

@@ -18,3 +18,8 @@ waypoints_charge_mode:
   teb_origin:
     xy_goal_tolerance: 1.5
     yaw_goal_tolerance: 0.7
+
+puma_waypoints:
+  add_pose_topic: /initialpose
+  pose_array_topic: /path_planned
+  ns_topic: /puma/waypoints 
