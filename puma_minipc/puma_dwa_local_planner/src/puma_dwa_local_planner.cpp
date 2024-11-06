@@ -33,12 +33,14 @@ namespace puma_dwa_local_planner {
       private_nh.param<std::string>("topic_odom", topic_odom_, "odom");
       private_nh.param("xy_goal_tolerance", xy_goal_tolerance_, 0.4);
       private_nh.param("steering_samples", steering_samples_, 6);
-      private_nh.param("velocity_samples", velocity_samples_, 4);
       private_nh.param("factor_cost_deviation",factor_cost_deviation_ , 2.0);
       private_nh.param("factor_cost_distance_goal", factor_cost_distance_goal_, 15.0);
+      private_nh.param("factor_cost_angle_to_plan", factor_cost_angle_to_plan_, 4.0);
+      private_nh.param("factor_cost_obstacle", factor_cost_obstacle_, 3.0);
 
       odometry_puma = private_nh.subscribe("/"+topic_odom_, 2, &PumaDwaLocalPlanner::odometryCallback, this);
       trajectory_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("potential_trajectories", 1);
+      path_local_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan",1);
 
       initialized_ = true;
       reversing_ = false;
@@ -48,10 +50,27 @@ namespace puma_dwa_local_planner {
 
   /* Callback odometry */
   void PumaDwaLocalPlanner::odometryCallback(const nav_msgs::Odometry& data) {
-    puma_.x = data.pose.pose.position.x;
-    puma_.y = data.pose.pose.position.y;
-    puma_.yaw = tf::getYaw(data.pose.pose.orientation);
-    puma_.vel_x = data.twist.twist.linear.x;
+    double x = data.pose.pose.position.x;
+    double y = data.pose.pose.position.y;
+    double yaw = tf::getYaw(data.pose.pose.orientation);
+    double vel_x = data.twist.twist.linear.x;
+
+    // Verificar si los valores son válidos
+    if (std::isnan(x) || std::isnan(y) || std::isnan(yaw) || std::isnan(vel_x)) {
+        ROS_WARN("Se recibió odometría con valores NaN. Verifica el sensor.");
+        return;
+    }
+
+    if (std::isinf(x) || std::isinf(y) || std::isinf(yaw) || std::isinf(vel_x)) {
+        ROS_WARN("Se recibió odometría con valores infinitos. Verifica el sensor.");
+        return;
+    }
+
+    // Asignar valores si son válidos
+    puma_.x = x;
+    puma_.y = y;
+    puma_.yaw = yaw;
+    puma_.vel_x = vel_x;
   }
 
   /* Definir plan */
@@ -76,7 +95,7 @@ namespace puma_dwa_local_planner {
 
     /* Comprueba si existe informacion de la posicion del robot */
     if (std::isnan(puma_.x)) {
-      ROS_WARN("Aun no se ha recibido informacion de la odometria. Revisar topico %s. -- PumaDwaLocalPlanner", topic_odom_.c_str());
+      ROS_WARN("Aun no se ha recibido informacion de la odometria. esperando topico %s. -- PumaDwaLocalPlanner", topic_odom_.c_str());
       return false;
     }
 
@@ -119,13 +138,15 @@ namespace puma_dwa_local_planner {
     trajectory_pub_.publish(marker_array);
     if (best_cost == std::numeric_limits<double>::max()) {
       ROS_WARN_THROTTLE(5,"No se ha encontrado ninguna ruta posible -- PumaDwaLocalPlanner.");
-      cmd_vel.linear.x, cmd_vel.angular.z = 0;
+      cmd_vel.linear.x = cmd_vel.angular.z = 0;
       pos_start_reverse = puma_;
       reversing_ = true;
     }
     else 
       /* Corregir velocidad segun acceleracion */
       cmd_vel.linear.x = adjustVelocityForAcceleration(cmd_vel.linear.x, puma_.vel_x);
+    /* Publicar plan a seguir */
+    publishLocalPath(best_path);
 
     return true;
   }
@@ -136,33 +157,36 @@ namespace puma_dwa_local_planner {
     adjusted_velocity = std::max(std::min(adjusted_velocity,max_allowed_vel), min_velocity_);
 
     auto path = simulatePath(adjusted_velocity, angle);
-    double cost = calculatePathCost(path);
+    if (isValidPath(path)) {
+      double cost = calculatePathCost(path);
 
-    if (cost < best_cost && isValidPath(path)) {
-        best_cost = cost;
-        best_path = path;
-        cmd_vel.linear.x = adjusted_velocity;
-        cmd_vel.angular.z = angle;
+      if (cost < best_cost) {
+          best_cost = cost;
+          best_path = path;
+          cmd_vel.linear.x = adjusted_velocity;
+          cmd_vel.angular.z = angle;
+      }
+
+      // Agregar el marcador del camino evaluado
+      marker_array.markers.push_back(createPathMarker(path, marker_id++));
     }
-
-    // Agregar el marcador del camino evaluado
-    marker_array.markers.push_back(createPathMarker(path, marker_id++));
   }
 
   /* Comprobar ruta valida sin colision*/
   bool PumaDwaLocalPlanner::isValidPath(const std::vector<Position>& path) {
+    std::vector<geometry_msgs::Point> footprint = costmap_ros_->getRobotFootprint();
     for (const auto& pos : path) {
-      // int cell_x, cell_y;
-      // getAdjustXYCostmap(pos, cell_x, cell_y);
-      // unsigned char cost = costmap_->getCost(cell_x, cell_y);
-      // if (cost == costmap_2d::LETHAL_OBSTACLE || cost == costmap_2d::INSCRIBED_INFLATED_OBSTACLE)
-      //   return false;
-      std::vector<geometry_msgs::Point> footprint = costmap_ros_->getRobotFootprint();
       for (const auto& point : footprint) {
         int cell_x, cell_y;
         double footprint_x = pos.x + point.x*cos(pos.yaw) - point.y*sin(pos.yaw);
         double footprint_y = pos.y + point.x*sin(pos.yaw) + point.y*cos(pos.yaw);
         getAdjustXYCostmap(footprint_x, footprint_y, cell_x, cell_y);
+        if (cell_x < 0 || cell_y < 0 || 
+          cell_x >= costmap_->getSizeInCellsX() || 
+          cell_y >= costmap_->getSizeInCellsY()) {
+          ROS_INFO_THROTTLE(3," Nodo evaluado invalido, se pasa del limite del costmap.");
+          return false;
+        } 
         unsigned char cost = costmap_->getCost(cell_x, cell_y);
         if (cost == costmap_2d::LETHAL_OBSTACLE || cost == costmap_2d::INSCRIBED_INFLATED_OBSTACLE)
           return false;
@@ -203,7 +227,23 @@ namespace puma_dwa_local_planner {
     }
 
     return marker;
-}
+  }
+  /* Publicar ruta a seguir */
+  void PumaDwaLocalPlanner::publishLocalPath(std::vector<Position> path) {
+    nav_msgs::Path path_local;
+    path_local.header.frame_id = "map";
+    path_local.header.stamp = ros::Time::now();
+    for (auto& pose_path : path) {
+      geometry_msgs::PoseStamped pose;
+      pose.header.stamp = ros::Time::now();
+      pose.header.frame_id = "map";
+      pose.pose.position.x = pose_path.x;
+      pose.pose.position.y = pose_path.y;
+      pose.pose.orientation = tf::createQuaternionMsgFromYaw(pose_path.yaw);
+      path_local.poses.push_back(pose);
+    }
+    path_local_pub_.publish(path_local);
+  }
 
   /* Comprobar si se ha alcanzado el destino */
   bool PumaDwaLocalPlanner::isGoalReached() {
@@ -254,41 +294,44 @@ namespace puma_dwa_local_planner {
   double PumaDwaLocalPlanner::calculatePathCost(const std::vector<Position>& path) {
     double cost;
 
+    double last_x = path.back().x;
+    double last_y = path.back().y;
+    double last_yaw = path.back().yaw;
     double min_distance = std::numeric_limits<double>::max();
     size_t closest_index = 0;
     for (size_t i = 0; i < global_plan_.size(); ++i) {
-        double dist = std::hypot(global_plan_[i].pose.position.x - puma_.x, global_plan_[i].pose.position.y - puma_.y);
+        double dist = std::hypot(global_plan_[i].pose.position.x - last_x, global_plan_[i].pose.position.y - last_y);
         if (dist < min_distance) {
           min_distance = dist;
           closest_index = i;
         }
     }
     if (min_distance == std::numeric_limits<double>::max()) {
-      ROS_WARN("Erro al estimar distancia entre la ruta planteada y la global");
+      ROS_WARN("Error al estimar distancia entre la ruta planteada y la global");
+      return std::numeric_limits<double>::max();
     }
 
     /* Desviacion de la ruta */
-    for (size_t i = 0; i < path.size() && (closest_index + i) < global_plan_.size(); ++i) {
-      double deviation = std::hypot(path[i].x - global_plan_[closest_index + i].pose.position.x, path[i].y - global_plan_[closest_index + i].pose.position.y);
-      cost += deviation * factor_cost_deviation_;
-    }
+    double deviation = std::hypot(last_x- global_plan_[closest_index].pose.position.x, last_y - global_plan_[closest_index].pose.position.y);
+    cost += deviation * factor_cost_deviation_;
 
-    /* Costo por curvatura de la trayectoria */
-    for (size_t i = 2; i < path.size(); ++i) {
-      double angle_t1 = std::atan2(path[i].y - path[i - 1].y, path[i].x - path[i - 1].x);
-      double angle_t2 = std::atan2(path[i - 1].y - path[i - 2].y, path[i - 1].x - path[i - 2].x);
-      double angle_change = std::abs(angle_t1 - angle_t2);
-      /* Normalizar para costo positivo -> 0 y M_PI*/
-      if (angle_change > M_PI) {
-          angle_change = 2 * M_PI - angle_change;
-      }
-      cost += angle_change;
-    }
+    /* Costo asociado de diferencia de angulo respecto al plan */
+    double normalized_cost_angle = std::abs(last_yaw - tf::getYaw(global_plan_[closest_index].pose.orientation));
+    cost += normalized_cost_angle + factor_cost_angle_to_plan_;
 
     /* Costo por distancia al objetivo */
-    double distance_to_goal = std::hypot(path.back().x - goal_pose.pose.position.x, 
-                                        path.back().y - goal_pose.pose.position.y);
+    double distance_to_goal = std::hypot(last_x - goal_pose.pose.position.x, 
+                                        last_y - goal_pose.pose.position.y);
     cost += distance_to_goal * factor_cost_distance_goal_;
+
+    /* Costo por obstaculo */
+    for (size_t i = 0; i < path.size(); i++) {
+      int cell_x, cell_y;
+      getAdjustXYCostmap(path[i].x, path[i].y, cell_x, cell_y);
+      unsigned char cell_cost = costmap_->getCost(cell_x, cell_y);
+      double normalized_obstacle_cost = (cell_cost / 255.0 ) * factor_cost_obstacle_;
+      cost += normalized_obstacle_cost;
+    }
 
     return cost;
   }

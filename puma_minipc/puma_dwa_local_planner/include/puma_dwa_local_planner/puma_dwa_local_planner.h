@@ -12,6 +12,7 @@
 #include <nav_msgs/Odometry.h>
 #include <cmath>
 #include <visualization_msgs/MarkerArray.h>
+#include <nav_msgs/Path.h>
 
 struct Position {
   double x, y, yaw;
@@ -54,7 +55,7 @@ namespace puma_dwa_local_planner {
       double calculateMaxAllowedVelocity();
       void evaluateAngle(double angle, double max_allowed_vel, double& best_cost, std::vector<Position>& best_path, geometry_msgs::Twist& cmd_vel, visualization_msgs::MarkerArray& marker_array, int& marker_id);
       double adjustVelocityForAcceleration(double target_velocity, double current_velocity);
-
+      void publishLocalPath(std::vector<Position>);
       void getAdjustXYCostmap(double, double, int&, int&);
       /* Variables heredadas */
       costmap_2d::Costmap2DROS* costmap_ros_;
@@ -73,15 +74,16 @@ namespace puma_dwa_local_planner {
       double xy_goal_tolerance_, yaw_goal_tolerance_;
       double acceleration_x_, desacceleration_x_;
       double distance_for_desacceleration_;
-      int steering_samples_, velocity_samples_;
+      int steering_samples_;
       Position puma_;
 
       /* Factor cost */
       double factor_cost_deviation_, factor_cost_distance_goal_;
-
+      double factor_cost_angle_to_plan_, factor_cost_obstacle_;
       std::string topic_odom_;
       ros::Subscriber odometry_puma;
       ros::Publisher trajectory_pub_;
+      ros::Publisher path_local_pub_;
 
   };
 

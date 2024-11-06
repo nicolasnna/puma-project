@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /TF scale 1001/Frames1
         - /Navigation1
+        - /Navigation1/localplanner1
         - /Navigation1/Global planner1
         - /Navigation1/global dubin planner1
         - /Navigation1/local cost1
@@ -220,7 +221,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.05000000074505806
           Shaft Length: 0.20000000298023224
-          Topic: /move_base/DWAPlannerROS/local_plan
+          Topic: /move_base/PumaDwaLocalPlanner/local_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -541,7 +542,7 @@ Visualization Manager:
       Marker Topic: /move_base/PumaDwaLocalPlanner/potential_trajectories
       Name: MarkerArray
       Namespaces:
-        {}
+        trajectories: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -572,7 +573,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 41.28302764892578
+      Distance: 41.17135238647461
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1

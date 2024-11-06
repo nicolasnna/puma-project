@@ -327,12 +327,12 @@ namespace puma_hybrid_astar_planner {
     if (cell_x < 0 || cell_y < 0 || 
         cell_x >= cells_x_costmap_ || 
         cell_y >= cells_y_costmap_) {
-        ROS_INFO_THROTTLE(10," Nodo evaluado invalido, se pasa del limite del costmap.");
+        ROS_INFO_THROTTLE(2," Nodo evaluado invalido, se pasa del limite del costmap.");
         return false;
     }
     /* Verifica colision */
     if (costmap_->getCost(cell_x, cell_y) >= costmap_2d::LETHAL_OBSTACLE) {
-      ROS_WARN_THROTTLE(10,"Nodo evaluado invalido, ocurre una colision.");
+      ROS_WARN_THROTTLE(2,"Nodo evaluado invalido, ocurre una colision.");
       return false;
     }
     return true;
