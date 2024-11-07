@@ -17,11 +17,21 @@ class ChargeMode(smach.State):
   ''' State for charge car mode '''
   def __init__(self):
     smach.State.__init__(self, outcomes=['finish_charge'], input_keys=['waypoints'], output_keys=['waypoints'])
-    self.ns_robot = '/puma/waypoints'
-    self.ns = '/waypoints_charge_mode/'
-    enable_topic = rospy.get_param(self.ns+'enable_topic', "/puma/tag_detector/enable")
-    self.enable_pub = rospy.Publisher(enable_topic, Bool, queue_size=10)
-    self.cmdvel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=5)
+    enable_topic = rospy.get_param('~enable_topic', "/puma/tag_detector/enable")
+    self.enable_pub = rospy.Publisher(enable_topic, Bool, queue_size=3)
+    self.cmdvel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=3)
+  
+  def start_subscriber(self):
+    ns_topic = rospy.get_param('ns_topic', '')
+    self.stop_plan = rospy.Subscriber(ns_topic+'/plan_stop', Empty, self.stop_plan_callback)
+    
+  def end_subscriber(self):
+    self.stop_plan.unregister()
+    
+  def stop_plan_callback(self):
+    rospy.loginfo("-> Recibido comando de detencion.")
+    self.client_movebase.cancel_all_goals()
+    self.stop = True
   
   def init_apriltag(self):
     # Configure roslaunch
@@ -36,14 +46,14 @@ class ChargeMode(smach.State):
   def init_pid(self):
     ''' Initial values for pid controller '''
     self.dis2camera = 10
-    self.dis2tag_goal = rospy.get_param(self.ns+'dis2tag_goal', 1.0)
+    self.dis2tag_goal = rospy.get_param('~dis2tag_goal', 1.0)
     self.integral_error = 0.0
     self.prev_error = 0
-    self.pid_kp = rospy.get_param(self.ns+'pid/kp', 0.1)
-    self.pid_ki = rospy.get_param(self.ns+'pid/ki', 0.01)
-    self.pid_kd = rospy.get_param(self.ns+'pid/kd', 0.05)
+    self.pid_kp = rospy.get_param('~pid/kp', 0.1)
+    self.pid_ki = rospy.get_param('~pid/ki', 0.01)
+    self.pid_kd = rospy.get_param('~pid/kd', 0.05)
     self.current_time = rospy.get_time()
-    self.max_vel = rospy.get_param(self.ns+'max_vel', 0.4)
+    self.max_vel = rospy.get_param('~max_vel', 0.4)
   
   def compute_pid_position(self):
     ''' Compute value pid and publish cmd_vel '''
@@ -84,69 +94,52 @@ class ChargeMode(smach.State):
     self.init_apriltag()
     self.activate_transform_tag(is_activate=True)
     self.stop = False
+    self.client_movebase = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+    self.start_subscriber()
     detections = []
-    client_movebase = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     
-    # Thread for stop mode
-    def wait_for_stop():
-      rospy.wait_for_message('/puma/waypoints/plan_stop', Empty)
-      rospy.loginfo("Stoping charge mode...")
-      stop_msg = GoalID()
-      rospy.Publisher('/move_base/cancel', GoalID, queue_size=1).publish(stop_msg)
-      self.stop = True
-    wait_for_stop_thread = threading.Thread(target=wait_for_stop, daemon=True)
-    wait_for_stop_thread.start()
+    try:
+      ''' Esperando la deteccion de apriltag '''
+      while len(detections) == 0 and not self.stop:
+        rospy.loginfo_throttle(5,"-> Esperando por la deteccion de apriltag...")
+        msg = rospy.wait_for_message('/tag_detections', AprilTagDetectionArray,timeout=3)
+        if len(msg.detections)>0:
+          rospy.loginfo("-> Se ha detectado un apriltag")
+          detections = msg.detections
+        time.sleep(0.5)
+      
+      if not self.stop:
+        ''' Procesando deteccion '''
+        id_tag = detections[0].id[0]
+        rospy.loginfo("-> Crear subscriptor del tag")
+        tag_sub = rospy.Subscriber('/puma/tag_detector/pose2camera/tag_'+str(id_tag),PoseStamped, self.callback_dis2camera)
+        goal_tag = rospy.wait_for_message('/puma/tag_detector/goal/tag_'+str(id_tag), MoveBaseGoal)
+      
+      if not self.stop:
+        ''' Acercandose al tag con move_base '''
+        rospy.loginfo("-> Conectando a move_base...")
+        self.client_movebase.wait_for_server()
+        rospy.loginfo("-> Conexión realizada. Enviando destino...")
+        self.client_movebase.send_goal(goal_tag)
+        self.client_movebase.wait_for_result()
+        rospy.loginfo("-> Destino alcanzado!")
+        time.sleep(0.5)
+      
+      ''' Moverse en linea recta al tag '''
+      if not self.stop:
+        rospy.loginfo("-> Cambiando a PID para estacionar...")
+        while not rospy.is_shutdown() and not self.stop and (self.dis2camera > self.dis2tag_goal):
+          rospy.loginfo_throttle(4,"--> Distancia restante: %.3f mts...", self.dis2camera-self.dis2tag_goal)
+          self.compute_pid_position()
+          rospy.Rate(30).sleep()
+        self.publish_cmd_vel(0)
+        rospy.loginfo("-> Estacionamiento completo!!")
+    except:
+      rospy.logwarn("-> Cerrando puma_waypoints -- CHARGE_MODE.")
     
-    # Wait for detections
-    rospy.loginfo("-> waiting for apriltag detections...")
-    while len(detections) == 0:
-      msg = rospy.wait_for_message('/tag_detections', AprilTagDetectionArray,timeout=3)
-      self.activate_transform_tag(is_activate=True)
-      if len(msg.detections)>0:
-        rospy.loginfo("-> Is detected apriltag")
-        detections = msg.detections
-      time.sleep(0.5)
-      rospy.loginfo("-> waiting for apriltag detections...")
-    
-    # Reconfigure TEB tolerance
-    rospy.loginfo("-> Change teb tolerance params")
-    teb_for_charge = rospy.get_param(self.ns+'teb_for_charge', {})
-    client_teb = dynamic_reconfigure.client.Client("move_base/TebLocalPlannerROS", timeout=30)
-    client_teb.update_configuration(teb_for_charge)
-    
-    # Get goal according to tag
-    rospy.loginfo("-> Waiting for goal tag")
-    id_tag = detections[0].id[0]
-    # Create Subscriber for tag
-    rospy.loginfo("-> Create subscriptor")
-    rospy.Subscriber('/puma/tag_detector/pose2camera/tag_'+str(id_tag),PoseStamped, self.callback_dis2camera)
-    goal_tag = rospy.wait_for_message('/puma/tag_detector/goal/tag_'+str(id_tag), MoveBaseGoal)
-    
-    # Run to goal nearby position and same orientation
-    rospy.loginfo("-> Connecting to move_base...")
-    client_movebase.wait_for_server()
-    rospy.loginfo("-> Conection sucessful")
-    client_movebase.send_goal(goal_tag)
-    rospy.loginfo("-> Sending to goal")
-    client_movebase.wait_for_result()
-    rospy.loginfo("-> Goal completed!")
-    time.sleep(0.5)
-    
-    # Run straight to tag
-    rospy.loginfo("-> Switch to PID mode for parking...")
-    while not rospy.is_shutdown() and not self.stop and (self.dis2camera > self.dis2tag_goal):
-      rospy.loginfo("--> Remaining distance: %.3f mts...", self.dis2camera-self.dis2tag_goal)
-      self.compute_pid_position()
-      time.sleep(0.1)
-    self.publish_cmd_vel(0)
-    rospy.loginfo("-> Completed parking!!")
-    
-    # Reconfigure TEB tolerance
-    rospy.loginfo("-> Change teb tolerance params to origin")
-    teb_origin = rospy.get_param(self.ns+'teb_origin', {})
-    client_teb = dynamic_reconfigure.client.Client("move_base/TebLocalPlannerROS", timeout=30)
-    client_teb.update_configuration(teb_origin)
-    
+    if tag_sub is not None:
+      tag_sub.unregister()
     self.activate_transform_tag(False)
     self.launch.stop()
+    self.end_subscriber()
     return 'finish_charge'

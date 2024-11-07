@@ -13,18 +13,22 @@ if __name__ == "__main__":
   
   with sm:
     smach.StateMachine.add('PATH_SELECT',PathSelect(),
-                           transitions={'path_follow_mode':'PATH_FOLLOW', 'charge_mode':'CHARGE_MODE'})
+                          transitions={'path_follow_mode':'PATH_FOLLOW', 'charge_mode':'CHARGE_MODE'})
     smach.StateMachine.add('PATH_FOLLOW',PathFollow(),
-                           transitions={'success':'PATH_COMPLETE', 'aborted':'PATH_SELECT'}) 
+                          transitions={'success':'PATH_COMPLETE', 'aborted':'PATH_SELECT'}) 
     smach.StateMachine.add('PATH_COMPLETE',PathComplete(),
-                           transitions={'select_plan':'PATH_SELECT', 'start_plan':'PATH_FOLLOW', 'charge_mode':'CHARGE_MODE'})
+                          transitions={'select_plan':'PATH_SELECT', 'start_plan':'PATH_FOLLOW', 'charge_mode':'CHARGE_MODE'})
     smach.StateMachine.add('CHARGE_MODE', ChargeMode(),
-                           transitions={'finish_charge':'PATH_SELECT'})
+                          transitions={'finish_charge':'PATH_SELECT'})
     
   # For see state machine in diagram
   sis = smach_ros.IntrospectionServer('puma', sm, '/WAYPOINTS')
   sis.start()
   
-  while not rospy.is_shutdown():
+  try:
     outcome = sm.execute()
-    sis.stop()
+  except:
+    rospy.logwarn("Interrupción detectada. Cerrando puma_waypoints.")
+  finally:
+    sis.stop()  # Ensure introspection server is stopped if the node is interrupted
+    rospy.logwarn("Nodo puma_waypoints cerrado correctamente.")

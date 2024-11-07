@@ -1,25 +1,20 @@
-waypoints_select:
+puma_waypoints:
   add_pose_topic: /initialpose
-  pose_array_topic: /puma/waypoints/path_planned
-  goal_frame_id: map
+  ns_topic: /puma/waypoints 
+  gps_topic: /puma/sensors/gps/fix
+  odometry_topic: /puma/odometry/filtered
+  change_mode_topic: /puma/control/change_mode
 
-waypoints_follow:
   goal_frame_id: map
   odom_frame_id: odom
   base_frame_id: base_link
   wait_duration: 4.0
-  distance_tolerance: 3
+  distance_tolerance: 2.0
 
-waypoints_charge_mode:
   enable_topic: /puma/tag_detector/enable
-  teb_for_charge:
-    xy_goal_tolerance: 0.65
-    yaw_goal_tolerance: 0.04
-  teb_origin:
-    xy_goal_tolerance: 1.5
-    yaw_goal_tolerance: 0.7
-
-puma_waypoints:
-  add_pose_topic: /initialpose
-  pose_array_topic: /path_planned
-  ns_topic: /puma/waypoints 
+  dis2tag_goal: 1.0
+  pid:
+    kp: 0.1
+    ki: 0.01
+    kd: 0.05
+  max_vel: 0.4
