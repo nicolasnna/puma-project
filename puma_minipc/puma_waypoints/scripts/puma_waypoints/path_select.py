@@ -5,7 +5,7 @@ import rospkg
 import tf
 import json
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_waypoints_msgs.msg import GoalGpsArray
+from puma_waypoints_msgs.msg import GoalGpsArray, GoalGpsNavInfo
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
@@ -15,13 +15,14 @@ from puma_waypoints.utils import calc_goal_from_gps, calculate_bearing_from_xy, 
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['path_follow_mode', 'charge_mode'], output_keys=['waypoints','path_plan'], input_keys=['waypoints'])
+    smach.State.__init__(self, outcomes=['path_follow_mode', 'charge_mode'], output_keys=['waypoints','path_plan','gps_nav'], input_keys=['waypoints','gps_nav'])
     # Get params
     ns_topic = rospy.get_param('~ns_topic','')
     ''' Publicadores para visualizacion '''
     self.pose_array_publisher = rospy.Publisher(ns_topic + '/path_planned', PoseArray, queue_size=4)
     self.pose_array_completed = rospy.Publisher(ns_topic + '/path_completed', PoseArray, queue_size=4)
-
+    self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsArray, queue_size=3)
+    
     ''' Variables '''
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
     self.waypoints = []
@@ -118,6 +119,15 @@ class PathSelect(smach.State):
       rospy.loginfo("--> Obteniendo la odometria.")
       pos_current = rospy.wait_for_message(odometry_topic, Odometry)
       
+      self.nav_info_msgs.start.latitude = gps_current.latitude
+      self.nav_info_msgs.start.longitude = gps_current.longitude
+      self.nav_info_msgs.index_from = 0
+      self.nav_info_msgs.index_to = 1
+      self.nav_info_msgs.next_goal = data.data[0]
+      self.nav_info_msgs.goals = data.data
+      
+      self.nav_gps_info_pub.publish(self.nav_info_msgs)
+      
       x_prev = pos_current.pose.pose.position.x
       y_prev = pos_current.pose.pose.position.y
       rospy.loginfo("--> Transformando waypoints.")
@@ -194,6 +204,7 @@ class PathSelect(smach.State):
     rospy.loginfo('------------------------------')
     rospy.loginfo('----- Estado Path Select -----')
     rospy.loginfo('------------------------------')
+    self.nav_info_msgs = GoalGpsNavInfo()
     self.start_subscriber()
     
     if "waypoints" in userdata:
@@ -217,6 +228,7 @@ class PathSelect(smach.State):
     ''' Enviar datos al siguiente estado '''
     userdata.path_plan = self.convert_poseCov_to_poseArray(self.waypoints)
     userdata.waypoints = self.waypoints
+    userdata.gps_nav = self.self.nav_info_msgs
     self.end_subscriber()
     
     if self.charge_mode:

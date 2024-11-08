@@ -50,6 +50,7 @@ add_message_files(
   FILES
   GoalGps.msg
   GoalGpsArray.msg
+  GoalGpsNavInfo.msg
 )
 
 ## Generate services in the 'srv' folder
