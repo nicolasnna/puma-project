@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Charge params -->
+  <rosparam command="load" file="$(find puma_bringup)/config/navigation_params.yaml"/>
+  <!-- Puma controller -->
+  <node name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
+  <!-- Ackermann converter -->
+  <!-- <node name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/> -->
+  <!-- Map server -->
+  <arg name="map_file" default="$(find puma_bringup)/map/blank_map.yaml"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <!-- Navigation -->
+  <arg name="path" value="$(find puma_bringup)/config/nav"/>
+  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
+    <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
+    <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
+    <param name="base_global_planner" value="puma_hybrid_astar_planner/PumaHybridAStarPlanner"/>
+    <param name="base_local_planner" value="puma_dwa_local_planner/PumaDwaLocalPlanner" /> 
+    <rosparam command="load" file="$(arg path)/hybrid_puma_planner.yaml"/>
+    <rosparam command="load" file="$(arg path)/puma_dwa_planner.yaml"/>
+    <remap from="/odom" to="/puma/odometry/filtered"/>
+  </node>
+</launch>

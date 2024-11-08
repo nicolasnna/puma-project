@@ -41,6 +41,9 @@
   <node if="$(arg controller)" name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
   <!-- <node if="$(arg controller)" name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/> -->
 
+  <node name="control_mode_node" pkg="puma_control_mode_selector" type="control_mode_node.py" output="screen"/>
+  
+
   <!-- Converter gps to enu -->
   <!-- <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/> -->
   

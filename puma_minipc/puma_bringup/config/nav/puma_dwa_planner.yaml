@@ -8,7 +8,7 @@ PumaDwaLocalPlanner:
   desacceleration_x: 0.3
   distance_for_desacceleration: 4.0
 
-  reverse_limit_distance: 3.0
+  reverse_limit_distance: 2.0
   time_simulation: 4.0
 
   xy_goal_tolerance: 0.5

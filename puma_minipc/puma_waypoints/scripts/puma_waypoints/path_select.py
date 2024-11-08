@@ -199,6 +199,7 @@ class PathSelect(smach.State):
     if "waypoints" in userdata:
       self.waypoints = userdata.waypoints
       self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
+      self.pose_array_completed.publish(self.convert_poseCov_to_poseArray([]))
     else:
       self.initialize_path_waypoints()
     self.path_ready = False
