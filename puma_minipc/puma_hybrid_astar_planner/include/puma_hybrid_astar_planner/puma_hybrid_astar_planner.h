@@ -96,9 +96,7 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     ros::Publisher path_dubin_pub_;
     ros::Publisher path_pub_;
     nav_msgs::OccupancyGrid potential_map_;
-    /* Costmap values */
-    double origin_x_costmap_, origin_y_costmap_, resolution_costmap_;
-    int cells_x_costmap_, cells_y_costmap_;
+
     /* Parametros */
     double step_size_meters_;
     double theta_limit_;
@@ -106,6 +104,7 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     int factor_cost_distance_, factor_cost_angle_curve_;
     int factor_cost_angle_goal_;
     int factor_cost_obstacle_; 
+    double factor_cost_unknown_;
     double dist_max_to_goal;
     int division_curve_, division_theta_; 
     bool enable_dubin_;

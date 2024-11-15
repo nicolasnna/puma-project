@@ -11,7 +11,7 @@
   <arg name="depth_camera_info_topic" value="/puma/camera/aligned_depth_to_color/camera_info"/>
   <arg name="imu_topic" default="/puma/camera/imu"/>
   <arg name="output" default="log"/>
-  <arg name="approx_sync" default="true"/>
+  <arg name="approx_sync" default="false"/>
   <arg name="args" default="--delete_db_on_start"/>
 
   <!-- Parámetro de tiempo simulado -->
@@ -37,7 +37,7 @@
     <param name="publish_tf" type="bool" value="false"/>
     <param name="wait_for_transform" type="bool" value="true"/>
     <param name="approx_sync" type="bool" value="$(arg approx_sync)"/>
-    <param name="queue_size" type="int" value="10"/>
+    <param name="queue_size" type="int" value="4"/>
   </node>
   
 

@@ -40,7 +40,7 @@
   <!-- Puma controller - accel, brake, dir -->
   <rosparam command="load" file="$(find puma_simulation)/config/puma_controller.yaml"/>
   <node if="$(arg controller)" name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
-  <node if="$(arg controller)" name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/>
+  <!-- <node if="$(arg controller)" name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/> -->
 
   <!-- load node simulation -->
   <node name="puma_simulation_fake" pkg="puma_fake_driver" type="gazebo_controller_node.py" output="screen" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
@@ -51,6 +51,7 @@
   <!-- Static tf between map and odom -->
   <arg name="static_tf" default="true" />
   <node if="$(arg static_tf)" pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom" />
+  <node name="control_mode_node" pkg="puma_control_mode_selector" type="control_mode_node.py" output="screen"/>
 
 
   <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_simulation)/rviz/nav_dwa.rviz" /> -->

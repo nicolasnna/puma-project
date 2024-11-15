@@ -23,12 +23,6 @@ namespace puma_hybrid_astar_planner {
       // Cargar parámetros de rosparam
       loadRosParam(private_nh);
 
-      origin_x_costmap_ = costmap_->getOriginX();
-      origin_y_costmap_ = costmap_->getOriginY();
-      resolution_costmap_ = costmap_->getResolution();
-      cells_x_costmap_ = costmap_->getSizeInCellsX();
-      cells_y_costmap_ = costmap_->getSizeInCellsY();
-
       initializePotentialMap();
 
       path_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 2);
@@ -51,16 +45,17 @@ namespace puma_hybrid_astar_planner {
     nh.param("division_theta", division_theta_, 4);
     nh.param("factor_cost_angle_goal", factor_cost_angle_goal_, 2);
     nh.param("factor_cost_obstacle",factor_cost_obstacle_, 10);
+    nh.param("factor_cost_unknown", factor_cost_unknown_, 1.0);
   }
 
   /* Inicializar potential map */
   void PumaHybridAStarPlanner::initializePotentialMap(){
-      potential_map_.info.resolution = costmap_->getResolution();
-      potential_map_.info.width = costmap_->getSizeInCellsX();
-      potential_map_.info.height = costmap_->getSizeInCellsY();
-      potential_map_.info.origin.position.x = costmap_->getOriginX();
-      potential_map_.info.origin.position.y = costmap_->getOriginY();
-      potential_map_.data.resize(potential_map_.info.width * potential_map_.info.height, -1); // -1 para celdas no revisadas
+    potential_map_.info.origin.position.x = costmap_->getOriginX();
+    potential_map_.info.origin.position.y = costmap_->getOriginY();
+    potential_map_.info.resolution = costmap_->getResolution();
+    potential_map_.info.width = costmap_->getSizeInCellsX();
+    potential_map_.info.height = costmap_->getSizeInCellsY(); 
+    potential_map_.data.resize(potential_map_.info.width * potential_map_.info.height, -1); // -1 para celdas no revisadas
   }
 
   void PumaHybridAStarPlanner::publishPotentialMap() {
@@ -73,6 +68,7 @@ namespace puma_hybrid_astar_planner {
       return false;
     }
     plan.clear();
+    initializePotentialMap();
     /* Limpiar mapa de potencial */
     std::fill(potential_map_.data.begin(), potential_map_.data.end(), -1);
 
@@ -244,7 +240,8 @@ namespace puma_hybrid_astar_planner {
 
     /* Calculo de costo asociado a obstaculos */
     unsigned char cell_cost = costmap_->getCost(new_node->cell_x, new_node->cell_y);
-    double normalized_obstacle_cost = (cell_cost / 255.0) * factor_cost_obstacle_;
+    double cell_cost_with_factor = cell_cost == costmap_2d::NO_INFORMATION ? cell_cost * factor_cost_unknown_ : cell_cost;
+    double normalized_obstacle_cost = (cell_cost_with_factor / 255.0) * factor_cost_obstacle_;
 
     /* Total de costos */
     new_node->total_cost = new_node->cost + normalized_distance_cost + normalized_obstacle_cost + normalized_angle_curve + goal_alignment_cost ;
@@ -256,7 +253,7 @@ namespace puma_hybrid_astar_planner {
     double distance_to_goal = current_node.distance(goal);
 
     if (distance_to_goal <= xy_goal_tolerance_) {
-      ROS_INFO_THROTTLE(15,"Aplicando threshold con nodo final -> x: %lf , y: %lf",goal.x, goal.y);
+      ROS_INFO_THROTTLE(5,"Aplicando threshold con nodo final -> x: %lf , y: %lf",goal.x, goal.y);
       auto new_node = std::make_shared<Node>(goal.x, goal.y, goal.theta);
       getAdjustXYCostmap(*new_node, new_node->cell_x, new_node->cell_y);
       new_node->parent = std::make_shared<Node>(current_node);
@@ -273,7 +270,7 @@ namespace puma_hybrid_astar_planner {
 
         // Verificar validez del nuevo nodo
         if (isValidNode(*new_node)) {
-          new_node->parent = std::make_shared<Node>(current_node);  // Usar puntero compartido para asignar al padre
+          new_node->parent = std::make_shared<Node>(current_node); 
           new_nodes.push_back(new_node);
         }
       }
@@ -325,13 +322,13 @@ namespace puma_hybrid_astar_planner {
 
     /* Verifica limites del mapa de costos */
     if (cell_x < 0 || cell_y < 0 || 
-        cell_x >= cells_x_costmap_ || 
-        cell_y >= cells_y_costmap_) {
+        cell_x >= costmap_->getSizeInCellsX()|| 
+        cell_y >= costmap_->getSizeInCellsY()) {
         ROS_INFO_THROTTLE(2," Nodo evaluado invalido, se pasa del limite del costmap.");
         return false;
     }
     /* Verifica colision */
-    if (costmap_->getCost(cell_x, cell_y) >= costmap_2d::LETHAL_OBSTACLE) {
+    if (costmap_->getCost(cell_x, cell_y) == costmap_2d::LETHAL_OBSTACLE) {
       ROS_WARN_THROTTLE(2,"Nodo evaluado invalido, ocurre una colision.");
       return false;
     }
@@ -341,12 +338,12 @@ namespace puma_hybrid_astar_planner {
   /* Calcular valor de celdas ajustada */
   void PumaHybridAStarPlanner::getAdjustXYCostmap(const Node& node, int& cell_x, int& cell_y) {
     /* Calcular posiciones ajustadas al origen del mapa */
-    double adjusted_x = node.x - origin_x_costmap_;
-    double adjusted_y = node.y - origin_y_costmap_;
+    double adjusted_x = node.x - costmap_->getOriginX();
+    double adjusted_y = node.y - costmap_->getOriginY();
 
     /* Convertir las posiciones a indice de celdas */
-    cell_x = static_cast<int>(adjusted_x / resolution_costmap_);
-    cell_y = static_cast<int>(adjusted_y / resolution_costmap_);
+    cell_x = static_cast<int>(adjusted_x / costmap_->getResolution());
+    cell_y = static_cast<int>(adjusted_y / costmap_->getResolution());
   }
 
 };

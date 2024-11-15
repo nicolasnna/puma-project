@@ -5,12 +5,13 @@ import rospkg
 import tf
 import json
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_waypoints_msgs.msg import GoalGpsArray, GoalGpsNavInfo
+from puma_waypoints_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from pathlib import Path
 from puma_waypoints.utils import calc_goal_from_gps, calculate_bearing_from_xy, yaw_to_quaternion
+import tf.transformations
 
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
@@ -21,7 +22,7 @@ class PathSelect(smach.State):
     ''' Publicadores para visualizacion '''
     self.pose_array_publisher = rospy.Publisher(ns_topic + '/path_planned', PoseArray, queue_size=4)
     self.pose_array_completed = rospy.Publisher(ns_topic + '/path_completed', PoseArray, queue_size=4)
-    self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsArray, queue_size=3)
+    self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
     
     ''' Variables '''
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
@@ -119,14 +120,14 @@ class PathSelect(smach.State):
       rospy.loginfo("--> Obteniendo la odometria.")
       pos_current = rospy.wait_for_message(odometry_topic, Odometry)
       
-      self.nav_info_msgs.start.latitude = gps_current.latitude
-      self.nav_info_msgs.start.longitude = gps_current.longitude
       self.nav_info_msgs.index_from = 0
       self.nav_info_msgs.index_to = 1
-      self.nav_info_msgs.next_goal = data.data[0]
-      self.nav_info_msgs.goals = data.data
-      
-      self.nav_gps_info_pub.publish(self.nav_info_msgs)
+      self.nav_info_msgs.start.latitude = gps_current.latitude
+      self.nav_info_msgs.start.longitude = gps_current.longitude
+      orientation = pos_current.pose.pose.orientation
+      quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
+      _, _, yaw_ = tf.transformations.euler_from_quaternion(quaternion)
+      self.nav_info_msgs.start.yaw = yaw_
       
       x_prev = pos_current.pose.pose.position.x
       y_prev = pos_current.pose.pose.position.y
@@ -135,9 +136,14 @@ class PathSelect(smach.State):
         PoseGoal = PoseWithCovarianceStamped()
         PoseGoal.header.frame_id = 'map'
         
+        GpsGoalInfo = GoalGps()
+        GpsGoalInfo.latitude = LatLonGoal.latitude
+        GpsGoalInfo.longitude = LatLonGoal.longitude
+        
         x, y = calc_goal_from_gps(gps_current.latitude, gps_current.longitude, LatLonGoal.latitude, LatLonGoal.longitude)
         yaw = calculate_bearing_from_xy(x_prev, y_prev, x, y)
         x_rot, y_rot, z_rot, w_rot = yaw_to_quaternion(yaw)
+        GpsGoalInfo.yaw = yaw
         
         new_x = x + pos_current.pose.pose.position.x
         new_y = y + pos_current.pose.pose.position.y
@@ -149,11 +155,16 @@ class PathSelect(smach.State):
         PoseGoal.pose.pose.orientation.z = z_rot
         PoseGoal.pose.pose.orientation.w = w_rot
         
+        self.nav_info_msgs.goals.append(GpsGoalInfo)
+        if LatLonGoal == data.data[0]:
+          self.nav_info_msgs.next_goal = GpsGoalInfo
+          
         self.waypoints.append(PoseGoal)
         x_prev = new_x
         y_prev = new_y
       self.gps_mode = False
       rospy.loginfo("--> Waypoints actualizado con los destinos desde GPS.")
+      self.nav_gps_info_pub.publish(self.nav_info_msgs)
     else:
       rospy.logwarn("--> GpsArray vacio.")
   
@@ -228,7 +239,7 @@ class PathSelect(smach.State):
     ''' Enviar datos al siguiente estado '''
     userdata.path_plan = self.convert_poseCov_to_poseArray(self.waypoints)
     userdata.waypoints = self.waypoints
-    userdata.gps_nav = self.self.nav_info_msgs
+    userdata.gps_nav = self.nav_info_msgs
     self.end_subscriber()
     
     if self.charge_mode:

@@ -3,6 +3,7 @@ import rospy
 import smach
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from puma_waypoints_msgs.msg import GoalGpsNavInfo
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty, String
 import tf
@@ -11,7 +12,7 @@ import math
 class PathFollow(smach.State):
   """ Smach test of path follow """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan'], output_keys=['waypoints'])
+    smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan', 'gps_nav'], output_keys=['waypoints'])
     ns_topic = rospy.get_param('~ns_topic','')
     
     ''' Obtener parametros '''
@@ -26,6 +27,7 @@ class PathFollow(smach.State):
     self.pose_array_planned = rospy.Publisher(ns_topic+'/path_planned', PoseArray, queue_size=3)
     self.pose_array_completed = rospy.Publisher(ns_topic+'/path_completed', PoseArray, queue_size=3)
     self.mode_selector_pub = rospy.Publisher(change_mode_topic, String, queue_size=3)
+    self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
     
   def start_subscriber(self):
     ns_topic = rospy.get_param('~ns_topic','')
@@ -69,6 +71,13 @@ class PathFollow(smach.State):
       
     ''' Ejecutar waypoints '''
     index_waypoints = 0
+    copy_gps_info = GoalGpsNavInfo()
+    copy_gps_info.index_from = userdata.gps_nav.index_from
+    copy_gps_info.index_to = userdata.gps_nav.index_to
+    copy_gps_info.start = userdata.gps_nav.start
+    copy_gps_info.next_goal = userdata.gps_nav.next_goal
+    copy_gps_info.goals = userdata.gps_nav.goals
+    
     try:
       while not rospy.is_shutdown() and not self.is_aborted and index_waypoints < len(userdata.waypoints):
         waypoint = userdata.waypoints[index_waypoints]
@@ -79,10 +88,18 @@ class PathFollow(smach.State):
         goal.target_pose.pose.orientation = waypoint.pose.pose.orientation
         goal_pos_x = waypoint.pose.pose.position.x
         goal_pos_y =  waypoint.pose.pose.position.y
-        rospy.loginfo('Ejecutando move_base goal a la  position(x,y, theta): %.3f, %.3s, %.3s', 
+        rospy.loginfo('Ejecutando move_base goal a la position(x,y, theta): %.3f, %.3s, %.3s', 
                       goal_pos_x, goal_pos_y, waypoint.pose.pose.orientation.z)
         rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
-        
+
+        ''' Actualizar informacion del waypoints gps '''
+        if (len(userdata.gps_nav.goals) > 0):
+          if index_waypoints > 0:
+            copy_gps_info.index_from = index_waypoints
+            copy_gps_info.index_to = index_waypoints + 1
+            copy_gps_info.next_goal = userdata.gps_nav.goals[index_waypoints]
+            self.nav_gps_info_pub.publish(copy_gps_info)
+          
         ''' Enviar destino '''
         if index_waypoints != 0:
           self.client.cancel_all_goals()
@@ -91,6 +108,10 @@ class PathFollow(smach.State):
         if waypoint == userdata.waypoints[-1]: 
           ''' Esperar en caso de ser el ultimo destino '''
           self.client.wait_for_result()
+          if (len(userdata.gps_nav.goals) > 0):
+            copy_gps_info.index_from = index_waypoints + 1
+            copy_gps_info.index_to = index_waypoints + 1
+            self.nav_gps_info_pub.publish(copy_gps_info)
         else:
           ''' Bucle para comprobar distancia al destino '''
           distance = 999
@@ -108,9 +129,9 @@ class PathFollow(smach.State):
         self.pose_array_completed.publish(path_complete)
         self.pose_array_planned.publish(path_planned)
         index_waypoints += 1
-    except:
+    except Exception as e:
       self.client.cancel_all_goals()
-      rospy.logwarn("-> Cerrando puma_waypoints -- PATH_SELECT.")
+      rospy.logwarn("-> Navegacion interrumpida puma_waypoints - PATH FOLLOW - debido error imprevisto %s.",e)
       
     self.end_subscriber()
 

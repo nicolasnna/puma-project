@@ -10,6 +10,7 @@ PumaHybridAStarPlanner:
   factor_cost_angle_curve: 4
   factor_cost_angle_goal: 10
   factor_cost_obstacle: 100
+  factor_cost_unknown: 0.4
 
   # Suavizado en curvas de dubin
   enable_dubin: false

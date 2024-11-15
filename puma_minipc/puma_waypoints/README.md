@@ -116,6 +116,11 @@ De este estado se puede transicionar al estado **`FOLLOW_PATH`** o **`CHARGE_MOD
 
   Indica las posiciones de destino compeltadas.
 
+- **`<ns_topic>/gps_nav_info`** (puma_waypoints_msgs/GoalGpsNavInfo)
+
+  Indica la información de la navegación en terminos de latitud, longitud y yaw.
+
+
 #### Suscriptor
 
 - **`<ns_topic>/plan_reset`** (std_msgs/Empty)
@@ -174,6 +179,10 @@ Si se completa correctamente, se pasa al estado **`COMPLETE_PATH`** y en caso de
 - **`/puma/mode_selector`** (std_msgs/String)
 
   Publica el comando para habilitar el nodo **`puma_controller`**.
+
+- **`<ns_topic>/gps_nav_info`** (puma_waypoints_msgs/GoalGpsNavInfo)
+
+  Indica la información de la navegación en terminos de latitud, longitud y yaw.
 
 
 #### Subscriptor

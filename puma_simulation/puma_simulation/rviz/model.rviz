@@ -269,7 +269,7 @@ Visualization Manager:
       Blocks: 3
       Class: rviz_plugins/AerialMapDisplay
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Map Frame: map
       Map transform type: NavSatFix Messages and Map Frame
       Name: AerialMapDisplay
@@ -277,7 +277,7 @@ Visualization Manager:
       Topic: /puma/sensors/gps/fix
       UTM Frame: utm
       UTM Zone: -1
-      Value: true
+      Value: false
       XY Reference: <NavSatFix Message>
       Z Offset: 0
       Z Reference: <NavSatFix Message>
@@ -650,4 +650,4 @@ Window Geometry:
     collapsed: false
   Width: 1440
   X: 276
-  Y: 0
+  Y: 27

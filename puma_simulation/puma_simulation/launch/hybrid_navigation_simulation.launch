@@ -2,13 +2,14 @@
 <launch>
   <arg name="path" value="$(find puma_simulation)/config/nav"/>
   <arg name="debug" value="false"/>
-  
-  <arg name="map_file" default="$(find puma_simulation)/maps/blank_map_2.yaml"/>
-  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+<!--   
+  <arg name="map_file" default="$(find puma_simulation)/maps/blank_map.yaml"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/> -->
   <arg name="launch-args" value=""/>
   <group if="$(arg debug)">
     <arg name="launch-args" value="gdb -ex=run --args"/>
   </group>
+  
 
   <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true" launch-prefix="$(arg launch-args)">
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
