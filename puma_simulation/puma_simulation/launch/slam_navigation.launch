@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find puma_simulation)/launch/hybrid_navigation_simulation.launch"/>
+  <include file="$(find puma_simulation)/launch/slam_test.launch"/>
+  <include file="$(find puma_simulation)/launch/localization_simulation.launch"/>
+
+</launch>

@@ -262,6 +262,21 @@ namespace puma_dwa_local_planner {
     double goal_y = goal_pose.pose.position.y;
     double distance_to_goal = std::hypot(puma_.x - goal_x, puma_.y - goal_y);
 
+    /* Comprobar estado del destino */
+    int cell_x, cell_y;
+    getAdjustXYCostmap(goal_x, goal_x, cell_x, cell_y);
+    unsigned char cost = costmap_->getCost(cell_x, cell_y);
+
+    if (cost == costmap_2d::LETHAL_OBSTACLE && distance_to_goal <= 4.0) {
+      ROS_WARN("El destino se encuentra en un obstaculo. Finalizando navegación...");
+      return true;
+    }
+
+    if (cost >= (unsigned char) 120U && cost < costmap_2d::NO_INFORMATION && distance_to_goal <= 4.0) {
+      ROS_WARN("El destino se encuentra cercano a un obstaculo. Finalizando navegación...");
+      return true;
+    }
+
     if (distance_to_goal <= xy_goal_tolerance_) {
       ROS_INFO("El robot ha alcanzado el destino dentro de la tolerancia %f metros.", xy_goal_tolerance_);
       return true;

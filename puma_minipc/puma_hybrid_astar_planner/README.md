@@ -83,6 +83,10 @@ Los parámetros se ajustan en el grupo **`PumaHybridAStarPlanner`**:
 
   Factor de costo asociado al obstaculo, si es que existe, en el mapa de costos.
 
+- **`factor_cost_unknown`** (double, default: 1.0)
+
+  Factor de costo asociado a celdas sin información. Disminuir este valor de 0 - 0.99 hace que el planificador priorice la busqueda en celdas conocidas.
+
 - **`enable_dubin`** (bool, default: false)
 
   Suavizado de puntos de la ruta con curvas dubin.

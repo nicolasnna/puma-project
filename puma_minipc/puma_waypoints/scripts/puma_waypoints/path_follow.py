@@ -107,7 +107,7 @@ class PathFollow(smach.State):
         self.client.send_goal(goal)
         if waypoint == userdata.waypoints[-1]: 
           ''' Esperar en caso de ser el ultimo destino '''
-          self.client.wait_for_result()
+          self.client.wait_for_result(timeout=rospy.Duration(2))
           if (len(userdata.gps_nav.goals) > 0):
             copy_gps_info.index_from = index_waypoints + 1
             copy_gps_info.index_to = index_waypoints + 1
