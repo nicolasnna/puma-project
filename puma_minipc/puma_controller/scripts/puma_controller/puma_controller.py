@@ -49,9 +49,9 @@ class PumaController():
     )
     
     self.pid = PIDAntiWindUp(
-      kp=0.3, 
-      ki=0.2, 
-      kd=0.05, 
+      kp=rospy.get_param('~kp', 0.3), 
+      ki=rospy.get_param('~ki', 0.2), 
+      kd=rospy.get_param('~kd', 0.05), 
       min_value=self.range_accel_converter[0], 
       max_value=self.range_accel_converter[1]
     )
@@ -78,7 +78,7 @@ class PumaController():
   def cmdvel_callback(self, data):
     if not self.connect_to_ackermann_converter:
       self.vel_linear = round(data.linear.x,3)
-      self.angle = data.angular.z
+      self.angle = round(data.angular.z,3) 
       
       self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
 
@@ -91,7 +91,7 @@ class PumaController():
       self.last_time_ackermann = time.time()
       
       self.vel_linear = round(acker_data.drive.speed,3)
-      self.angle = acker_data.drive.steering_angle
+      self.angle = round(acker_data.drive.steering_angle,3)
       
       self.is_change_reverse = (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
 

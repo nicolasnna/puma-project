@@ -24,6 +24,7 @@
 		<param name="controller_patience" value="15.0" />  -->
     <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/>
     <rosparam command="load" file="$(arg path)/dwa_planner.yaml"/>
+    <remap from="/odom" to="/puma/odometry/filtered"/>
     <param name="clearing_rotation_allowed" value="false" /> 
   </node>
 </launch>

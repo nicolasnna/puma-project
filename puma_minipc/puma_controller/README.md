@@ -108,6 +108,22 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
     Valor mínimo y máximo de la velocidad linear a considerar para la conversión lineal.
 
+  - **`~connect_to_ackermann_converter`** (Bool, default: true)
+
+    Habilita la conexión con nodo de conversion a ackermann para definir el angulo a usar en el robot. En caso de False, se usa la velocidad angular z de Cmd_Vel para definir el ángulo.
+
+  - **`~kp`** (Float, default: 0.3)
+  
+    Componente proporcional del controlador PIDAntiWindUP para la velocidad.
+
+  - **`~ki`** (Float, default: 0.2)
+  
+    Componente integral del controlador PIDAntiWindUP para la velocidad.
+  
+  - **`~kd`** (Float, default: 0.05)
+  
+    Componente derivativo del controlador PIDAntiWindUP para la velocidad.
+
 ### convert_ackermann
 
 Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a velocidad lineal y posición angular (tipo `AckermannDriveStamped`) para luego ser usado en el nodo de control.

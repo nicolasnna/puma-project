@@ -4,6 +4,7 @@ import smach
 import rospkg
 import tf
 import json
+import math
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
 from puma_waypoints_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps
 from std_msgs.msg import Empty, String
@@ -16,7 +17,7 @@ import tf.transformations
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['path_follow_mode', 'charge_mode'], output_keys=['waypoints','path_plan','gps_nav'], input_keys=['waypoints','gps_nav'])
+    smach.State.__init__(self, outcomes=['path_follow_mode', 'charge_mode'], output_keys=['waypoints','path_plan','gps_nav', 'gps_index'], input_keys=['waypoints','gps_nav'])
     # Get params
     ns_topic = rospy.get_param('~ns_topic','')
     ''' Publicadores para visualizacion '''
@@ -112,11 +113,12 @@ class PathSelect(smach.State):
   def plan_from_gps_callback(self, data):
     rospy.loginfo("-> Recibido arreglo de GPS waypoints.")
     if len(data.data) != 0:
+      distance_limit = rospy.get_param("~distance_limit_points", 10.0)
       self.gps_mode = True
       gps_topic = rospy.get_param("~gps_topic",'/puma/sensors/gps/fix')
-      odometry_topic = rospy.get_param("~odometry_topic", '/puma/odometry/filtered')
       rospy.loginfo("--> Obteniendo el valor del gps del robot.")
       gps_current = rospy.wait_for_message(gps_topic, NavSatFix)
+      odometry_topic = rospy.get_param("~odometry_topic", '/puma/odometry/filtered')
       rospy.loginfo("--> Obteniendo la odometria.")
       pos_current = rospy.wait_for_message(odometry_topic, Odometry)
       
@@ -132,6 +134,7 @@ class PathSelect(smach.State):
       x_prev = pos_current.pose.pose.position.x
       y_prev = pos_current.pose.pose.position.y
       rospy.loginfo("--> Transformando waypoints.")
+      # Revisar por cada destino
       for LatLonGoal in data.data:
         PoseGoal = PoseWithCovarianceStamped()
         PoseGoal.header.frame_id = 'map'
@@ -145,17 +148,41 @@ class PathSelect(smach.State):
         x_rot, y_rot, z_rot, w_rot = yaw_to_quaternion(yaw)
         GpsGoalInfo.yaw = yaw
         
+        # Si la distancia supera el limite del mapa global
+        distance_between_points = math.sqrt(x**2 + y**2)
+        current_x = pos_current.pose.pose.position.x
+        current_y = pos_current.pose.pose.position.y
+        while (distance_between_points > distance_limit):
+          x_inter = current_x + distance_limit * math.cos(math.radians(yaw))
+          y_inter = current_y + distance_limit * math.sin(math.radians(yaw))
+          
+          PoseInterGoal = PoseWithCovarianceStamped()
+          PoseInterGoal.header.frame_id = 'map'
+          PoseInterGoal.pose.pose.position.x = x_inter
+          PoseInterGoal.pose.pose.position.y = y_inter
+          PoseInterGoal.pose.pose.orientation.x = x_rot
+          PoseInterGoal.pose.pose.orientation.y = y_rot
+          PoseInterGoal.pose.pose.orientation.z = z_rot
+          PoseInterGoal.pose.pose.orientation.w = w_rot
+          self.waypoints.append(PoseInterGoal)
+          self.nav_gps_index.append(False)
+          
+          distance_between_points -= distance_limit
+          current_x = x_inter
+          current_y = y_inter
+        
         new_x = x + pos_current.pose.pose.position.x
         new_y = y + pos_current.pose.pose.position.y
         
-        PoseGoal.pose.pose.position.x = x + pos_current.pose.pose.position.x
-        PoseGoal.pose.pose.position.y = y + pos_current.pose.pose.position.y
+        PoseGoal.pose.pose.position.x = new_x
+        PoseGoal.pose.pose.position.y = new_y
         PoseGoal.pose.pose.orientation.x = x_rot
         PoseGoal.pose.pose.orientation.y = y_rot
         PoseGoal.pose.pose.orientation.z = z_rot
         PoseGoal.pose.pose.orientation.w = w_rot
         
         self.nav_info_msgs.goals.append(GpsGoalInfo)
+        self.nav_gps_index.append(True)
         if LatLonGoal == data.data[0]:
           self.nav_info_msgs.next_goal = GpsGoalInfo
           
@@ -171,6 +198,38 @@ class PathSelect(smach.State):
   def add_pose_2d_callback(self, pose):
     if not self.gps_mode:
       rospy.loginfo("-> Recibido el waypoint x: %.3f, y: %.3f", pose.pose.pose.position.x, pose.pose.pose.position.y)
+      distance_limit = rospy.get_param("~distance_limit_points", 10.0)
+      if (len(self.waypoints) == 0):
+        odometry_topic = rospy.get_param("~odometry_topic", '/puma/odometry/filtered')
+        rospy.loginfo("--> Obteniendo la odometria.")
+        pos_current = rospy.wait_for_message(odometry_topic, Odometry)
+        x_current = pos_current.pose.pose.position.x
+        y_current = pos_current.pose.pose.position.y
+        distance_between_points = math.sqrt(
+          (pose.pose.pose.position.x - x_current)**2 +
+          (pose.pose.pose.position.y - y_current)**2)
+
+        # (_, _, yaw) = tf.transformations.euler_from_quaternion([x, y, z, w])
+        yaw = calculate_bearing_from_xy(x_current, y_current, pose.pose.pose.position.x, pose.pose.pose.position.y)
+        x_qua, y_qua, z_qua, w_qua = yaw_to_quaternion(yaw)
+        while distance_between_points > distance_limit:
+          x_inter = x_current + distance_limit * math.cos(math.radians(yaw))
+          y_inter = y_current + distance_limit * math.sin(math.radians(yaw))
+          
+          poseInter = PoseWithCovarianceStamped()
+          poseInter.header.frame_id = 'map'
+          poseInter.pose.pose.position.x = x_inter
+          poseInter.pose.pose.position.y = y_inter
+          poseInter.pose.pose.orientation.x = x_qua
+          poseInter.pose.pose.orientation.y = y_qua
+          poseInter.pose.pose.orientation.z = z_qua
+          poseInter.pose.pose.orientation.w = w_qua
+          
+          self.waypoints.append(self.convert_frame_pose(poseInter,'map'))
+          distance_between_points -= distance_limit 
+          x_current = x_inter
+          y_current = y_inter
+          
       self.waypoints.append(self.convert_frame_pose(pose,'map'))
     
   def initialize_path_waypoints(self):
@@ -216,6 +275,7 @@ class PathSelect(smach.State):
     rospy.loginfo('----- Estado Path Select -----')
     rospy.loginfo('------------------------------')
     self.nav_info_msgs = GoalGpsNavInfo()
+    self.nav_gps_index = []
     self.start_subscriber()
     
     if "waypoints" in userdata:
@@ -240,6 +300,7 @@ class PathSelect(smach.State):
     userdata.path_plan = self.convert_poseCov_to_poseArray(self.waypoints)
     userdata.waypoints = self.waypoints
     userdata.gps_nav = self.nav_info_msgs
+    userdata.gps_index = self.nav_gps_index
     self.end_subscriber()
     
     if self.charge_mode:

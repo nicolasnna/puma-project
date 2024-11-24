@@ -46,7 +46,7 @@ def yaw_to_quaternion(yaw):
   yaw -- yaw angle in degrees
   
   Returns:
-  (w, x, y, z) -- tuple representing the quaternion
+  (x, y, z, w) -- tuple representing the quaternion
   """
   # Convert yaw from degrees to radians
   yaw = math.radians(yaw)

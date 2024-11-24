@@ -272,7 +272,7 @@ namespace puma_dwa_local_planner {
       return true;
     }
 
-    if (cost >= (unsigned char) 120U && cost < costmap_2d::NO_INFORMATION && distance_to_goal <= 4.0) {
+    if (cost >= (unsigned char) 120U && cost < (unsigned char) 253U  && distance_to_goal <= 2.0) {
       ROS_WARN("El destino se encuentra cercano a un obstaculo. Finalizando navegación...");
       return true;
     }

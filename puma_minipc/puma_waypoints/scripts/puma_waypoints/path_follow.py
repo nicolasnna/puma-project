@@ -12,7 +12,7 @@ import math
 class PathFollow(smach.State):
   """ Smach test of path follow """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan', 'gps_nav'], output_keys=['waypoints'])
+    smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan', 'gps_nav', 'gps_index'], output_keys=['waypoints'])
     ns_topic = rospy.get_param('~ns_topic','')
     
     ''' Obtener parametros '''
@@ -46,6 +46,7 @@ class PathFollow(smach.State):
     rospy.loginfo('------------------------------')
     rospy.loginfo('----- Estado Path Follow -----')
     rospy.loginfo('------------------------------')
+
     ''' Iniciar variables'''
     path_planned = userdata.path_plan
     path_complete = PoseArray()
@@ -72,11 +73,7 @@ class PathFollow(smach.State):
     ''' Ejecutar waypoints '''
     index_waypoints = 0
     copy_gps_info = GoalGpsNavInfo()
-    copy_gps_info.index_from = userdata.gps_nav.index_from
-    copy_gps_info.index_to = userdata.gps_nav.index_to
-    copy_gps_info.start = userdata.gps_nav.start
-    copy_gps_info.next_goal = userdata.gps_nav.next_goal
-    copy_gps_info.goals = userdata.gps_nav.goals
+    copy_gps_info = userdata.gps_nav
     
     try:
       while not rospy.is_shutdown() and not self.is_aborted and index_waypoints < len(userdata.waypoints):
@@ -93,12 +90,14 @@ class PathFollow(smach.State):
         rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
 
         ''' Actualizar informacion del waypoints gps '''
-        if (len(userdata.gps_nav.goals) > 0):
-          if index_waypoints > 0:
-            copy_gps_info.index_from = index_waypoints
-            copy_gps_info.index_to = index_waypoints + 1
-            copy_gps_info.next_goal = userdata.gps_nav.goals[index_waypoints]
-            self.nav_gps_info_pub.publish(copy_gps_info)
+        if (len(userdata.gps_nav.goals) > 0 and index_waypoints > 0 ):
+          if userdata.gps_index[index_waypoints-1]:
+            anterior_index = copy_gps_info.index_to 
+            copy_gps_info.index_from = anterior_index
+            copy_gps_info.index_to = anterior_index + 1
+            copy_gps_info.next_goal = userdata.gps_nav.goals[anterior_index]
+        rospy.loginfo(copy_gps_info)
+        self.nav_gps_info_pub.publish(copy_gps_info)
           
         ''' Enviar destino '''
         if index_waypoints != 0:
@@ -109,8 +108,8 @@ class PathFollow(smach.State):
           ''' Esperar en caso de ser el ultimo destino '''
           self.client.wait_for_result(timeout=rospy.Duration(2))
           if (len(userdata.gps_nav.goals) > 0):
-            copy_gps_info.index_from = index_waypoints + 1
-            copy_gps_info.index_to = index_waypoints + 1
+            copy_gps_info.index_from = len(userdata.gps_nav.goals)
+            copy_gps_info.index_to = len(userdata.gps_nav.goals)
             self.nav_gps_info_pub.publish(copy_gps_info)
         else:
           ''' Bucle para comprobar distancia al destino '''
