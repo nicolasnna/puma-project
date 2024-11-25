@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="path" value="$(find puma_simulation)/config/nav"/>
   
   <!-- RTAB-Map (mapeo y SLAM) -->
   <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="screen" args="--delete_db_on_start">
