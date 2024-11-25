@@ -152,6 +152,7 @@ class PathSelect(smach.State):
         distance_between_points = math.sqrt(x**2 + y**2)
         current_x = pos_current.pose.pose.position.x
         current_y = pos_current.pose.pose.position.y
+        
         while (distance_between_points > distance_limit):
           x_inter = current_x + distance_limit * math.cos(math.radians(yaw))
           y_inter = current_y + distance_limit * math.sin(math.radians(yaw))
@@ -209,7 +210,6 @@ class PathSelect(smach.State):
           (pose.pose.pose.position.x - x_current)**2 +
           (pose.pose.pose.position.y - y_current)**2)
 
-        # (_, _, yaw) = tf.transformations.euler_from_quaternion([x, y, z, w])
         yaw = calculate_bearing_from_xy(x_current, y_current, pose.pose.pose.position.x, pose.pose.pose.position.y)
         x_qua, y_qua, z_qua, w_qua = yaw_to_quaternion(yaw)
         while distance_between_points > distance_limit:

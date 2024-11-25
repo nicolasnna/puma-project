@@ -15,5 +15,8 @@
   <include file="$(find puma_bringup)/launch/visual_odometry.launch"/>
   <!-- Monitor temperature -->
   <include file="$(find puma_system_monitor)/launch/minipc_monitor.launch"/>
+  <!-- Rtabmap slam -->
+  <include file="$(find puma_bringup)/launch/slam_rtabmap.launch"/>
+  
   
 </launch>
