@@ -4,7 +4,8 @@ from geometry_msgs.msg import Twist
 from ackermann_msgs.msg import AckermannDriveStamped
 from puma_arduino_msgs.msg import StatusArduino
 from std_msgs.msg import String
-import numpy as np
+import time
+from puma_logs_msgs.msg import Log
 
 class CmdVelToAckermann():
   def __init__(self):
@@ -21,10 +22,10 @@ class CmdVelToAckermann():
     
     # Publishers
     self.ackermann_pub = rospy.Publisher(acker_topic, AckermannDriveStamped, queue_size=10)
-    
+    self.logs_pub = rospy.Publisher('puma/logs/add_log', Log, queue_size=2)
     # Calculate max radius
-    self.ang_max = np.deg2rad(45)
-    self.radius_max = self.wheel_base/np.arctan(self.ang_max)  # 4.4912
+    self.ang_max = math.radians(45)
+    self.radius_max = self.wheel_base/math.atan(self.ang_max)  # 4.4912
     #rospy.loginfo("Radius max: %f", self.radius_max)
     self.speed_acker = 0.0
     self.A2R = 0.006135742
@@ -32,9 +33,27 @@ class CmdVelToAckermann():
     self.vel = 0.0
     self.current_angle = 0.0
     self.steering_angle = 0.0
-    self.mode = "autonomous"
+    self.mode = ""
+    
+    self.log_msg = Log()
+    self.log_msg.level = 0
+    self.log_msg.node = rospy.get_name()
+    self.log_msg.content = "Iniciando conversor ackermann. Recordar definir el modo de control."
+    time.sleep(0.1)
+    self.logs_pub.publish(self.log_msg)
     
   def mode_callback(self, mode):
+    if self.mode != mode.data:
+      if mode.data == "autonomous":
+        self.log_msg.level = 0
+        self.log_msg.content = "Modo autonomo detectado, ejecutando conversor ackermann."
+        time.sleep(0.1)
+        self.logs_pub.publish(self.log_msg)
+      elif self.mode == "autonomous":
+        self.log_msg.level = 1
+        self.log_msg.content = "Saliendo del modo autonomo. Desactivando conversor ackermann."
+        time.sleep(0.1)
+        self.logs_pub.publish(self.log_msg)
     self.mode = mode.data
     
   def status_callback(self, status_data):

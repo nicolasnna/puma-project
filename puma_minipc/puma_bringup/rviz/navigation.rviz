@@ -6,10 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF1/Frames1
-        - /AerialMapDisplay1
         - /Navigation1
-        - /Navigation1/local cost1
-        - /Navigation1/Global costmap1
+        - /Navigation1/Global planner1
         - /Waypoints1/completed1
         - /grid for changemap1
         - /grid for changemap1/Offset1
@@ -334,7 +332,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /move_base/TebLocalPlannerROS/local_plan
+          Topic: /move_base/PumaDwaLocalPlanner/local_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -358,7 +356,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /move_base/GlobalPlanner/plan
+          Topic: /move_base/PumaHybridAStarPlanner/global_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -475,6 +473,24 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
+    - Class: rviz/MarkerArray
+      Enabled: true
+      Marker Topic: /move_base/PumaDwaLocalPlanner/potential_trajectories
+      Name: MarkerArray
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Alpha: 0.699999988079071
+      Class: rviz/Map
+      Color Scheme: map
+      Draw Behind: false
+      Enabled: true
+      Name: Map
+      Topic: /move_base/PumaHybridAStarPlanner/potential_map
+      Unreliable: false
+      Use Timestamp: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -500,7 +516,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 124.3294906616211
+      Distance: 38.19695281982422
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -516,9 +532,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.934796929359436
+      Pitch: 1.1047967672348022
       Target Frame: <Fixed Frame>
-      Yaw: 5.828228950500488
+      Yaw: 5.6632256507873535
     Saved: ~
 Window Geometry:
   Displays:

@@ -3,7 +3,8 @@
 #include <std_msgs/Bool.h>
 
 const int sensorVoltage = A0;
-const float voltageFactor = 5.0 / 1024.0 * 20; // factor 20 por sensor de 100v, 100 / 5 = 20
+const float conversionFactor = 100.0 / 1024.0; 
+const uint8_t numSamples = 10;
 const int releInput = 4;
 
 // Variables ROS
@@ -26,12 +27,13 @@ void loop() {
   if (nh.connected()) {
     uint32_t sumVoltage = 0;  // Usar enteros en lugar de floats para sumar las lecturas
 
-    for (uint8_t i = 0; i < 5; i++) {
+    for (uint8_t i = 0; i < numSamples; i++) {
       sumVoltage += analogRead(sensorVoltage);
     }
 
-    // Convertir el promedio a voltaje una vez
-    battery_voltage.data = (float)(sumVoltage * voltageFactor / 6.0);
+    // Convertir el promedio a voltaje 
+    float averageVoltage = (float)sumVoltage * conversionFactor;
+    battery_voltage.data =  averageVoltage / numSamples;
     batteryVoltagePub.publish(&battery_voltage);
   } else {
     digitalWrite(releInput, HIGH);
@@ -42,9 +44,5 @@ void loop() {
 }
 
 void lightsCallback( const std_msgs::Bool& data_received) {
-  if (data_received.data == true) {
-    digitalWrite(releInput, LOW);
-  } else {
-    digitalWrite(releInput, HIGH);
-  }
+  digitalWrite(releInput, data_received.data ? LOW : HIGH);
 }

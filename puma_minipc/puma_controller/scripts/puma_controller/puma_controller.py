@@ -9,6 +9,7 @@ from nav_msgs.msg import Odometry
 from puma_controller.pid_antiwindup import PIDAntiWindUp
 from geometry_msgs.msg import Twist;
 import time
+from puma_logs_msgs.msg import Log
 
 class PumaController():
   def __init__(self):
@@ -36,12 +37,12 @@ class PumaController():
     self.direction_pub = rospy.Publisher(direction_topic, DirectionCmd, queue_size=5)
     self.diagnostic_pub = rospy.Publisher('/puma/control/controller/diagnostic', DiagnosticStatus, queue_size=5)
     self.brake_pub = rospy.Publisher(brake_topic, BrakeCmd, queue_size=5)
-    
+    self.logs_pub = rospy.Publisher('puma/logs/add_log', Log, queue_size=2)
     # Variable
     self.vel_linear = 0
     self.angle = 0
     self.vel_linear_odometry = 0
-    self.mode_puma = 'autonomous'
+    self.mode_puma = ''
     self.diagnostic_msg = DiagnosticStatus(
         name='Puma controller node', 
         level=0, 
@@ -59,10 +60,28 @@ class PumaController():
     self.last_time_odometry = 0
     self.last_time_ackermann = 0
     self.is_change_reverse = False
+    
+    self.log_msg = Log()
+    self.log_msg.level = 0
+    self.log_msg.node = rospy.get_name()
+    self.log_msg.content = "Iniciando controlador robot puma. Recordar definir el modo de control."
+    time.sleep(0.1)
+    self.logs_pub.publish(self.log_msg)
 
   def selector_mode_callback(self, mode):
-    self.mode_puma = mode.data
     #rospy.loginfo("Received "+ mode.data + " mode...")
+    if self.mode_puma != mode.data:
+      if mode.data == "autonomous":
+        self.log_msg.level = 0
+        self.log_msg.content = "Modo autonomo detectado, ejecutando control puma con PID."
+        time.sleep(0.1)
+        self.logs_pub.publish(self.log_msg)
+      elif self.mode_puma == "autonomous":
+        self.log_msg.level = 1
+        self.log_msg.content = "Saliendo del modo autonomo. Desactivando control puma con PID."
+        time.sleep(0.1)
+        self.logs_pub.publish(self.log_msg)
+    self.mode_puma = mode.data
     if mode.data == "autonomous":
       self.diagnostic_msg.level = 0
       self.diagnostic_msg.message = 'Controller works between ackerman and puma'
@@ -114,8 +133,7 @@ class PumaController():
       # else:
       accel_msg = Int16(int(self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry)))) if self.vel_linear != 0 else Int16(self.range_accel_converter[0])
       brake_msg = BrakeCmd(activate_brake=(self.vel_linear == 0))
-      #rospy.loginfo("PWM calculado: %d", accel_msg.data)
-      
+
       reverse_msg = Bool(self.vel_linear < 0) 
       direction_msg = DirectionCmd(angle=self.angle, activate=True)
       
