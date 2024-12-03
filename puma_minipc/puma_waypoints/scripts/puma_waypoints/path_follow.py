@@ -54,7 +54,7 @@ class PathFollow(smach.State):
     self.is_aborted = False
     ''' Activar modo autonomo '''
     mode_selector_msg = String()
-    mode_selector_msg.data = 'autonomous'
+    mode_selector_msg.data = 'navegacion'
     self.mode_selector_pub.publish(mode_selector_msg)
     ''' Abrir cliente move_base '''
     self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)

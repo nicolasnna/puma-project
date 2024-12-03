@@ -8,7 +8,7 @@
 		output="screen"
 	>
 	</node>
-	<node respawn="true" pkg="joy" type="joy_node" name="joy_node" respawn_delay="2" >
+	<node respawn="true" pkg="joy" type="joy_node" name="joy_node" respawn_delay="5" >
 		<param name="dev" type="string" value="/dev/input/js0" />
 		<param name="deadzone" value="0.12" />
 		<param name="default_trig_val" value="true" />

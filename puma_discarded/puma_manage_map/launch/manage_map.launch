@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <rosparam command="load" file="$(find puma_manage_map)/config/manage_params2.yaml"/>
-  <node name="change_map" pkg="puma_manage_map" type="change_map_node.py" />
-  <node name="manage_map" pkg="puma_manage_map" type="manage_map_node.py" />
-
-</launch>

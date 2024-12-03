@@ -10,6 +10,8 @@ Los paquetes en este directorio tienen las siguientes funciones:
 
 - **`puma_bringup_jetson`**: Lanzador de nodos necesarios en la Jetson nano para el control del robot PUMA.
 
+- **`puma_controller`**: Encargado del control de velocidad y dirección del robot.
+
 - **`puma_parking`**: Control de la activación de los motores delantero y trasero del robot.
 
 - **`puma_reverse`**: Control de la activación de la reversa tanto para el motor delantero y trasero del robot.

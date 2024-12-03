@@ -13,7 +13,6 @@ Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/e
 #### Dependencias
 
 - [Robot Operating System (ROS)](http://wiki.ros.org)
-- [diagnostic_msgs](http://wiki.ros.org/diagnostic_msgs)
 - [geometry_msgs](http://wiki.ros.org/geometry_msgs)
 - [ackermann_msgs](http://wiki.ros.org/ackermann_msgs)
 - [tf2_ros](http://wiki.ros.org/tf2_ros)
@@ -72,9 +71,6 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
   Envía el ángulo en radianes de la dirección objetivo de las ruedas delanteras.
 
-- **`/puma/control/controller/diagnostic`** (diagnostic_msgs/DiagnosticStatus)
-
-  Publica el estado actual del controlador.
 
 #### Parámetros
 
@@ -100,15 +96,11 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
     Tópico para el control de dirección.
 
-  - **`~range_accel_converter`** (Array-Int, default: [25, 100])
+  - **`~range_accel_converter`** (Array-Int, default: [25, 35])
 
     Valor mínimo y máximo del acelerador a tomar en cuenta para la conversión lineal entre velocidad y pwm.
 
-  - **`~range_vel_converter`** (Array-Float, default: [0.01, 9.8])
-
-    Valor mínimo y máximo de la velocidad linear a considerar para la conversión lineal.
-
-  - **`~connect_to_ackermann_converter`** (Bool, default: true)
+  - **`~connect_to_ackermann_converter`** (Bool, default: false)
 
     Habilita la conexión con nodo de conversion a ackermann para definir el angulo a usar en el robot. En caso de False, se usa la velocidad angular z de Cmd_Vel para definir el ángulo.
 

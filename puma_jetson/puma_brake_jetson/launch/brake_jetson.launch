@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <node name="brake_jetson" pkg="puma_brake_jetson" type="brake_jetson_node.py" output="log" respawn="true" respawn_delay="2">
-    <rosparam command="load" file="$(find puma_brake_jetson)/config/brake_params.yaml"/>
-  </node>
-
-</launch>

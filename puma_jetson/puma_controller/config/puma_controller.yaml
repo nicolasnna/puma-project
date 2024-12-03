@@ -4,7 +4,8 @@ puma_controller:
   reverse_topic: puma/reverse/command
   ackermann_topic: puma/control/ackermann/command
   direction_topic: puma/direction/command
-  range_accel_converter: [22, 100]
+  range_accel_converter: [22, 40]
+  connect_to_ackermann_converter: false
 
 ackermann_converter:
   cmd_vel_topic: cmd_vel

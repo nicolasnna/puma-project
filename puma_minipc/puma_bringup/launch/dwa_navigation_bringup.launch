@@ -1,11 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- Charge params -->
-  <rosparam command="load" file="$(find puma_bringup)/config/navigation_params.yaml"/>
-  <!-- Puma controller -->
-  <node name="puma_controller_node" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
-  <!-- Ackermann converter -->
-  <node name="puma_ackermann_converter" pkg="puma_controller" type="convert_ackermann_node.py" output="screen"/>
+
   <!-- Map server -->
   <arg name="map_file" default="$(find puma_bringup)/map/blank_map.yaml"/>
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>

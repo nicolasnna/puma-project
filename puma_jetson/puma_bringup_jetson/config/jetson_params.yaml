@@ -8,6 +8,8 @@ puma_joy:
   accel_puma_topic: "puma/accelerator/command"
   min_accel: 0
   max_accel: 40 # max value 126
+  angle_min_degree: -45
+  angle_max_degree: 45
   # --- Params for controller --- #
   lt_left_index: 2
   rt_right_index: 5
@@ -22,9 +24,18 @@ puma_joy:
   lb_button_index: 4
   rb_button_index: 5
 
-bno08x_driver:
-  imu_topic: puma/sensors/imu/raw
-  magnetic_topic: puma/sensors/imu/magnetic
-  diagnostic_topic: puma/sensors/imu/diagnostic
-  frame_imu: imu_link
-  frequency: 60
+puma_controller:
+  accelerator_topic: puma/accelerator/command
+  brake_topic: puma/brake/command
+  reverse_topic: puma/reverse/command
+  ackermann_topic: puma/control/ackermann/command
+  direction_topic: puma/direction/command
+  range_accel_converter: [22, 40]
+  connect_to_ackermann_converter: false
+
+# ackermann_converter:
+#   cmd_vel_topic: cmd_vel
+#   wheel_base: 1.15
+#   ackermann_topic: puma/control/ackermann/command
+#   arduino_status_topic: puma/arduino/status
+

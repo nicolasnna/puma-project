@@ -1,6 +1,0 @@
-bno08x_driver:
-  imu_topic: puma/sensors/imu/raw
-  magnetic_topic: puma/sensors/imu/magnetic
-  diagnostic_topic: puma/sensors/imu/diagnostic
-  frame_imu: imu_link
-  frequency: 60
