@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-from puma_arduino_msgs.msg import StatusTachometer
+from puma_msgs.msg import StatusTachometer
 from puma_odometry.kalman_filter import KalmanFilter
 import math
 import collections

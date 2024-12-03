@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   actionlib_msgs
   geometry_msgs
-  puma_waypoints_msgs
+  puma_msgs
   nav_msgs
   sensor_msgs
   std_msgs

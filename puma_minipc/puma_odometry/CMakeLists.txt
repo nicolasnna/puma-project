@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
   tf2_ros
-  puma_arduino_msgs
+  puma_msgs
   nav_msgs
   tf
 )

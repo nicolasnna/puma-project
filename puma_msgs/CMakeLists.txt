@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(puma_direction_msgs)
+project(puma_msgs)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -49,6 +49,14 @@ add_message_files(
   DIRECTORY msg
   FILES
   DirectionCmd.msg
+  GoalGps.msg
+  GoalGpsArray.msg
+  GoalGpsNavInfo.msg
+  Log.msg
+  LogArray.msg
+  StatusArduino.msg
+  StatusTachometer.msg
+  WebControl.msg
 )
 
 ## Generate services in the 'srv' folder

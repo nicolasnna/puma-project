@@ -3,7 +3,7 @@ import rospy
 import smach
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from puma_waypoints_msgs.msg import GoalGpsNavInfo
+from puma_msgs.msg import GoalGpsNavInfo
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty, String
 import tf

@@ -2,9 +2,7 @@ import rospy
 from puma_send_topic_web.resend_topic import ResendTopic
 from sensor_msgs.msg import CompressedImage, NavSatFix
 from nav_msgs.msg import Odometry
-from puma_arduino_msgs.msg import StatusArduino
-from puma_waypoints_msgs.msg import GoalGpsNavInfo
-from puma_logs_msgs.msg import Log
+from puma_msgs.msg import StatusArduino, GoalGpsNavInfo, Log
 import time
 
 if __name__ == '__main__':

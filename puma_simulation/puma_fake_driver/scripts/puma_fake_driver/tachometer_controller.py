@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from puma_arduino_msgs.msg import StatusTachometer
+from puma_msgs.msg import StatusTachometer
 from std_msgs.msg import Float64
 from gazebo_msgs.msg import ModelStates
 import math 

@@ -16,8 +16,6 @@ Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/e
 - [controller_manager](http://wiki.ros.org/controller_manager)
 - [diagnostic_msgs](http://wiki.ros.org/move_base_msgs)
 - [std_msgs](http://wiki.ros.org/std_msgs)
-- puma_direction_msgs
-- puma_arduino_msgs
-- puma_brake_msgs
+- puma_msgs
 
 ##

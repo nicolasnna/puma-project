@@ -8,7 +8,6 @@ import roslaunch
 import math
 import dynamic_reconfigure.client
 from std_msgs.msg import Empty, Bool
-from actionlib_msgs.msg import GoalID
 from apriltag_ros.msg import AprilTagDetectionArray
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from geometry_msgs.msg import PoseStamped, Twist

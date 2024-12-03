@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import rospy
 from std_msgs.msg import Float64, Int16, Bool
-from puma_brake_msgs.msg import BrakeCmd
 
 class WheelController():
   def __init__(self):
@@ -12,7 +11,7 @@ class WheelController():
     rospy.Subscriber('puma/accelerator/command', Int16, self.__accel_callback)
     rospy.Subscriber('puma/reverse/command', Bool, self.__reverse_callback)
     rospy.Subscriber('puma/parking/command', Bool, self.__brake_electric_callback)
-    rospy.Subscriber('puma/brake/command', BrakeCmd, self.__brake_callback)
+    rospy.Subscriber('puma/brake/command', Bool, self.__brake_callback)
     
     self.range_accel_converter = rospy.get_param('puma_controller/range_accel_converter', [25, 100])
     self.range_vel_converter = rospy.get_param('puma_controller/range_vel_converter', [0.01, 9.8])
@@ -31,7 +30,7 @@ class WheelController():
     '''
     set brake
     '''
-    self._activate_brake = data_received.activate_brake
+    self._activate_brake = data_received.data
   
   def __brake_electric_callback(self, data_received):
     '''

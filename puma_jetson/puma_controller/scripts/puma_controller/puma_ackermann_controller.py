@@ -2,10 +2,9 @@
 import rospy, math
 from geometry_msgs.msg import Twist
 from ackermann_msgs.msg import AckermannDriveStamped
-from puma_arduino_msgs.msg import StatusArduino
+from puma_msgs.msg import StatusArduino, Log
 from std_msgs.msg import String
 import time
-from puma_logs_msgs.msg import Log
 
 class CmdVelToAckermann():
   def __init__(self):

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 import rospy
 from ackermann_msgs.msg import AckermannDriveStamped
-from puma_direction_msgs.msg import DirectionCmd
+from puma_msgs.msg import DirectionCmd, WebControl, Log
 from std_msgs.msg import Bool, Int16, String
 from nav_msgs.msg import Odometry
 from puma_controller.pid_antiwindup import PIDAntiWindUp
 from geometry_msgs.msg import Twist;
 import time
-from puma_logs_msgs.msg import Log
 
 class PumaController():
   def __init__(self):

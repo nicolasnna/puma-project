@@ -6,7 +6,7 @@ import tf
 import json
 import math
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_waypoints_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps
+from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry

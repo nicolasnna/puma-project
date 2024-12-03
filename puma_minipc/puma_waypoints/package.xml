@@ -53,7 +53,7 @@
   <build_depend>smach_ros</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>puma_waypoints_msgs</build_depend>
+  <build_depend>puma_msgs</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>tf</build_depend>

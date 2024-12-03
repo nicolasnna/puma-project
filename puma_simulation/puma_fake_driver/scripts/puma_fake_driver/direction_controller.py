@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from puma_direction_msgs.msg import DirectionCmd
+from puma_msgs.msg import DirectionCmd
 from std_msgs.msg import Float64, Bool
 import numpy as np
 

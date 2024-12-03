@@ -55,7 +55,6 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>puma_direction_msgs</build_depend>
   <build_depend>puma_arduino_msgs</build_depend>
-  <build_depend>puma_brake_msgs</build_depend>
   <build_depend>diagnostic_msgs</build_depend>
 
   <build_export_depend>controller_manager</build_export_depend>

@@ -1,5 +1,5 @@
 import rospy
-from puma_logs_msgs.msg import Log, LogArray
+from puma_msgs.msg import Log, LogArray
 from std_msgs.msg import Empty
 from datetime import datetime
 

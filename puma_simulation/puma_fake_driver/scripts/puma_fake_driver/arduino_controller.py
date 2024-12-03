@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import rospy
-from puma_arduino_msgs.msg import StatusArduino
+from puma_msgs.msg import StatusArduino
 
 class ArduinoController():
   def __init__(self):

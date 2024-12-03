@@ -2,8 +2,7 @@
 import rospy
 import math
 import time
-from puma_brake_msgs.msg import BrakeCmd
-from puma_direction_msgs.msg import DirectionCmd
+from puma_msgs.msg import DirectionCmd
 from std_msgs.msg import Int16, Bool, String
 from sensor_msgs.msg import Joy
 from diagnostic_msgs.msg import DiagnosticArray, DiagnosticStatus
@@ -66,7 +65,7 @@ class InterfaceJoy():
         rospy.Subscriber(self.__sub_topic, Joy, self.__subCallBack)
         rospy.Subscriber('diagnostics', DiagnosticArray, self._diagnostic_callback)
         rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
-        self._publisher_brake = rospy.Publisher(self.__pub_topic_brake, BrakeCmd, queue_size=5)  # Is modifly
+        self._publisher_brake = rospy.Publisher(self.__pub_topic_brake, Bool, queue_size=5)  # Is modifly
         self._publisher_dir = rospy.Publisher(self.__pub_topic_dir, DirectionCmd, queue_size=5)
         self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
         self._publisher_reverse = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
@@ -75,7 +74,7 @@ class InterfaceJoy():
         self._publisher_mode_controller = rospy.Publisher('puma/control/change_mode', String, queue_size=4)
         
         # Create variable to send
-        self.msg_send_brake = BrakeCmd()
+        self.msg_send_brake = Bool()
         self.msg_send_dir = DirectionCmd()
         self.msg_send_accel_puma = Int16()
         self.msg_send_accel_puma.data = 0 
@@ -171,7 +170,7 @@ class InterfaceJoy():
         '''
         try: 
             # --- Control brake --- #
-            self.msg_send_brake.activate_brake = True if self.lt_left < 0.0 else False 
+            self.msg_send_brake.data = True if self.lt_left < 0.0 else False 
                 
             # --- Control direction --- #
             self.msg_send_dir.angle = self.__convertTriggerToRange(self.x_left*-1, self.angle_range[0], self.angle_range[1])
@@ -186,7 +185,7 @@ class InterfaceJoy():
             if self.level_joy != 0:
                 self.msg_send_accel_puma.data = 0
                 self.msg_send_dir.activate = False
-                self.msg_send_brake.activate_brake = False
+                self.msg_send_brake.data = False
                 self.msg_diagnostic.level = 2
                 self.msg_diagnostic.message = "No se detecta joystick"
             elif self.current_mode != "joystick":
@@ -195,7 +194,7 @@ class InterfaceJoy():
             
         except: 
             # Cierre
-            self.msg_send_brake.activate_brake = True
+            self.msg_send_brake.data = True
             self.msg_send_dir.activate = False
             self.msg_send_accel_puma.data = 0
         finally: 

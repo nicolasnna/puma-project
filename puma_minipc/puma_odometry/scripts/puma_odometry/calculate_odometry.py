@@ -4,7 +4,7 @@ from puma_odometry.pulse_velocity_converter import PulseToVelocityConverter
 import tf2_ros
 import tf
 from nav_msgs.msg import Odometry
-from puma_arduino_msgs.msg import StatusArduino
+from puma_msgs.msg import StatusArduino
 from geometry_msgs.msg import TransformStamped
 import math
 from std_msgs.msg import Bool

@@ -10,8 +10,7 @@ project(puma_joy)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
-  puma_brake_msgs
-  puma_direction_msgs
+  puma_msgs
   std_msgs
 )
 

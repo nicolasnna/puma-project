@@ -10,9 +10,7 @@ project(puma_fake_driver)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
-  puma_direction_msgs
-  puma_brake_msgs
-  puma_arduino_msgs
+  puma_msgs
   diagnostic_msgs
 )
 
