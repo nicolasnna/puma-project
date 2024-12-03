@@ -45,6 +45,10 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
   Recibe los valores de control para la velocidad lineal y posición angular de las ruedas.
 
+- **`/cmd_vel`** (geometry_msgs/Twist)
+
+ Considera la velocidad angular Z como ángulo para el giro de ruedas. Se útiliza los valores recibídos por este tópico para el control por PID sin utilizar el convertidor ackermann.
+
 - **`/puma/odometry/filtered`** (nav_msgs/Odometry)
 
   Recibe el estado de localización actual del robot.
@@ -99,6 +103,10 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
   - **`~range_accel_converter`** (Array-Int, default: [25, 35])
 
     Valor mínimo y máximo del acelerador a tomar en cuenta para la conversión lineal entre velocidad y pwm.
+
+  - **`~limit_angle_degree`** (int, default: 45)
+
+    Valor límite para el ángulo de la dirección, tanto mínimo como máximo.
 
   - **`~connect_to_ackermann_converter`** (Bool, default: false)
 
