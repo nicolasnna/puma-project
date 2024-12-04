@@ -34,7 +34,7 @@ Controla la activación de los motores del robot al accionar el transistor en la
 
 #### Suscriptores
 
-- **`/puma/parking/command`** (std_msgs/Bool)
+- **`/puma/control/parking`** (std_msgs/Bool)
 
   Recibe el comando para activar o desactivar los motores. Por defecto esta activado los motores.
 
@@ -43,7 +43,3 @@ Controla la activación de los motores del robot al accionar el transistor en la
 - **`parking_pin`** (int, default: 15)
 
   Pin GPIO de la Jetson nano para la activación de la compuerta del transistor.
-
-- **`topic_parking`** (string, default: "puma/parking")
-
-  Tópico base para el publicador del nodo puma_parking.

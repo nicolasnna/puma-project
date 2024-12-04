@@ -56,7 +56,7 @@ add_message_files(
   LogArray.msg
   StatusArduino.msg
   StatusTachometer.msg
-  WebControl.msg
+  WebTeleop.msg
 )
 
 ## Generate services in the 'srv' folder

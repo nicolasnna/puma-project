@@ -205,6 +205,13 @@ endforeach(dir)
 ## Testing ##
 #############
 
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+
+  # Test unitario
+  add_rostest(test/puma_controller.test)
+endif()
+
 ## Add gtest based cpp test target and link libraries
 # catkin_add_gtest(${PROJECT_NAME}-test test/test_puma_ackermann.cpp)
 # if(TARGET ${PROJECT_NAME}-test)

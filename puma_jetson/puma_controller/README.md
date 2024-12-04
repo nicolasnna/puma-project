@@ -41,37 +41,45 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
 #### Suscriptores
 
-- **`/puma/control/ackermann/command`** (ackermann_msgs/AckermannDriveStamped)
+- **`/puma/control/ackermann`** (ackermann_msgs/AckermannDriveStamped)
 
   Recibe los valores de control para la velocidad lineal y posición angular de las ruedas.
 
 - **`/cmd_vel`** (geometry_msgs/Twist)
 
- Considera la velocidad angular Z como ángulo para el giro de ruedas. Se útiliza los valores recibídos por este tópico para el control por PID sin utilizar el convertidor ackermann.
+ Considera la velocidad angular Z como ángulo para el giro de ruedas. Se utiliza los valores recibidos por este tópico para el control por PID sin utilizar el convertidor ackermann.
 
 - **`/puma/odometry/filtered`** (nav_msgs/Odometry)
 
   Recibe el estado de localización actual del robot.
 
-- **`/puma/mode_selector`** (std_msgs/String)
+- **`/puma/control/current_mode`** (std_msgs/String)
 
-  Selector de modos: `autonomous` para habilitar el nodo **`puma_controller`** y cualquier otro valor para cambiar a modo manual (deshabilitar).
+  Obtiene el modo actual del puma, pueden ser: 'navegacion', 'web' o 'joystick'. Cualquier otro pone el robot en modo idle (aceleración 0, dirección desactivada y con frenos activados).
+
+- **`/puma/web/teleop`** (puma_msgs/WebTeleop)
+
+  Obtiene el comando para teleoperar el robot por medio de la web cuando esta en modo 'web'.
 
 #### Publicadores
 
-- **`/puma/reverse/command`** (std_msgs/Bool)
+- **`/puma/control/reverse`** (std_msgs/Bool)
 
   Controla la activación de los frenos.
 
-- **`/puma/parking/command`** (std_msgs/Bool)
+- **`/puma/control/parking`** (std_msgs/Bool)
 
   Controla la activación del motor delantero y trasero.
 
-- **`/puma/accelerator/command`** (std_msgs/Int16)
+- **`/puma/control/brake`** (std_msgs/Bool)
+
+  Controla los frenos.
+
+- **`/puma/control/accelerator`** (std_msgs/Int16)
 
   Controla el valor PWM del acelerador de los motores.
 
-- **`/puma/direction/command`** (puma_direction_msgs/DirectionCmd)
+- **`/puma/control/direction`** (puma_msgs/DirectionCmd)
 
   Envía el ángulo en radianes de la dirección objetivo de las ruedas delanteras.
 
@@ -79,26 +87,6 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 #### Parámetros
 
 - **`puma_controller`**
-
-  - **`~accelerator_topic`** (String, default: "puma/accelerator/command")
-
-    Tópico para control del acelerador.
-
-  - **`~parking_topic`** (String, default: "puma/parking/command")
-
-    Tópico para control de activación de motores.
-
-  - **`~reverse_topic`** (String, default: "puma/reverse/command")
-
-    Tópico para control de la reversa.
-
-  - **`~ackermann_topic`** (String, default: "puma/control/ackermann/command")
-
-    Tópico de subscripción del conversor ackermann.
-
-  - **`~direction_topic`** (String, default: "puma/direction/command")
-
-    Tópico para el control de dirección.
 
   - **`~range_accel_converter`** (Array-Int, default: [25, 35])
 
@@ -138,13 +126,13 @@ Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a veloci
 
   Recibe el estado de las variables en el Arduino Mega.
 
-- **`/puma/mode_selector`** (std_msgs/String)
+- **`/puma/control/current_mode`** (std_msgs/String)
 
   Recibe los comandos para habilitar el nodo. (habilitar: "autonomous")
 
 #### Publicadores
 
-- **`/puma/control/ackermann/command`** (ackermann_msgs/AckermannDriveStamped)
+- **`/puma/control/ackermann`** (ackermann_msgs/AckermannDriveStamped)
 
   Comandos de velocidad transformadas para un sistema ackermann.
 
@@ -160,13 +148,6 @@ Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a veloci
 
     Distancia entre el eje de las ruedas delanteras y traseras para la conversión ackermann. Valor en metros.
 
-  - **`~ackermann_topic`** (String, default: "puma/control/ackermann/command")
-
-    Tópico a publicar la conversión en ackermann msgs.
-
-  - **`~arduino_status_topic`** (String, default: "puma/arduino/status")
-
-    Tópico para revisar el estado del arduino.
 
 ### teleop_keyboard
 

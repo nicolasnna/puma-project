@@ -1,0 +1,3 @@
+<launch>
+  <test test-name="test_puma_controller" pkg="puma_controller" type="test_puma_controller.py" />
+</launch>

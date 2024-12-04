@@ -34,7 +34,7 @@ Controla la activación de la reversa los motores del robot al accionar el trans
 
 #### Suscriptores
 
-- **`/puma/reverse/command`** (std_msgs/Bool)
+- **`/puma/control/reverse`** (std_msgs/Bool)
 
   Recibe el comando para activar o desactivar la reversa de los motores. Por defecto esta desactivado.
 
@@ -43,7 +43,3 @@ Controla la activación de la reversa los motores del robot al accionar el trans
 - **`reverse_pin`** (int, default: 13)
 
   Pin GPIO de la Jetson nano para la activación de la compuerta del transistor.
-
-- **`topic_reverse`** (string, default: "puma/reverse")
-
-  Tópico base para el publicador del nodo puma_reverse.

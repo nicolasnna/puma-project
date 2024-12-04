@@ -8,19 +8,16 @@ import time
 
 class CmdVelToAckermann():
   def __init__(self):
-    ns = '/ackermann_converter'
     # Initialization of parameters
-    cmd_vel_topic = rospy.get_param(ns+'/cmd_vel_topic', 'cmd_vel')
-    self.wheel_base = rospy.get_param(ns+'/wheel_base', 1.15)  # Wheelbase in meters
-    acker_topic = rospy.get_param(ns+'/ackermann_topic', 'puma/control/ackermann/command')
-    arduino_status_topic = rospy.get_param(ns+'/arduino_status_topic', 'puma/arduino/status')
+    cmd_vel_topic = rospy.get_param('~cmd_vel_topic', 'cmd_vel')
+    self.wheel_base = rospy.get_param('~wheel_base', 1.15)  # Wheelbase in meters
     # Subscribers
     rospy.Subscriber(cmd_vel_topic, Twist, self.cmd_vel_callback)
-    rospy.Subscriber(arduino_status_topic, StatusArduino, self.status_callback)
+    rospy.Subscriber('/puma/arduino/status', StatusArduino, self.status_callback)
     rospy.Subscriber('/puma/control/current_mode', String, self.mode_callback)
     
     # Publishers
-    self.ackermann_pub = rospy.Publisher(acker_topic, AckermannDriveStamped, queue_size=10)
+    self.ackermann_pub = rospy.Publisher('/puma/control/ackermann', AckermannDriveStamped, queue_size=10)
     self.logs_pub = rospy.Publisher('puma/logs/add_log', Log, queue_size=2)
     # Calculate max radius
     self.ang_max = math.radians(45)
