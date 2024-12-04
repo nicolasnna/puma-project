@@ -8,13 +8,13 @@ class WheelController():
     self._pub_wheel_left = rospy.Publisher('/wheel_left_controller/command', Float64, queue_size=5)  
     self._pub_wheel_right = rospy.Publisher('/wheel_right_controller/command', Float64, queue_size=5)  
     #Subscriber
-    rospy.Subscriber('puma/accelerator/command', Int16, self.__accel_callback)
-    rospy.Subscriber('puma/reverse/command', Bool, self.__reverse_callback)
-    rospy.Subscriber('puma/parking/command', Bool, self.__brake_electric_callback)
-    rospy.Subscriber('puma/brake/command', Bool, self.__brake_callback)
+    rospy.Subscriber('puma/control/accelerator', Int16, self.__accel_callback)
+    rospy.Subscriber('puma/control/reverse', Bool, self.__reverse_callback)
+    rospy.Subscriber('puma/control/parking', Bool, self.__brake_electric_callback)
+    rospy.Subscriber('puma/control/brake', Bool, self.__brake_callback)
     
-    self.range_accel_converter = rospy.get_param('puma_controller/range_accel_converter', [25, 100])
-    self.range_vel_converter = rospy.get_param('puma_controller/range_vel_converter', [0.01, 9.8])
+    self.range_accel_converter = rospy.get_param('~range_accel_converter', [23, 100])
+    self.range_vel_converter = rospy.get_param('~range_vel_converter', [0.01, 9.8])
     # Variable
     # Para delante izq (-) der (+)
     # Para atras izq (+) der (-)

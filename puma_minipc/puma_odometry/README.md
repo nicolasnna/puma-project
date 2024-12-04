@@ -38,9 +38,6 @@ Se tiene un archivo **`yaml`** en el directorio **`config`** para la configuraci
 
 - **odometry_params.yaml**:
 
-  - **`odometry`**
-
-    Agrupación para los parámetros que se encargan de la odometría.
 
     - **`~wheel_base`** (float, valor: 1.1)
 
@@ -58,9 +55,6 @@ Se tiene un archivo **`yaml`** en el directorio **`config`** para la configuraci
 
       Valor análogo del sensor de dirección cuando se encuentra en el ángulo 0. (Ambas ruedas delanteras apuntando hacia adelante)
 
-  - **`tachometer`**
-
-    Agrupación de parámetros encargados de la estimación de pulsos del motor a velocidad.
 
     - **`~calibrate_max_rpm_motor`** (int, valor: 1654)
 
@@ -81,3 +75,30 @@ Se tiene un archivo **`yaml`** en el directorio **`config`** para la configuraci
     - **`~kalman_r_noise`** (float, valor: 0.001)
 
       Covarianza del ruido de medición del filtro de kalman
+
+## Nodos
+
+### puma_odometry
+
+Se encarga de obtener la odometría de las ruedas a partir de las señales de interrupciones del motor.
+
+#### Suscriptor
+
+- **`/puma/sensor/tachometer`** (puma_msgs/StatusTachometer)
+
+  Cantidad de interrupciones por 0.5 segundos.
+
+- **`/puma/control/reverse`** (std_msgs/Bool)
+
+  Observa si se activa la marcha atras en el robot.
+
+- **`/puma/arduino/status`** (puma_msgs/StatusArduino)
+
+  Observa las mediciones del arduino para obtener el angulo de la dirección.
+
+#### Publicador
+
+- **`/puma/odom`** (nav_msgs/Odometry)
+
+  Publica las velocidades del robot a partir del tacómetro.
+

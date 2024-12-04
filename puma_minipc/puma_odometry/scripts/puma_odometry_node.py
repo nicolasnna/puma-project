@@ -3,7 +3,7 @@ from std_msgs.msg import Float32
 from puma_odometry.calculate_odometry import CalculateOdometry
 if __name__ == '__main__':
   try:
-    rospy.init_node('puma_odomety_node')
+    rospy.init_node('puma_odomety')
     odometry = CalculateOdometry()
     
     rate = rospy.Rate(30)

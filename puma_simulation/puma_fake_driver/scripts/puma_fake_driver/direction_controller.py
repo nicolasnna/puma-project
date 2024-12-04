@@ -15,8 +15,8 @@ class DirectionController():
     self._pub_dir_right = rospy.Publisher('/dir_right_controller/command', Float64, queue_size=5)
     
     # Subscriber
-    rospy.Subscriber('puma/direction/command', DirectionCmd, self.dir_callback)
-    rospy.Subscriber('puma/reverse/command', Bool, self.reverse_callback)
+    rospy.Subscriber('puma/control/direction', DirectionCmd, self.dir_callback)
+    rospy.Subscriber('puma/control/reverse', Bool, self.reverse_callback)
     
     # Variable
     self.value_offset = rospy.get_param('direction_value_offset', 0.0)

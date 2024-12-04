@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>puma_send_topic_web</name>
+  <name>puma_web_interface</name>
   <version>0.0.0</version>
-  <description>The puma_send_topic_web package</description>
+  <description>The puma_web_interface package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

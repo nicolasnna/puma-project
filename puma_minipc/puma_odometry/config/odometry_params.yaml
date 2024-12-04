@@ -1,13 +1,11 @@
 
 # Calculate odometry
-odometry:
+puma_odometry:
   wheels_base: 1.1
   frame_id: odom
   child_frame_id: base_link
   direction_zero: 395
-
-# Convert pulse to velocity
-tachometer:
+  
   calibrate_max_rpm_motor: 1654
   calibrate_max_velocity: 22
   wheels_diameter: 0.53

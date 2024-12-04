@@ -24,10 +24,7 @@ class LogManager:
     self.log_publisher.publish(self.logs_data)
 
 if __name__ == "__main__":
-  rospy.init_node('send_logs_web_node')
-  global logsData
-  logsData = LogArray()
-  
+  rospy.init_node('manager_logger')
   log_manager = LogManager()
   
   rate = rospy.Rate(2)

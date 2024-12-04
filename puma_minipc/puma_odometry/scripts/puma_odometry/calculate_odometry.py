@@ -13,22 +13,16 @@ class CalculateOdometry():
   '''
   Calculate odometry and frame odom
   '''
-  def __init__(self):
-    # Get params 
-    ns = 'odometry/'
-    odom_pub_topic = rospy.get_param(ns+'odometry_topic', 'puma/odom')
-    arduino_status_topic = rospy.get_param(ns+'arduino_status_topic', 'puma/arduino/status')
-    reverse_topic = rospy.get_param(ns+'reverse_topic', 'puma/reverse/command')
-    
+  def __init__(self):    
     # Get angle steering
-    rospy.Subscriber(arduino_status_topic, StatusArduino, self._arduino_status_callback)
-    rospy.Subscriber(reverse_topic, Bool, self._reverse_callback)
+    rospy.Subscriber('/puma/arduino/status', StatusArduino, self._arduino_status_callback)
+    rospy.Subscriber('/puma/control/reverse', Bool, self._reverse_callback)
     # Get params
-    self.wheels_base = rospy.get_param(ns+'wheels_base', 1.1) # in meters
-    self.frame_id = rospy.get_param(ns+'frame_id', 'odom')
-    self.child_frame_id = rospy.get_param(ns+'child_frame_id', 'base_link')
-    self.direction_zero = rospy.get_param(ns+'direction_zero', 395)
-    self.publish_frame = rospy.get_param(ns+'publish_frame', False)
+    self.wheels_base = rospy.get_param('~wheels_base', 1.1) # in meters
+    self.frame_id = rospy.get_param('~frame_id', 'odom')
+    self.child_frame_id = rospy.get_param('~child_frame_id', 'base_link')
+    self.direction_zero = rospy.get_param('~direction_zero', 395)
+    self.publish_frame = rospy.get_param('~publish_frame', False)
     # Variables
     self.x = 0.0
     self.y = 0.0
@@ -40,7 +34,7 @@ class CalculateOdometry():
     self.vx = 0.0
     
     self.velocity_converter = PulseToVelocityConverter()
-    self.odom_pub = rospy.Publisher(odom_pub_topic, Odometry, queue_size=10)
+    self.odom_pub = rospy.Publisher('puma/odom', Odometry, queue_size=10)
     self.odom_broadcaster = tf2_ros.TransformBroadcaster()
     
   def _reverse_callback(self, data_received):
@@ -81,7 +75,7 @@ class CalculateOdometry():
     self.x += delta_x
     self.y += delta_y
     self.theta += delta_theta
- 
+
     if self.publish_frame:
       self.publish_transform(current_time)
     self.publish_odometry(current_time)

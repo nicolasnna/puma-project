@@ -9,16 +9,16 @@ class ArduinoController():
     self.status_msg = StatusArduino()
     
     # default values
-    self.status_msg.topic_brake = 'puma/brake/command'
+    self.status_msg.topic_brake = 'puma/control/brake'
     self.status_msg.activate_brake = False
     
-    self.status_msg.topic_dir = 'puma/direction/command'
+    self.status_msg.topic_dir = 'puma/control/direction'
     self.status_msg.current_position_dir = 395
     self.status_msg.enable_dir = False
     self.status_msg.is_limit_right_dir = False
     self.status_msg.is_limit_left_dir = False
     
-    self.status_msg.topic_accel = "puma/accelerator/command"
+    self.status_msg.topic_accel = "puma/control/accelerator"
     self.status_msg.pwm_accel = 43
     self.status_msg.voltage_accel = 0.0
     

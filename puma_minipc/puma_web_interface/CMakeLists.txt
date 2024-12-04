@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(puma_send_topic_web)
+project(puma_web_interface)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -158,8 +158,8 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/send_topic_web_node.py
-  scripts/send_logs_web_node.py
+  scripts/filter_topics_node.py
+  scripts/logger_manager_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

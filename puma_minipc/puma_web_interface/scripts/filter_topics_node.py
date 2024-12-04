@@ -1,12 +1,11 @@
 import rospy
-from puma_send_topic_web.resend_topic import ResendTopic
+from puma_web_interface.resend_topic import ResendTopic
 from sensor_msgs.msg import CompressedImage, NavSatFix
 from nav_msgs.msg import Odometry
 from puma_msgs.msg import StatusArduino, GoalGpsNavInfo, Log
-import time
 
 if __name__ == '__main__':
-  rospy.init_node("send_topic_web")
+  rospy.init_node("filter_topics")
   camera_realsense = ResendTopic('/puma/camera/color/image_raw/compressed', CompressedImage, 5, '/puma/web/camera_realsense')
   odometry = ResendTopic('/puma/odometry/filtered', Odometry, 2, '/puma/web/odometry')
   gps = ResendTopic('/puma/sensors/gps/fix', NavSatFix, 1, '/puma/web/gps')
@@ -20,7 +19,7 @@ if __name__ == '__main__':
   log_msg.level = 0
   log_msg.node = rospy.get_name()
   log_msg.content = "Nodo activo. Reenviando los topicos a la web."
-  time.sleep(0.1)
+  rospy.sleep(0.1)
   log_publish.publish(log_msg)
   
   try: 

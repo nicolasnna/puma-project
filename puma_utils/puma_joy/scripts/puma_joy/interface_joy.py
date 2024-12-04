@@ -34,15 +34,11 @@ class InterfaceJoy():
     init_send = 0
     state_transform = {"0": False, "1": True}
     def __init__(self):
-        
         rospy.init_node("puma_joy_node")
         # Get params from rosparam
         self.__sub_topic = rospy.get_param('~joy_topic','joy')
-        self.__pub_topic_brake = rospy.get_param('~brake_topic','puma/brake/command')
-        self.__pub_topic_dir = rospy.get_param('~dir_topic','puma/direction/command')
-        self.__pub_topic_accel_puma = rospy.get_param('~accel_puma_topic','puma/accelerator/command')
         self.accel_puma_range = [rospy.get_param('~min_accel', 0), rospy.get_param('~max_accel', 10)]
-        self.angle_range = [math.radians(rospy.get_param('~angle_min_degree', -30)), math.radians(rospy.get_param('~angle_max_degree', 30))]
+        self.angle_range = [math.radians(rospy.get_param('~angle_min_degree', -45)), math.radians(rospy.get_param('~angle_max_degree', 45))]
         
         # Get index of axes and buttons
         self.__LT_LEFT_INDEX = rospy.get_param('~lt_left_index',2)
@@ -65,11 +61,11 @@ class InterfaceJoy():
         rospy.Subscriber(self.__sub_topic, Joy, self.__subCallBack)
         rospy.Subscriber('diagnostics', DiagnosticArray, self._diagnostic_callback)
         rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
-        self._publisher_brake = rospy.Publisher(self.__pub_topic_brake, Bool, queue_size=5)  # Is modifly
-        self._publisher_dir = rospy.Publisher(self.__pub_topic_dir, DirectionCmd, queue_size=5)
-        self._publisher_accel_puma = rospy.Publisher(self.__pub_topic_accel_puma, Int16, queue_size=5)
-        self._publisher_reverse = rospy.Publisher('puma/reverse/command', Bool, queue_size=5)
-        self._publisher_brake_electric = rospy.Publisher('puma/parking/command', Bool, queue_size=5)
+        self._publisher_brake = rospy.Publisher('puma/control/brake', Bool, queue_size=5)  # Is modifly
+        self._publisher_dir = rospy.Publisher('puma/control/direction', DirectionCmd, queue_size=5)
+        self._publisher_accel_puma = rospy.Publisher('puma/control/accelerator', Int16, queue_size=5)
+        self._publisher_reverse = rospy.Publisher('puma/control/reverse', Bool, queue_size=5)
+        self._publisher_brake_electric = rospy.Publisher('puma/control/parking', Bool, queue_size=5)
         self._publisher_diagnostic = rospy.Publisher('puma/joy/diagnostic', DiagnosticStatus, queue_size=5)
         self._publisher_mode_controller = rospy.Publisher('puma/control/change_mode', String, queue_size=4)
         

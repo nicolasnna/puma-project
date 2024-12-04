@@ -17,10 +17,10 @@ class TachometerController():
     self.vel_measurement_pub = rospy.Publisher('puma/debug/velocity_model', Float64, queue_size=5)
     
     
-    self.limit_time = rospy.get_param('time_tachometer', 1000)
-    self.wheels_diameter = rospy.get_param('wheels_diameter', 0.53)
-    calibrate_max_rpm = rospy.get_param('calibrate_max_rpm', 1654)
-    calibrate_max_velocity = rospy.get_param('calibrate_max_velocity', 22)
+    self.limit_time = rospy.get_param('~time_tachometer', 1000)
+    self.wheels_diameter = rospy.get_param('~wheels_diameter', 0.53)
+    calibrate_max_rpm = rospy.get_param('~calibrate_max_rpm', 1654)
+    calibrate_max_velocity = rospy.get_param('~calibrate_max_velocity', 22)
     
     self.pulses = 0
     

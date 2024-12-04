@@ -13,5 +13,5 @@ if __name__ == '__main__':
       puma_controller.manage_control()
       rate.sleep()
     except rospy.ROSInterruptException:
-      rospy.logwarn("Nodo interrumpido.")
+      rospy.logwarn(f"Nodo {rospy.get_name()} interrumpido.")
       break
