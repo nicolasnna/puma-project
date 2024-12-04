@@ -174,7 +174,7 @@ class TestPumaController(unittest.TestCase):
     
     self.assertEqual(self.accel_received, 0)
     self.assertEqual(self.brake_received, True)
-    
+
 
 if __name__ == '__main__':
   import rostest

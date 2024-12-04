@@ -127,7 +127,7 @@ class PumaController:
       :param key: odometry, ackermann, web, mode, joystick
     """
     text = {
-      "odometry": f"Error al emplear control PID, a pasado mas de {self.time_between_msg['odometry']} seg desde el ultimo dato recibído por la odometria.",
+      "odometry": f"Error al emplear control PID, a pasado mas de {self.time_between_msg['odometry']} seg desde el ultimo dato recibido por la odometria.",
       "ackermann": f"Error al emplear control PID con convertidor ackermann, a pasado mas de {self.time_between_msg['ackermann']} seg desde el ultimo dato.",
       "web": f"Error al emplear el control por la web, ha pasado mas de {self.time_between_msg['web']} seg. desde el ultimo valor recibido.",
       "mode": "No hay un modo de control valido, se define el robot en modo 'idle'.",
@@ -167,7 +167,7 @@ class PumaController:
   def cmdvel_callback(self, data):
     if not self.config.connect_to_ackermann_converter and self.mode_puma == "navegacion":
       self.vel_linear = round(data.linear.x,3)
-      self.angle = self.clamp_angle(math.radians(data.angle_degree))
+      self.angle = self.clamp_angle(data.angular.z)
       self.is_change_reverse = self.should_change_reverse()
       
   def web_command_callback(self, data):

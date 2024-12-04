@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
-from puma_joy.interface_joy import *
 import rospy
-
-interface_joy = InterfaceJoy()
+from puma_joy.puma_interface_joy import PumaInterfaceJoy
 
 if __name__ == "__main__":
+  rospy.init_node('puma_joy')
+  joy_controller = PumaInterfaceJoy()
+  
+  rate = rospy.Rate(30)
+  
+  while not rospy.is_shutdown():
     try:
-        
-        rate = rospy.Rate(60)
-        while not rospy.is_shutdown():
-            # rospy.loginfo("Valor de lt: %s valor de lr: %s", interface_joy.lt_left, interface_joy.lt_right)
-            # rospy.loginfo("boton A: %s, boton B: %s, botton LB: %s",interface_joy.A_button,interface_joy.B_button,interface_joy.LB_button)
-            interface_joy.sendDataControl()
-            rate.sleep()
-            
-    except:
-        rospy.logerr("Nodo no ejecutado")
+      joy_controller.run_joy()
+      rate.sleep()
+    except rospy.ROSInterruptException:
+      rospy.logwarn(f"Nodo {rospy.get_name()} interrumpido.")
+      break
