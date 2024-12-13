@@ -4,7 +4,7 @@
 
 const int sensorVoltage = A0;
 const float conversionFactor = 100.0 / 1024.0; 
-const uint8_t numSamples = 10;
+const uint8_t numSamples = 15;
 const int releInput = 4;
 
 // Variables ROS
