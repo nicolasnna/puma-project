@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import rospy
+import signal
+import math
 from ackermann_msgs.msg import AckermannDriveStamped
 from puma_msgs.msg import DirectionCmd, WebTeleop, Log
 from std_msgs.msg import Bool, Int16, String
 from nav_msgs.msg import Odometry
 from puma_controller.pid_antiwindup import PIDAntiWindUp
 from geometry_msgs.msg import Twist;
-import signal
-import math
 
 class NodeConfig:
   _instance = None
@@ -171,12 +171,31 @@ class PumaController:
       self.is_change_reverse = self.should_change_reverse()
       
   def web_command_callback(self, data):
+    ''' MODIFICAR PARA SIMPLIFICAR '''
     if self.mode_puma == "web":
       self.web_accel = max(min(data.accel_value, self.config.range_accel_converter[1]), 0)
       self.web_angle = self.clamp_angle(math.radians(data.angle_degree))
       self.web_brake = data.brake
       self.web_reverse = data.reverse
       self.last_time_msg["web"]= rospy.get_time()
+
+      
+  def control_web(self):
+    ''' 
+    Control del robot a partir de la web
+    '''
+    current_time = rospy.get_time()
+    
+    if current_time - self.last_time_msg["web"] < self.time_between_msg["web"]:
+      self.control_publisher.publish(
+        accelerator=self.web_accel, 
+        reverse=self.web_reverse, 
+        direction={"angle": self.web_angle, "activate": True}, 
+        brake=self.web_brake
+      )
+    else:
+      self.manage_send_error_log("web")
+      self.publish_idle()
   
   def ackermann_callback(self, acker_data):
     '''
@@ -189,7 +208,7 @@ class PumaController:
       self.is_change_reverse = self.should_change_reverse()
       
   def clamp_angle(self, angle):
-    """Limita el ángulo dentro del rango permitido. angle debe ser radian."""
+    """Limita el ángulo dentro del rango permitido. angle debe ser radianes."""
     return round(max(
       min(angle, 
           math.radians(self.config.limit_angle_degree)), 
@@ -214,7 +233,6 @@ class PumaController:
     Control para el modo navegación
     '''
     current_time = rospy.get_time()
-    
     
     if current_time - self.last_time_msg["odometry"] < self.time_between_msg["odometry"]:
       if self.vel_linear == 0:
@@ -241,23 +259,6 @@ class PumaController:
       self.pid.clean_acumulative_error()
       self.manage_send_error_log("odometry")
     
-  def control_web(self):
-    ''' 
-    Control del robot a partir de la web
-    '''
-    current_time = rospy.get_time()
-    
-    if current_time - self.last_time_msg["web"] < self.time_between_msg["web"]:
-      self.control_publisher.publish(
-        accelerator=self.web_accel, 
-        reverse=self.web_reverse, 
-        direction={"angle": self.web_angle, "activate": True}, 
-        brake=self.web_brake
-      )
-    else:
-      self.manage_send_error_log("web")
-      self.publish_idle()
-
   def manage_control(self):
     '''
     Calcula y publica si debe, 

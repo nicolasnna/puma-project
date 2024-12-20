@@ -13,7 +13,7 @@ std_msgs::Float32 battery_voltage;
 ros::Publisher batteryVoltagePub("puma/sensors/battery/raw_72v", &battery_voltage);
 
 void lightsCallback( const std_msgs::Bool& data_received);
-ros::Subscriber<std_msgs::Bool> light_sub("puma/lights/command", lightsCallback);
+ros::Subscriber<std_msgs::Bool> light_sub("puma/control/lights", lightsCallback);
 
 void setup() {
   nh.initNode();

@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <rosparam command="load" file="$(find puma_gps_to_enu)/config/gps_params.yaml"/>
-  <node name="puma_gps_to_enu" pkg="puma_gps_to_enu" type="gps_to_enu_node.py" output="screen"/>
-  
-
-</launch>
