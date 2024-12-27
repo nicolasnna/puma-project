@@ -19,8 +19,8 @@ else
     echo " -X no se ha encontrado system_monitor_node.py"
 fi
 
-if [ -f "../puma_utils/puma_joy/scripts/puma_interface_joy.py" ]; then
-    chmod +x ../puma_utils/puma_joy/scripts/puma_interface_joy.py && echo " -> puma_joy listo !!!"
+if [ -f "../puma_utils/puma_joy/scripts/puma_joy_node.py" ]; then
+    chmod +x ../puma_utils/puma_joy/scripts/puma_joy_node.py && echo " -> puma_joy listo !!!"
 else
     echo " -X no se ha encontrado puma_joy.py"
 fi
