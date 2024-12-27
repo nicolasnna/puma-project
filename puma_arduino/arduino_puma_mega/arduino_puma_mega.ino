@@ -165,9 +165,9 @@ void setup() {
   compass.setCalibrationScales(0.72, 0.72, 4.83);
   imu_msg.header.frame_id = compass_msg.header.frame_id = "gps_link";
   /* Write topics to msg status */ 
-  status_msg.topic_brake = "puma/control/brake";
-  status_msg.topic_dir = "puma/control/direction";
-  status_msg.topic_accel = "puma/control/accelerator";
+  status_msg.brake.topic = "puma/control/brake";
+  status_msg.direction.topic = "puma/control/direction";
+  status_msg.accelerator.topic = "puma/control/accelerator";
   /* Log info */
   log_msg.node =  "arduino_mega";
 }
@@ -418,19 +418,30 @@ void publishImuMag() {
 void publishMsgStatus() {
   unsigned long time = millis();
   if (time - lastTimeStatus >= TIME_PUBLISH_STATUS) {
-    // Brake info
-    status_msg.activate_brake = enableBrake;
-    // Dir info
-    status_msg.current_position_dir = sensorPositionValue;
-    status_msg.current_angle_rad_dir = (sensorPositionValue-ZERO_DIR_ANALOG)*ANALOG_TO_RAD;
-    status_msg.current_angle_deg_dir = (sensorPositionValue-ZERO_DIR_ANALOG)*ANALOG_TO_RAD*RAD_TO_DEG;
-    status_msg.enable_dir = enablePinDirection;
-    status_msg.is_limit_right_dir= stopDirectionRight;
-    status_msg.is_limit_left_dir = stopDirectionLeft;
-    // Accel info
-    status_msg.enable_accel = enableAccelerator;
-    status_msg.pwm_accel = acceleratorValue;
-    status_msg.voltage_accel = (acceleratorValue/255.0) * 5.0;
+    int readFrontOff  = digitalRead(SWITCH_BRAKE_FRONT_OFF);
+    int readFrontOn   = digitalRead(SWITCH_BRAKE_FRONT_ON);
+    int readRearOff   = digitalRead(SWITCH_BRAKE_REAR_OFF);
+    int readRearOn    = digitalRead(SWITCH_BRAKE_REAR_ON);
+    /*Brake info*/
+    status_msg.brake.activate = enableBrake;
+    status_msg.brake.switch_front_on = readFrontOn == 1;
+    status_msg.brake.switch_front_off = readFrontOff == 1;
+    status_msg.brake.switch_rear_on = readRearOn == 1;
+    status_msg.brake.switch_rear_off = readRearOff == 1;
+    /*Direction info*/
+    status_msg.direction.analog_value = sensorPositionValue;
+    status_msg.direction.radian_angle = (sensorPositionValue-ZERO_DIR_ANALOG)*ANALOG_TO_RAD;
+    status_msg.direction.degree_angle = (sensorPositionValue-ZERO_DIR_ANALOG)*ANALOG_TO_RAD*RAD_TO_DEG;
+    status_msg.direction.enable = enablePinDirection;
+    status_msg.direction.is_limit_right= stopDirectionRight;
+    status_msg.direction.is_limit_left = stopDirectionLeft;
+    /*Accelerator info*/
+    status_msg.accelerator.enable = enableAccelerator;
+    status_msg.accelerator.pwm = acceleratorValue;
+    status_msg.accelerator.voltage_out = (acceleratorValue/255.0) * 5.0;
+    /*Control info*/
+    status_msg.control.mode_signal_accept = isRunMode;
+    status_msg.control.security_signal = enableSecurity;
     arduinoStatusPub.publish(&status_msg);
     lastTimeStatus = millis(); // Reset time
   }
@@ -473,6 +484,7 @@ void brakeCallback( const std_msgs::Bool& data_received ) {
 
 void modeSelectorCallback( const std_msgs::String& data_received) {
   lastTimeModeReceived = millis();
+  status_msg.control.mode_detected = data_received.data;
   bool isCorrectMode = false;
   for (int i = 0; i < 4; i++) {
     isCorrectMode = posibleModes[i] == data_received.data;

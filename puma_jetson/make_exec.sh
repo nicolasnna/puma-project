@@ -1,18 +1,6 @@
 #!/bin/bash
 echo "Cambiando permisos a los nodos"
 
-if [ -f "puma_brake_jetson/scripts/brake_jetson_node.py" ]; then
-    chmod +x puma_brake_jetson/scripts/brake_jetson_node.py && echo " -> brake_jetson_node listo !!!"
-else
-    echo " -X no se ha encontrado brake_jetson_node.py"
-fi
-
-if [ -f "puma_imu_driver/scripts/puma_imu_driver_node.py" ]; then
-    chmod +x puma_imu_driver/scripts/puma_imu_driver_node.py && echo " -> puma_imu_driver_node listo !!!"
-else
-    echo " -X no se ha encontrado puma_imu_driver_node.py"
-fi
-
 if [ -f "puma_parking/scripts/puma_parking_node.py" ]; then
     chmod +x puma_parking/scripts/puma_parking_node.py && echo " -> puma_parking_node listo !!!"
 else
@@ -30,5 +18,24 @@ if [ -f "../puma_utils/puma_system_monitor/scripts/system_monitor_node.py" ]; th
 else
     echo " -X no se ha encontrado system_monitor_node.py"
 fi
+
+if [ -f "../puma_utils/puma_joy/scripts/puma_interface_joy.py" ]; then
+    chmod +x ../puma_utils/puma_joy/scripts/puma_interface_joy.py && echo " -> puma_joy listo !!!"
+else
+    echo " -X no se ha encontrado puma_joy.py"
+fi
+
+if [ -f "puma_controller/scripts/puma_controller_node.py" ]; then
+    chmod +x puma_controller/scripts/puma_controller_node.py && echo " -> puma_controller listo !!!"
+else
+    echo " -X no se ha encontrado puma_controller.py"
+fi
+
+if [ -f "puma_control_mode_selector/scripts/control_mode_node.py" ]; then
+    chmod +x puma_control_mode_selector/scripts/control_mode_node.py && echo " -> control_mode_selector listo !!!"
+else
+    echo " -X no se ha encontrado puma_control_mode_selector.py"
+fi
+
 
 echo "Cambio de permisos a ejecutables terminado"
