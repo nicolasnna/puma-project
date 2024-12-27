@@ -60,6 +60,7 @@ add_message_files(
   AcceleratorInfo.msg
   BrakeInfo.msg
   DirectionInfo.msg
+  ArduinoControlInfo.msg
 )
 
 ## Generate services in the 'srv' folder

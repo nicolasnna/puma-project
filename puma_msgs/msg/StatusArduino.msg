@@ -1,3 +1,4 @@
-BrakeInfo       brake
-DirectionInfo   direction
-AcceleratorInfo accelerator
+BrakeInfo           brake
+DirectionInfo       direction
+AcceleratorInfo     accelerator
+ArduinoControlInfo  control

@@ -473,7 +473,7 @@ void brakeCallback( const std_msgs::Bool& data_received ) {
 
 void modeSelectorCallback( const std_msgs::String& data_received) {
   lastTimeModeReceived = millis();
-  bool isCorrectMode;
+  bool isCorrectMode = false;
   for (int i = 0; i < 4; i++) {
     isCorrectMode = posibleModes[i] == data_received.data;
     if (isCorrectMode) {break;}
