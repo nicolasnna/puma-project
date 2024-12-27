@@ -57,6 +57,9 @@ add_message_files(
   StatusArduino.msg
   StatusTachometer.msg
   WebTeleop.msg
+  AcceleratorInfo.msg
+  BrakeInfo.msg
+  DirectionInfo.msg
 )
 
 ## Generate services in the 'srv' folder

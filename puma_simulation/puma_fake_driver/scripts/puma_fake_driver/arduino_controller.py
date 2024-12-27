@@ -13,10 +13,10 @@ class ArduinoController():
     self.status_msg.activate_brake = False
     
     self.status_msg.topic_dir = 'puma/control/direction'
-    self.status_msg.current_position_dir = 395
-    self.status_msg.enable_dir = False
-    self.status_msg.is_limit_right_dir = False
-    self.status_msg.is_limit_left_dir = False
+    # self.status_msg.current_position_dir = 395
+    # self.status_msg.enable_dir = False
+    # self.status_msg.is_limit_right_dir = False
+    # self.status_msg.is_limit_left_dir = False
     
     self.status_msg.topic_accel = "puma/control/accelerator"
     self.status_msg.pwm_accel = 43
@@ -33,10 +33,10 @@ class ArduinoController():
     '''
     Set direction puma status
     '''
-    self.status_msg.current_position_dir = current_position
-    self.status_msg.enable_dir = enable
-    self.status_msg.is_limit_right_dir = limit_right
-    self.status_msg.is_limit_left_dir = limit_left
+    # self.status_msg.current_position_dir = current_position
+    # self.status_msg.enable_dir = enable
+    # self.status_msg.is_limit_right_dir = limit_right
+    # self.status_msg.is_limit_left_dir = limit_left
     
   def set_status_brake(self, activate):
     '''

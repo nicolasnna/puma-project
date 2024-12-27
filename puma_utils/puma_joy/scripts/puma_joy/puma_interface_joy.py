@@ -129,6 +129,7 @@ class PumaInterfaceJoy:
             2,
             f"Se esta en modo idle, favor de encender joystick y presionar start. joy: {self.joy_is_alive} - start: {self.start_to_send}."
             )
+          self.last_log = time_now
         self.publish_idle()
     
   def publish_idle(self): 
