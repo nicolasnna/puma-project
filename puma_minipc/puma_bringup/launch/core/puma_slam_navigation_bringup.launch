@@ -2,10 +2,10 @@
 <launch>
 
   <!-- Map server -->
-  <arg name="map_file" default="$(find puma_bringup)/map/blank_map.yaml"/>
-  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <!-- <arg name="map_file" default="$(find puma_bringup)/map/blank_map.yaml"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/> -->
   <!-- Navigation -->
-  <arg name="path" value="$(find puma_bringup)/config/nav_static_map"/>
+  <arg name="path" value="$(find puma_bringup)/config/nav_slam"/>
   <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
