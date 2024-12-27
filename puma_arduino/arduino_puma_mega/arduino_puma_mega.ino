@@ -21,7 +21,8 @@ const int SECURITY_PIN = 45;
 bool enableSecurity = false;
 /* Mode selector */
 unsigned long lastTimeModeReceived = 0;
-char *posibleModes[] = {"joystick", "idle", "web", "navegacion"};
+String posibleModes[] = {"joystick", "idle", "web", "navegacion"};
+String latestMode = "idle";
 bool isRunMode = false;
 #define MILLIS_LIMIT_MODE 500
 /* Variables freno */ 
@@ -121,6 +122,7 @@ void setup() {
   nh.subscribe(brake_sub);
   nh.subscribe(dir_sub);
   nh.subscribe(accel_sub);
+  nh.subscribe(mode_sub);
   nh.advertise(arduinoStatusPub);
   nh.advertise(tacometerStatusPub);
   nh.advertise(imuRawPub);
@@ -177,6 +179,7 @@ void loop() {
   if (nh.connected()) {
     /* Revisar señal de seguridad */
     int readSecurity = digitalRead(SECURITY_PIN);
+    initTimeBrakeCmd = readSecurity == 1 && !enableSecurity ? 0 : initTimeBrakeCmd; // En caso de pasar a modo normal -> modo seguro
     enableSecurity = readSecurity == 1;
     /* Revisar deteccion de modo 
       Mantener bool si esta dentro del tiempo limite, si no indicar falso  */
@@ -244,7 +247,8 @@ void directionController(){
   } else {
     /* En caso de activarse la señal de seguridad, se define angulo objetivo en 0 
       Tambien en caso de detectar que no ha habido deteccion de modo, se define angulo en 0*/
-    positionGoal =  enableSecurity || !isRunMode ? ZERO_DIR_ANALOG : int(angleGoal / ANALOG_TO_RAD) + ZERO_DIR_ANALOG;
+    positionGoal = !isRunMode ? ZERO_DIR_ANALOG : int(angleGoal / ANALOG_TO_RAD) + ZERO_DIR_ANALOG;
+    positionGoal = enableSecurity ? ZERO_DIR_ANALOG : positionGoal;
     angleCurrent = (sensorPositionValue - ZERO_DIR_ANALOG) * ANALOG_TO_RAD;
 
     /* Revisar si se esta en los límites */
@@ -266,9 +270,9 @@ void directionController(){
     }
 
     /* Comprobar direccion a realizar giro y si es necesario */
-    bool is_missing_goal = (positionGoal - 10 > sensorPositionValue ) || (positionGoal + 10 < sensorPositionValue );
-    bool is_diff_angle_positiv = (angleCurrent < angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN-20);
-    bool is_diff_angle_negativ = (angleCurrent > angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX+20) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN);
+    bool is_missing_goal = (positionGoal - 13 > sensorPositionValue ) || (positionGoal + 13 < sensorPositionValue );
+    bool is_diff_angle_positiv = (angleCurrent < angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN-5);
+    bool is_diff_angle_negativ = (angleCurrent > angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX+5) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN);
 
     if (is_diff_angle_negativ && enablePinDirection && is_missing_goal){
       analogWrite(LEFT_DIRECTION_PIN,0);
@@ -290,8 +294,8 @@ void brakeController(){
   int readRearOff   = digitalRead(SWITCH_BRAKE_REAR_OFF);
   int readRearOn    = digitalRead(SWITCH_BRAKE_REAR_ON);
 
-  /* Activar frenos con la señal normal, con la de seguridad o al no detectar un modo de control*/
-  if (enableBrake || enableSecurity || !isRunMode) {
+  /* Dar prioridad a la señal de seguridad */
+  if (enableSecurity) {
     digitalWrite(DIR_FRONT_PIN, HIGH); digitalWrite(DIR_REAR_PIN, HIGH);
     initTimeBrakeCmd = initTimeBrakeCmd == 0 ? millis() : initTimeBrakeCmd;
 
@@ -305,17 +309,33 @@ void brakeController(){
       analogWrite(STEP_REAR_PIN, readRearOn == 1 ? 0 : PWM_REAR_BRAKE);
     }
   } else {
-    digitalWrite(DIR_FRONT_PIN, LOW); digitalWrite(DIR_REAR_PIN, LOW);
-    initTimeBrakeCmd = initTimeBrakeCmd == 0 ? millis() : initTimeBrakeCmd;
+    /* Activar frenos con la señal normal o al no detectar un modo de control*/
+    if (enableBrake || !isRunMode) {
+      digitalWrite(DIR_FRONT_PIN, HIGH); digitalWrite(DIR_REAR_PIN, HIGH);
+      initTimeBrakeCmd = initTimeBrakeCmd == 0 ? millis() : initTimeBrakeCmd;
 
-    /* Revisar si ha pasado el tiempo limite de funcionamiento */
-    if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
-      passLimitTimeBrake(false);
+      /* Revisar si ha pasado el tiempo limite de funcionamiento */
+      if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
+        passLimitTimeBrake(true);
+      } else {
+        /* Freno frontal */
+        analogWrite(STEP_FRONT_PIN, readFrontOn == 1 ? 0 : PWM_FRONT_BRAKE); 
+        /* Freno trasero */
+        analogWrite(STEP_REAR_PIN, readRearOn == 1 ? 0 : PWM_REAR_BRAKE);
+      }
     } else {
-      /* Freno frontal */
-      analogWrite(STEP_FRONT_PIN, readFrontOff == 1 ? 0 : PWM_FRONT_BRAKE); 
-      /* Freno trasero */
-      analogWrite(STEP_REAR_PIN, readRearOff == 1 ? 0 : PWM_REAR_BRAKE);
+      digitalWrite(DIR_FRONT_PIN, HIGH); digitalWrite(DIR_REAR_PIN, LOW);
+      initTimeBrakeCmd = initTimeBrakeCmd == 0 ? millis() : initTimeBrakeCmd;
+
+      /* Revisar si ha pasado el tiempo limite de funcionamiento */
+      if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
+        passLimitTimeBrake(false);
+      } else {
+        /* Freno frontal */
+        analogWrite(STEP_FRONT_PIN, readFrontOff == 1 ? 0 : PWM_FRONT_BRAKE); 
+        /* Freno trasero */
+        analogWrite(STEP_REAR_PIN, readRearOff == 1 ? 0 : PWM_REAR_BRAKE);
+      }
     }
   }
 }
@@ -414,7 +434,6 @@ void publishImuMag() {
   }
 }
 
-// REVISAR
 void publishMsgStatus() {
   unsigned long time = millis();
   if (time - lastTimeStatus >= TIME_PUBLISH_STATUS) {
@@ -442,6 +461,7 @@ void publishMsgStatus() {
     /*Control info*/
     status_msg.control.mode_signal_accept = isRunMode;
     status_msg.control.security_signal = enableSecurity;
+    status_msg.control.mode_detected = latestMode.c_str();
     arduinoStatusPub.publish(&status_msg);
     lastTimeStatus = millis(); // Reset time
   }
@@ -484,7 +504,7 @@ void brakeCallback( const std_msgs::Bool& data_received ) {
 
 void modeSelectorCallback( const std_msgs::String& data_received) {
   lastTimeModeReceived = millis();
-  status_msg.control.mode_detected = data_received.data;
+  latestMode = data_received.data;
   bool isCorrectMode = false;
   for (int i = 0; i < 4; i++) {
     isCorrectMode = posibleModes[i] == data_received.data;
