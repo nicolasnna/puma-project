@@ -125,8 +125,8 @@ void setup() {
   nh.subscribe(mode_sub);
   nh.advertise(arduinoStatusPub);
   nh.advertise(tacometerStatusPub);
-  nh.advertise(imuRawPub);
-  nh.advertise(compassRawPub);
+  // nh.advertise(imuRawPub);
+  // nh.advertise(compassRawPub);
   nh.advertise(logInfoPub);
   /* Pin de seguridad */
   pinMode(SECURITY_PIN, INPUT);
@@ -150,22 +150,22 @@ void setup() {
   /* Pin de tacometro */
   pinMode(TACHOMETER_PIN, INPUT_PULLUP); 
   attachInterrupt(digitalPinToInterrupt(TACHOMETER_PIN), countPulse, RISING); 
-  /* Config i2c */
-  Wire.begin();
-  Wire.setClock(400000);
-  /* IMU */
-  imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
-  imu.Begin();
-  imu.ConfigSrd(19);
-  imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G);
-  imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS);
-  imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ);
-  /* Compass Magnetometer */ 
-  compass.init();
-  compass.setSmoothing(10, true);
-  compass.setCalibrationOffsets(177.00, 155.00, -70.00);
-  compass.setCalibrationScales(0.72, 0.72, 4.83);
-  imu_msg.header.frame_id = compass_msg.header.frame_id = "gps_link";
+  // /* Config i2c */
+  // Wire.begin();
+  // Wire.setClock(400000);
+  // /* IMU */
+  // imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
+  // imu.Begin();
+  // imu.ConfigSrd(19);
+  // imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G);
+  // imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS);
+  // imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ);
+  // /* Compass Magnetometer */ 
+  // compass.init();
+  // compass.setSmoothing(10, true);
+  // compass.setCalibrationOffsets(177.00, 155.00, -70.00);
+  // compass.setCalibrationScales(0.72, 0.72, 4.83);
+  // imu_msg.header.frame_id = compass_msg.header.frame_id = "gps_link";
   /* Write topics to msg status */ 
   status_msg.brake.topic = "puma/control/brake";
   status_msg.direction.topic = "puma/control/direction";
@@ -202,7 +202,7 @@ void loop() {
       lastTimeTachometer = currentTime;
     }
     /* Publicar Imu y Mag */
-    publishImuMag();
+    // publishImuMag();
     /* Publicar estado arduino */
     publishMsgStatus();
     /* Publicar log de la señal de seguridad */
