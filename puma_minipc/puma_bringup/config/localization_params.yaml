@@ -14,17 +14,6 @@ tachometer:
   kalman_q_noise: 0.0007
   kalman_r_noise: 0.001
 
-gps_to_enu:
-  topic_gps: 'puma/sensors/gps/fix'
-  topic_publish: 'puma/sensors/gps/enu'
-  topic_reset: 'puma/sensors/gps/reset'
-  frame_id: 'map'
-  latitude_ref: -33.42196309675523
-  longitude_ref: -70.5818018059048
-  altitude_ref: 570
-  apply_offset_90_yaw: true
-  auto_calculate_ref: true
-
 ekf_odom:
   frequency: 60
   sensor_timeout: 0.1
@@ -83,6 +72,8 @@ ekf_odom:
   imu0_differential: false
   imu0_relative: false
   imu0_queue_size: 10
+  imu0_angular_velocity_rejection_threshold: 0.4
+  imu0_linear_acceleration_rejection_threshold: 0.2
   imu0_remove_gravitational_acceleration: true
 
   imu1: puma/camara/imu

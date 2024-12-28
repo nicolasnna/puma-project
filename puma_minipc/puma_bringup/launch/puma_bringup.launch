@@ -15,6 +15,7 @@
   <include file="$(arg path)/visual_odometry.launch"/>
   <!-- Monitor temperature -->
   <include file="$(arg path)/minipc_monitor.launch"/>
-  
-  
+  <!-- Web interface -->
+  <include file="$(arg path)/web_interface.launch"/>
+
 </launch>

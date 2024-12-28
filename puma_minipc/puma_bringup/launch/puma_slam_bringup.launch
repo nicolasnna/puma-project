@@ -17,6 +17,7 @@
   <include file="$(arg path)/minipc_monitor.launch"/>
   <!-- Rtabmap slam -->
   <include file="$(arg path)/slam_rtabmap.launch"/>
-  
+  <!-- Web interface -->
+  <include file="$(arg path)/web_interface.launch"/>
   
 </launch>
