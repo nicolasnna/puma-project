@@ -9,7 +9,7 @@ if __name__ == '__main__':
   camera_realsense = ResendTopic('/puma/camera/color/image_raw/compressed', CompressedImage, 5, '/puma/web/camera_realsense')
   odometry = ResendTopic('/puma/odometry/filtered', Odometry, 2, '/puma/web/odometry')
   gps = ResendTopic('/puma/sensors/gps/fix', NavSatFix, 1, '/puma/web/gps')
-  # arduino_status = ResendTopic('/puma/arduino/status', StatusArduino, 1, '/puma/web/arduino_status')
+  arduino_status = ResendTopic('/puma/arduino/status', StatusArduino, 1, '/puma/web/arduino_status')
   nav_gps = ResendTopic('/puma/waypoints/gps_nav_info', GoalGpsNavInfo, 1, '/puma/web/gps_nav_info')
   
   log_publish = rospy.Publisher('/puma/logs/add_log', Log, queue_size=1)
@@ -28,10 +28,10 @@ if __name__ == '__main__':
       camera_realsense.publish()
       odometry.publish()
       gps.publish()
-      # arduino_status.publish()
+      arduino_status.publish()
       nav_gps.publish()
       
-      rospy.Rate(15).sleep()
+      rospy.Rate(10).sleep()
       
   except Exception as e:
     rospy.logwarn(f"El nodo {rospy.get_name()} se ha cerrado debido al error: {e}")

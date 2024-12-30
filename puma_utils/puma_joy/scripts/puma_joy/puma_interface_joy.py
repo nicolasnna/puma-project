@@ -61,7 +61,7 @@ class PumaInterfaceJoy:
     self.start_to_send = False
     self.joy_is_alive = False
     self.last_log = 0
-    self.time_between_log = 10
+    self.time_between_log = 20
     self.mode_puma = "idle"
     self.register_signal_handlers()
     

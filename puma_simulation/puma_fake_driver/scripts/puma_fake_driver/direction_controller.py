@@ -25,11 +25,11 @@ class DirectionController():
     self.dir_value.data = self.value_offset
     
     self._activate_dir = False
-    self.ZERO_POSITION_VALUE = 395
+    self.ZERO_POSITION_VALUE = 420
     self.CONST_RAD_VALUE = 2*np.pi/1024 
     # Limit absolutely
-    self.RIGHT_LIMIT_VALUE =  (263 - self.ZERO_POSITION_VALUE) 
-    self.LEFT_LIMIT_VALUE = (521 - self.ZERO_POSITION_VALUE) 
+    self.RIGHT_LIMIT_VALUE =  (291 - self.ZERO_POSITION_VALUE) 
+    self.LEFT_LIMIT_VALUE = (549 - self.ZERO_POSITION_VALUE) 
     # 30 grados limit
     # self.RIGHT_LIMIT_VALUE =  (310 - self.ZERO_POSITION_VALUE) 
     # self.LEFT_LIMIT_VALUE = (480 - self.ZERO_POSITION_VALUE) 

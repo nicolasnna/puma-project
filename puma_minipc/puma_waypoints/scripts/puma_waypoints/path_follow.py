@@ -3,7 +3,7 @@ import rospy
 import smach
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
-from puma_msgs.msg import GoalGpsNavInfo
+from puma_msgs.msg import GoalGpsNavInfo, StatusArduino
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty, String
 import tf
@@ -32,9 +32,18 @@ class PathFollow(smach.State):
   def start_subscriber(self):
     ns_topic = rospy.get_param('~ns_topic','')
     self.stop_sub = rospy.Subscriber(ns_topic + "/plan_stop", Empty, self.stop_plan_callback)
+    self.arduino_sub = rospy.Subscriber('/puma/arduino/status', StatusArduino, self.arduino_callback)
     
   def end_subscriber(self):
     self.stop_sub.unregister()
+    self.arduino_sub.unregister()
+    
+  def arduino_callback(self, msg): 
+    if msg.control.security_signal and not self.is_aborted:
+      rospy.logwarn("-> Navegacion interrumpida puma_waypoints - PATH FOLLOW - debido a señal de seguridad en el arduino.")
+      self.is_aborted = True
+      self.client.cancel_all_goals()
+      rospy.logwarn("--- Plan abortado por error en el arduino ---")
     
   def stop_plan_callback(self, msg):
     rospy.loginfo("-> Recibido comando de PARAR.")

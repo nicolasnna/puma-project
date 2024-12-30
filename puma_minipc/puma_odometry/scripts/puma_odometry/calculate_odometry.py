@@ -21,7 +21,7 @@ class CalculateOdometry():
     self.wheels_base = rospy.get_param('~wheels_base', 1.1) # in meters
     self.frame_id = rospy.get_param('~frame_id', 'odom')
     self.child_frame_id = rospy.get_param('~child_frame_id', 'base_link')
-    self.direction_zero = rospy.get_param('~direction_zero', 395)
+    self.direction_zero = rospy.get_param('~direction_zero', 420)
     self.publish_frame = rospy.get_param('~publish_frame', False)
     # Variables
     self.x = 0.0
@@ -44,7 +44,7 @@ class CalculateOdometry():
     '''
     Callback for arduino status. Calculate angle direction in rads
     '''
-    analog_direction = data_received.current_position_dir
+    analog_direction = data_received.direction.analog_value
     diff_direction = self.direction_zero - analog_direction
     # if Diff + -> Right
     # if Diff - -> left

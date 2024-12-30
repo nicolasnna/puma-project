@@ -3,7 +3,7 @@ import rospy
 import signal
 import math
 from ackermann_msgs.msg import AckermannDriveStamped
-from puma_msgs.msg import DirectionCmd, WebTeleop, Log
+from puma_msgs.msg import DirectionCmd, WebTeleop, Log, StatusArduino
 from std_msgs.msg import Bool, Int16, String
 from nav_msgs.msg import Odometry
 from puma_controller.pid_antiwindup import PIDAntiWindUp
@@ -48,11 +48,12 @@ class ControlPublisher:
     self.direction_pub = direction_pub
     self.brake_pub = brake_pub
 
-  def publish(self, accelerator, reverse, direction, brake):
+  def publish(self, accelerator, reverse, direction, brake, parking):
     self.accel_pub.publish(Int16(int(accelerator)))
     self.reverse_pub.publish(Bool(reverse))
     self.direction_pub.publish(DirectionCmd(angle=direction["angle"], activate=direction["activate"]))
     self.brake_pub.publish(Bool(brake))
+    self.parking_pub.publish(Bool(parking))
 
 class PumaController:
   def __init__(self):
@@ -94,9 +95,11 @@ class PumaController:
     rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
     rospy.Subscriber('/cmd_vel', Twist, self.cmdvel_callback)
     rospy.Subscriber('/puma/web/teleop', WebTeleop, self.web_command_callback)
+    rospy.Subscriber('/puma/arduino/status', StatusArduino, self.arduino_status_callback)
     
   def initialize_state_variables(self):
     """Inicializa las variables de estado de la clase."""
+    self.signal_secure = False
     self.vel_linear = 0
     self.vel_linear_odometry = 0
     self.angle = 0
@@ -106,7 +109,7 @@ class PumaController:
     self.web_reverse = False
     self.mode_puma = ''
     self.last_time_msg = {key: 0 for key in ["odometry", "ackermann", "web"]}
-    self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick"]}
+    self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure"]}
     self.last_time_log_error["joystick"] = 0
     self.time_between_msg = {
       "odometry": 0.3,
@@ -118,7 +121,8 @@ class PumaController:
       "ackermann": 3,
       "web": 5,
       "joystick": 10,
-      "mode": 10
+      "mode": 10,
+      "secure": 10
     }
     self.is_change_reverse = False
 
@@ -131,7 +135,8 @@ class PumaController:
       "ackermann": f"Error al emplear control PID con convertidor ackermann, a pasado mas de {self.time_between_msg['ackermann']} seg desde el ultimo dato.",
       "web": f"Error al emplear el control por la web, ha pasado mas de {self.time_between_msg['web']} seg. desde el ultimo valor recibido.",
       "mode": "No hay un modo de control valido, se define el robot en modo 'idle'.",
-      "joystick": f"El controlador no esta publicando datos, ya que se encuentra en modo joystick. Se repite el mensaje cada {self.time_between_log['joystick']} seg."
+      "joystick": f"El controlador no esta publicando datos, ya que se encuentra en modo joystick. Se repite el mensaje cada {self.time_between_log['joystick']} seg.",
+      "secure": "Se ha activado la señal de seguridad, el robot se encuentra en modo seguro."
     }
     time_now = rospy.get_time()
     
@@ -159,14 +164,20 @@ class PumaController:
     
     self.mode_puma = mode.data
   
+  def arduino_status_callback(self, arduino_msg):
+    secure_received = arduino_msg.control.security_signal
+    if (self.signal_secure != secure_received):
+      self.log_publisher.publish(1, "Señal de seguridad recibida. Ajustando control a seguro." if secure_received else "Señal de seguridad desactivada. Ajustando control modo normal.") 
+    self.signal_secure = secure_received
+  
   def odometry_callback(self, odom):
     """ Get current velocity and calculate break value"""
     self.last_time_msg["odometry"] = rospy.get_time()
-    self.vel_linear_odometry = round(odom.twist.twist.linear.x,3)
+    self.vel_linear_odometry = round(odom.twist.twist.linear.x,2)
     
   def cmdvel_callback(self, data):
     if not self.config.connect_to_ackermann_converter and self.mode_puma == "navegacion":
-      self.vel_linear = round(data.linear.x,3)
+      self.vel_linear = round(data.linear.x,2)
       self.angle = self.clamp_angle(data.angular.z)
       self.is_change_reverse = self.should_change_reverse()
       
@@ -176,25 +187,24 @@ class PumaController:
       self.web_accel = max(min(data.accel_value, self.config.range_accel_converter[1]), 0)
       self.web_angle = self.clamp_angle(math.radians(data.angle_degree))
       self.web_brake = data.brake
+      self.web_parking = data.parking
       self.web_reverse = data.reverse
       self.last_time_msg["web"]= rospy.get_time()
-
       
   def control_web(self):
-    ''' 
-    Control del robot a partir de la web
-    '''
+    ''' Control del robot a partir de la web '''
     current_time = rospy.get_time()
     
-    if current_time - self.last_time_msg["web"] < self.time_between_msg["web"]:
+    if current_time - self.last_time_msg["web"] < self.time_between_msg["web"] and not self.signal_secure:
       self.control_publisher.publish(
         accelerator=self.web_accel, 
         reverse=self.web_reverse, 
         direction={"angle": self.web_angle, "activate": True}, 
-        brake=self.web_brake
+        brake=self.web_brake,
+        parking=self.web_parking
       )
     else:
-      self.manage_send_error_log("web")
+      self.manage_send_error_log("web" if not self.signal_secure else "secure")
       self.publish_idle()
   
   def ackermann_callback(self, acker_data):
@@ -226,7 +236,7 @@ class PumaController:
     """Publica comandos para dejar el robot en estado inactivo."""
     self.control_publisher.publish(
         accelerator=0, reverse=False,
-        direction={"angle": 0, "activate": False}, brake=True)
+        direction={"angle": 0, "activate": False}, brake=True, parking=True)
 
   def control_navegacion(self):
     '''
@@ -234,30 +244,32 @@ class PumaController:
     '''
     current_time = rospy.get_time()
     
-    if current_time - self.last_time_msg["odometry"] < self.time_between_msg["odometry"]:
-      if self.vel_linear == 0:
+    if current_time - self.last_time_msg["odometry"] < self.time_between_msg["odometry"] and not self.signal_secure:
+      if self.vel_linear == 0 or self.signal_secure:
         accel_value = self.config.range_accel_converter[0]
         self.pid.clean_acumulative_error()
       else:
         accel_value = self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry))
       
       # Comprobacion si usa conversor ackermann
-      if self.config.connect_to_ackermann_converter and current_time - self.last_time_msg["ackermann"] > self.time_between_msg["ackermann"]:
-        self.publish_idle()
-        self.pid.clean_acumulative_error()
-        self.manage_send_error_log("ackermann")
+      if self.config.connect_to_ackermann_converter:
+        if current_time - self.last_time_msg["ackermann"] > self.time_between_msg["ackermann"]:
+          self.publish_idle()
+          self.pid.clean_acumulative_error()
+          self.manage_send_error_log("ackermann")
         
       else:
         self.control_publisher.publish(
           accelerator=accel_value,
           reverse=self.vel_linear < 0,
           direction={"angle": self.angle, "activate": True},
-          brake=self.vel_linear == 0
+          brake=self.vel_linear == 0,
+          parking=False
         )
     else:
       self.publish_idle()
       self.pid.clean_acumulative_error()
-      self.manage_send_error_log("odometry")
+      self.manage_send_error_log("odometry" if not self.signal_secure else "secure")
     
   def manage_control(self):
     '''
