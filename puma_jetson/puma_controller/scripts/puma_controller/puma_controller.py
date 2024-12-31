@@ -23,7 +23,8 @@ class NodeConfig:
       raise Exception("Esta clase es un Singleton. Usa get_instance() para obtener la instancia.")
     
     NodeConfig._instance = self
-    self.range_accel_converter = rospy.get_param('~range_accel_converter', [22, 35])
+    self.range_accel_converter = rospy.get_param('~range_accel_converter', [18, 35])
+    self.limit_accel_initial = rospy.get_param('~limit_accel_initial', 27)
     self.connect_to_ackermann_converter = rospy.get_param('~connect_to_ackermann_converter', False)
     self.limit_angle_degree = rospy.get_param('~limit_angle_degree', 45)
     self.kp = rospy.get_param('~kp', 0.3)
@@ -68,7 +69,8 @@ class PumaController:
       ki=self.config.ki, 
       kd=self.config.kd, 
       min_value=self.config.range_accel_converter[0], 
-      max_value=self.config.range_accel_converter[1]
+      max_value=self.config.range_accel_converter[1],
+      max_value_initial=self.config.limit_accel_initial
     )
 
     self.initialize_state_variables()
@@ -109,8 +111,8 @@ class PumaController:
     self.web_reverse = False
     self.mode_puma = ''
     self.last_time_msg = {key: 0 for key in ["odometry", "ackermann", "web"]}
-    self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure"]}
-    self.last_time_log_error["joystick"] = 0
+    self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure", "pid_control"]}
+    self.last_time_log_error["pid_control"] = self.last_time_log_error["joystick"] = 0
     self.time_between_msg = {
       "odometry": 0.3,
       "ackermann": 0.3,
@@ -122,7 +124,8 @@ class PumaController:
       "web": 5,
       "joystick": 10,
       "mode": 10,
-      "secure": 10
+      "secure": 10,
+      "pid_control": 4
     }
     self.is_change_reverse = False
 
@@ -136,7 +139,8 @@ class PumaController:
       "web": f"Error al emplear el control por la web, ha pasado mas de {self.time_between_msg['web']} seg. desde el ultimo valor recibido.",
       "mode": "No hay un modo de control valido, se define el robot en modo 'idle'.",
       "joystick": f"El controlador no esta publicando datos, ya que se encuentra en modo joystick. Se repite el mensaje cada {self.time_between_log['joystick']} seg.",
-      "secure": "Se ha activado la señal de seguridad, el robot se encuentra en modo seguro."
+      "secure": "Se ha activado la señal de seguridad, el robot se encuentra en modo seguro.",
+      "pid_control": f"Error en el control de velocidad por PID, ha pasado mas de {self.time_between_log['pid_control']} segundos desde que se llego al límite inicial en el comando de velocidad y aún no se ha logrado producir movimiento. Limpiando PID."
     }
     time_now = rospy.get_time()
     
@@ -208,9 +212,7 @@ class PumaController:
       self.publish_idle()
   
   def ackermann_callback(self, acker_data):
-    '''
-    Get velocity lineal of ackermann converter
-    '''
+    ''' Get velocity lineal of ackermann converter '''
     if self.config.connect_to_ackermann_converter and self.mode_puma == "navegacion":
       self.last_time_msg["ackermann"] = rospy.get_time()
       self.vel_linear = round(acker_data.drive.speed,3)
@@ -222,7 +224,7 @@ class PumaController:
     return round(max(
       min(angle, 
           math.radians(self.config.limit_angle_degree)), 
-      math.radians(-self.config.limit_angle_degree)),3)
+      math.radians(-self.config.limit_angle_degree)),2)
   
   def should_change_reverse(self):
     """
@@ -235,8 +237,12 @@ class PumaController:
   def publish_idle(self):
     """Publica comandos para dejar el robot en estado inactivo."""
     self.control_publisher.publish(
-        accelerator=0, reverse=False,
-        direction={"angle": 0, "activate": False}, brake=True, parking=True)
+      accelerator=0, 
+      reverse=False,
+      direction={"angle": 0, "activate": False}, 
+      brake=True, 
+      parking=True
+    )
 
   def control_navegacion(self):
     '''
@@ -250,6 +256,15 @@ class PumaController:
         self.pid.clean_acumulative_error()
       else:
         accel_value = self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry))
+      
+      if accel_value == self.config.limit_accel_initial and self.vel_linear_odometry < 0.1:
+        self.last_time_log_error["pid_control"] = current_time if self.last_time_log_error["pid_control"] == 0 else self.last_time_log_error["pid_control"]
+        if current_time - self.last_time_log_error["pid_control"] > self.time_between_log["pid_control"]:
+          self.manage_send_error_log("pid_control")
+          self.pid.clean_acumulative_error()
+          self.last_time_log_error["pid_control"] = current_time
+      else :
+        self.last_time_log_error["pid_control"] = 0
       
       # Comprobacion si usa conversor ackermann
       if self.config.connect_to_ackermann_converter:

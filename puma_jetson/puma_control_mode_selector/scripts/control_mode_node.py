@@ -2,7 +2,7 @@
 import rospy
 from std_msgs.msg import String
 
-current_mode = "none"
+current_mode = "idle"
 
 def change_mode_callback(msg):
   global current_mode

@@ -1,11 +1,11 @@
-odometry:
+puma_odometry_node:
   wheels_base: 1.1
   frame_id: odom
   child_frame_id: base_link
-  direction_zero: 395
+  direction_zero: 420
   odometry_topic: puma/localization/odom_wheel
   arduino_status_topic: puma/arduino/status
-  reverse_topic: puma/reverse/command
+  reverse_topic: puma/control/reverse
 
 tachometer:
   calibrate_max_rpm_motor: 1654
@@ -14,8 +14,8 @@ tachometer:
   kalman_q_noise: 0.0007
   kalman_r_noise: 0.001
 
-ekf_odom:
-  frequency: 60
+puma_ekf_odom:
+  frequency: 30
   sensor_timeout: 0.1
   two_d_mode: true
   transform_time_offset: 0.0
@@ -29,7 +29,7 @@ ekf_odom:
   base_link_frame: base_link
   world_frame: odom
 
-  odom0: puma/odom
+  odom0: puma/localization/odom_wheel
   odom0_config: [false, false, false,
                  false, false, false,
                  true,  true,  true,

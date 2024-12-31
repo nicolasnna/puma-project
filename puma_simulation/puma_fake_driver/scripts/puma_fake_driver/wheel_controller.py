@@ -57,7 +57,7 @@ class WheelController():
         self.range_accel_converter[0],
         self.range_accel_converter[1],
         self.range_vel_converter[0],
-        self.range_vel_converter[1])*4 # Relation joint and velocity
+        self.range_vel_converter[1])*3.6 # Relation joint and velocity
       
     self.current_velocity = velocity
     

@@ -1,7 +1,15 @@
 import time
 
 class PIDAntiWindUp:
-  def __init__(self, kp, ki, kd, min_value, max_value):
+  def __init__(self, kp, ki, kd, min_value, max_value, max_value_initial):
+    '''
+    kp: float - Constante proporcional
+    ki: float - Constante integral
+    kd: float - Constante derivativa
+    min_value: float - Valor minimo de salida pwm
+    max_value: float - Valor maximo de salida pwm
+    max_value_initial: float - Valor maximo de salida pwm inicial si el robot no se encuenta en movimiento
+    '''
     # Parametros PID
     self._kp = kp
     self._ki = ki
@@ -10,6 +18,7 @@ class PIDAntiWindUp:
     # Anti WindUp
     self._min_value = min_value
     self._max_value = max_value
+    self._max_value_initial = max_value_initial
     
     self.integral = 0.0
     self.previus_error = 0.0
@@ -34,7 +43,10 @@ class PIDAntiWindUp:
       derivative = self._kd * (error - self.previus_error) / dt
     # Calcualar salida
     output = proportional + integral + derivative
-    output = max(min(output, self._max_value), self._min_value)
+    if measurement < 0.1:
+      output = max(min(self._max_value_initial, output),self._min_value)
+    else:
+      output = max(min(output, self._max_value), self._min_value)
     
     self.previus_error = error
     self.last_time = current_time

@@ -6,6 +6,15 @@
     <remap from="odometry/filtered" to="puma/odometry/filtered"/>
   </node>
 
+  <!-- <node name="robot" pkg="robot_localization" type="robot" output="screen"/> -->
+  
+  <!-- <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" clear_params="true">
+    <remap from="odometry/filtered" to="odometry/filtered_map"/>
+  </node>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_map" clear_params="true">
+    <remap from="odometry/filtered" to="odometry/filtered_map"/>
+  </node> -->
+
   <include file="$(find puma_simulation)/launch/visual_odometry.launch"/>
 
   <!-- <node pkg="rtabmap_odom" type="rgbd_odometry" name="odom" output="screen" clear_params="true">
