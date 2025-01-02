@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>puma_control_mode_selector</name>
+  <name>puma_mode_control</name>
   <version>0.0.0</version>
-  <description>The puma_control_mode_selector package</description>
+  <description>The puma_mode_control package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

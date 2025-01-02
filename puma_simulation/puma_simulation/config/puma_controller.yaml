@@ -1,7 +1,11 @@
 puma_controller:
-  range_accel_converter: [22, 50]
+  range_accel_converter: [18, 35]
   connect_to_ackermann_converter: false
-  limit_angle_degree: 45
+  limit_angle_degree: 40
+  kp: 0.5
+  ki: 0.2
+  kd: 0.05
+
 
 ackermann_converter:
   cmd_vel_topic: cmd_vel

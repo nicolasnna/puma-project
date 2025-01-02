@@ -6,7 +6,7 @@ import tf
 import json
 import math
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps
+from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps, Log
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
@@ -24,6 +24,7 @@ class PathSelect(smach.State):
     self.pose_array_publisher = rospy.Publisher(ns_topic + '/path_planned', PoseArray, queue_size=4)
     self.pose_array_completed = rospy.Publisher(ns_topic + '/path_completed', PoseArray, queue_size=4)
     self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
+    self.log_pub = rospy.Publisher('/puma/logs/add_log',  Log, queue_size=3)
     
     ''' Variables '''
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
@@ -53,9 +54,17 @@ class PathSelect(smach.State):
       self.goal_from_gps_sub.unregister()
       self.goal_2d_sub.unregister()
     
+  def send_log(self, msg, level):
+    log = Log()
+    log.level = level
+    log.node = 'puma_waypoints/path_select'
+    log.content = msg
+    self.log_pub.publish(log)
+    
   def plan_reset_callback(self, empty):
     rospy.loginfo("-> Recibido el comando para limpieza de waypoints.")
     self.initialize_path_waypoints()
+    self.send_log("Limpieza de waypoints realizada.",0)
     
   def plan_upload_callback(self, name):
     rospy.loginfo("-> Recibido el comando para cargar waypoints desde json.")
@@ -193,6 +202,7 @@ class PathSelect(smach.State):
       self.gps_mode = False
       rospy.loginfo("--> Waypoints actualizado con los destinos desde GPS.")
       self.nav_gps_info_pub.publish(self.nav_info_msgs)
+      self.send_log("Waypoints actualizados con los nuevos destinos desde GPS.",0)
     else:
       rospy.logwarn("--> GpsArray vacio.")
   
@@ -206,31 +216,38 @@ class PathSelect(smach.State):
         pos_current = rospy.wait_for_message(odometry_topic, Odometry)
         x_current = pos_current.pose.pose.position.x
         y_current = pos_current.pose.pose.position.y
-        distance_between_points = math.sqrt(
-          (pose.pose.pose.position.x - x_current)**2 +
-          (pose.pose.pose.position.y - y_current)**2)
+      else:
+        last_pos_waypoint = self.waypoints[-1]
+        x_current = last_pos_waypoint.pose.pose.position.x
+        y_current = last_pos_waypoint.pose.pose.position.y
+        
+      distance_between_points = math.sqrt(
+        (pose.pose.pose.position.x - x_current)**2 +
+        (pose.pose.pose.position.y - y_current)**2)
 
-        yaw = calculate_bearing_from_xy(x_current, y_current, pose.pose.pose.position.x, pose.pose.pose.position.y)
-        x_qua, y_qua, z_qua, w_qua = yaw_to_quaternion(yaw)
-        while distance_between_points > distance_limit:
-          x_inter = x_current + distance_limit * math.cos(math.radians(yaw))
-          y_inter = y_current + distance_limit * math.sin(math.radians(yaw))
-          
-          poseInter = PoseWithCovarianceStamped()
-          poseInter.header.frame_id = 'map'
-          poseInter.pose.pose.position.x = x_inter
-          poseInter.pose.pose.position.y = y_inter
-          poseInter.pose.pose.orientation.x = x_qua
-          poseInter.pose.pose.orientation.y = y_qua
-          poseInter.pose.pose.orientation.z = z_qua
-          poseInter.pose.pose.orientation.w = w_qua
-          
-          self.waypoints.append(self.convert_frame_pose(poseInter,'map'))
-          distance_between_points -= distance_limit 
-          x_current = x_inter
-          y_current = y_inter
+      yaw = calculate_bearing_from_xy(x_current, y_current, pose.pose.pose.position.x, pose.pose.pose.position.y)
+      x_qua, y_qua, z_qua, w_qua = yaw_to_quaternion(yaw)
+      rospy.loginfo(f"distancia estimada entre puntos: {distance_between_points}")
+      while distance_between_points > distance_limit:
+        x_inter = x_current + distance_limit * math.cos(math.radians(yaw))
+        y_inter = y_current + distance_limit * math.sin(math.radians(yaw))
+        
+        poseInter = PoseWithCovarianceStamped()
+        poseInter.header.frame_id = 'map'
+        poseInter.pose.pose.position.x = x_inter
+        poseInter.pose.pose.position.y = y_inter
+        poseInter.pose.pose.orientation.x = x_qua
+        poseInter.pose.pose.orientation.y = y_qua
+        poseInter.pose.pose.orientation.z = z_qua
+        poseInter.pose.pose.orientation.w = w_qua
+        
+        self.waypoints.append(self.convert_frame_pose(poseInter,'map'))
+        distance_between_points -= distance_limit 
+        x_current = x_inter
+        y_current = y_inter
           
       self.waypoints.append(self.convert_frame_pose(pose,'map'))
+      self.send_log(f"Añadido el waypoint local en x: {round(pose.pose.pose.position.x,2)} e y: {round(pose.pose.pose.position.y,2)}",0)
     
   def initialize_path_waypoints(self):
     """ Initialize or reset path waypoints """
@@ -274,6 +291,7 @@ class PathSelect(smach.State):
     rospy.loginfo('------------------------------')
     rospy.loginfo('----- Estado Path Select -----')
     rospy.loginfo('------------------------------')
+    self.send_log("Iniciando el estado de selección de ruta (puma_waypoints).",0)
     self.nav_info_msgs = GoalGpsNavInfo()
     self.nav_gps_index = []
     self.start_subscriber()
@@ -294,6 +312,7 @@ class PathSelect(smach.State):
         self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
         rospy.Rate(30).sleep()
     except rospy.exceptions.ROSInterruptException:
+      self.send_log("Interrupcion de ROS en la 'selección de ruta' en puma_waypoints.",2)
       rospy.logwarn("-> Cerrando puma_waypoints -- PATH_SELECT.")
       
     ''' Enviar datos al siguiente estado '''

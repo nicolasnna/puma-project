@@ -34,7 +34,7 @@
 		<param name="default_trig_val" value="true" />
 	</node>
   <!-- mode selector -->
-  <node name="puma_control_mode" pkg="puma_control_mode_selector" type="control_mode_node.py" output="screen" respawn="true" respawn_delay="1"/>
+  <node name="puma_control_mode" pkg="puma_mode_control" type="control_mode_node.py" output="screen" respawn="true" respawn_delay="1"/>
   <!-- Controller -->
   <node pkg="puma_controller" name="puma_controller" type="puma_controller_node.py" output="screen" respawn="true" respawn_delay="10"/>
 

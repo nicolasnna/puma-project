@@ -7,7 +7,8 @@ from puma_msgs.msg import DirectionCmd, WebTeleop, Log, StatusArduino
 from std_msgs.msg import Bool, Int16, String
 from nav_msgs.msg import Odometry
 from puma_controller.pid_antiwindup import PIDAntiWindUp
-from geometry_msgs.msg import Twist;
+from geometry_msgs.msg import Twist
+from actionlib_msgs.msg import GoalStatusArray
 
 class NodeConfig:
   _instance = None
@@ -98,6 +99,7 @@ class PumaController:
     rospy.Subscriber('/cmd_vel', Twist, self.cmdvel_callback)
     rospy.Subscriber('/puma/web/teleop', WebTeleop, self.web_command_callback)
     rospy.Subscriber('/puma/arduino/status', StatusArduino, self.arduino_status_callback)
+    rospy.Subscriber('/move_base/status', GoalStatusArray, self.move_base_status_callback)
     
   def initialize_state_variables(self):
     """Inicializa las variables de estado de la clase."""
@@ -110,13 +112,15 @@ class PumaController:
     self.web_brake = False
     self.web_reverse = False
     self.mode_puma = ''
-    self.last_time_msg = {key: 0 for key in ["odometry", "ackermann", "web"]}
-    self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure", "pid_control"]}
-    self.last_time_log_error["pid_control"] = self.last_time_log_error["joystick"] = 0
+    self.last_time_msg = {key: 0 for key in ["odometry", "ackermann", "web", "pid_control", "move_base"]}
+    self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure"]}
+    self.last_time_log_error["joystick"] = 0
     self.time_between_msg = {
       "odometry": 0.3,
       "ackermann": 0.3,
-      "web": 0.5
+      "web": 0.5,
+      "pid_control": 2,
+      "move_base": 0.5
     }
     self.time_between_log = {
       "odometry": 3,
@@ -125,13 +129,12 @@ class PumaController:
       "joystick": 10,
       "mode": 10,
       "secure": 10,
-      "pid_control": 4
     }
     self.is_change_reverse = False
 
-  def manage_send_error_log(self, key):
+  def manage_send_error_log(self, key, with_time=True):
     """ Manejador de logs de estado. 
-      :param key: odometry, ackermann, web, mode, joystick
+      :param key: odometry, ackermann, web, mode, joystick, secure, pid_control, move_base
     """
     text = {
       "odometry": f"Error al emplear control PID, a pasado mas de {self.time_between_msg['odometry']} seg desde el ultimo dato recibido por la odometria.",
@@ -140,13 +143,16 @@ class PumaController:
       "mode": "No hay un modo de control valido, se define el robot en modo 'idle'.",
       "joystick": f"El controlador no esta publicando datos, ya que se encuentra en modo joystick. Se repite el mensaje cada {self.time_between_log['joystick']} seg.",
       "secure": "Se ha activado la señal de seguridad, el robot se encuentra en modo seguro.",
-      "pid_control": f"Error en el control de velocidad por PID, ha pasado mas de {self.time_between_log['pid_control']} segundos desde que se llego al límite inicial en el comando de velocidad y aún no se ha logrado producir movimiento. Limpiando PID."
+      "pid_control": f"Error en el control de velocidad por PID, ha pasado mas de {self.time_between_msg['pid_control']} segundos desde que se llego al límite inicial en el comando de velocidad y aún no se ha logrado producir movimiento. Limpiando PID.",
+      "move_base": f"Error en el uso de move_base para la navegación, ha pasado mas de {self.time_between_msg['move_base']} seg desde el ultimo estado recibido."
     }
-    time_now = rospy.get_time()
-    
-    if time_now - self.last_time_log_error[key] > self.time_between_log[key]:
+    if with_time:
+      time_now = rospy.get_time()
+      if time_now - self.last_time_log_error[key] > self.time_between_log[key]:
+        self.log_publisher.publish(2, text[key])
+        self.last_time_log_error[key] = time_now
+    else:
       self.log_publisher.publish(2, text[key])
-      self.last_time_log_error[key] = time_now
     
 
   def selector_mode_callback(self, mode):
@@ -167,6 +173,9 @@ class PumaController:
       self.log_publisher.publish(0, text["enter_web"])
     
     self.mode_puma = mode.data
+  
+  def move_base_status_callback(self, status):
+    self.last_time_msg["move_base"] = rospy.get_time()
   
   def arduino_status_callback(self, arduino_msg):
     secure_received = arduino_msg.control.security_signal
@@ -258,20 +267,18 @@ class PumaController:
         accel_value = self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry))
       
       if accel_value == self.config.limit_accel_initial and self.vel_linear_odometry < 0.1:
-        self.last_time_log_error["pid_control"] = current_time if self.last_time_log_error["pid_control"] == 0 else self.last_time_log_error["pid_control"]
-        if current_time - self.last_time_log_error["pid_control"] > self.time_between_log["pid_control"]:
-          self.manage_send_error_log("pid_control")
+        self.last_time_msg["pid_control"] = current_time if self.last_time_msg["pid_control"] == 0 else self.last_time_msg["pid_control"]
+        if current_time - self.last_time_msg["pid_control"] > self.time_between_msg["pid_control"]:
+          self.manage_send_error_log("pid_control", False)
           self.pid.clean_acumulative_error()
-          self.last_time_log_error["pid_control"] = current_time
+          self.last_time_msg["pid_control"] = current_time
       else :
-        self.last_time_log_error["pid_control"] = 0
+        self.last_time_msg["pid_control"] = 0
       
       # Comprobacion si usa conversor ackermann
       if self.config.connect_to_ackermann_converter:
         if current_time - self.last_time_msg["ackermann"] > self.time_between_msg["ackermann"]:
-          self.publish_idle()
-          self.pid.clean_acumulative_error()
-          self.manage_send_error_log("ackermann")
+          self.stop_control_navegacion("ackermann")
         
       else:
         self.control_publisher.publish(
@@ -282,23 +289,37 @@ class PumaController:
           parking=False
         )
     else:
-      self.publish_idle()
-      self.pid.clean_acumulative_error()
-      self.manage_send_error_log("odometry" if not self.signal_secure else "secure")
+      self.stop_control_navegacion("odometry" if not self.signal_secure else "secure")
+    
+  def is_move_base_active(self):
+    return rospy.get_time() - self.last_time_msg["move_base"] < self.time_between_msg["move_base"]
+  
+  def stop_control_navegacion(self, error_key, with_time = True):
+    self.publish_idle()
+    self.pid.clean_acumulative_error()
+    self.manage_send_error_log(error_key, with_time)
     
   def manage_control(self):
     '''
     Calcula y publica si debe, 
     '''
-    if self.mode_puma == "navegacion":
-      self.control_navegacion()
-    elif self.mode_puma == "web":
-      self.control_web()
-    elif self.mode_puma == "joystick":
-      self.manage_send_error_log("joystick")
-    else: 
+    try:
+      if self.mode_puma == "navegacion":
+        if self.is_move_base_active():
+          self.control_navegacion()
+        else:
+          self.stop_control_navegacion("move_base", False)
+      elif self.mode_puma == "web":
+        self.control_web()
+      elif self.mode_puma == "joystick":
+        self.manage_send_error_log("joystick")
+      else: 
+        self.publish_idle()
+        self.manage_send_error_log("mode")
+    except Exception as e:
+      rospy.logerr(f"Error en el controlador: {e}")
+      self.log_publisher.publish(2, f"Error en el controlador: {e}")
       self.publish_idle()
-      self.manage_send_error_log("mode")
         
   def shutdown_hook(self, signum, frame):
     """ Manejador de señal para apagar el nodo de manera segura. """

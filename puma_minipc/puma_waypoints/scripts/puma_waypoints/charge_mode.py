@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 import rospy
 import smach
-import threading
 import time
 import actionlib
 import roslaunch
 import math
-import dynamic_reconfigure.client
 from std_msgs.msg import Empty, Bool
 from apriltag_ros.msg import AprilTagDetectionArray
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
