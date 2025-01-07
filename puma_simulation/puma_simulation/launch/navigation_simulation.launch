@@ -5,7 +5,7 @@
   <arg name="map_file" default="$(find puma_simulation)/maps/blank_map.yaml"/>
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
-  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
+  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true" >
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
     <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
     <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>

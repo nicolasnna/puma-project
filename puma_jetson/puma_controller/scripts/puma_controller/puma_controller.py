@@ -245,6 +245,7 @@ class PumaController:
 
   def publish_idle(self):
     """Publica comandos para dejar el robot en estado inactivo."""
+    self.vel_linear = self.web_accel = 0 # Limpiar el ultimo comando recibido
     self.control_publisher.publish(
       accelerator=0, 
       reverse=False,

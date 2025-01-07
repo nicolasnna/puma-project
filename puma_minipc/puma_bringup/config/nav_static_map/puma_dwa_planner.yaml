@@ -14,7 +14,7 @@ PumaDwaLocalPlanner:
   xy_goal_tolerance: 0.5
   steering_samples: 12
 
-  factor_cost_deviation_: 15.0
+  factor_cost_deviation_: 25.0
   factor_cost_distance_goal: 4.0
   factor_cost_angle_to_plan: 13.0
   factor_cost_obstacle: 5.0

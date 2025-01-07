@@ -203,6 +203,7 @@ void configImuMag() {
 
 void readSecurityAndControlMode() {
   int readSecurity = digitalRead(SECURITY_PIN);
+  initTimeBrakeCmd = readSecurity == 1 && !enableSecurity ? 0 : initTimeBrakeCmd;
   enableSecurity = readSecurity == 1;
   /* Revisar deteccion de modo */
   isRunMode = millis() - lastTimeModeReceived < MILLIS_LIMIT_MODE ? isRunMode : false;

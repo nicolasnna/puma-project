@@ -262,26 +262,36 @@ namespace puma_dwa_local_planner {
     double goal_y = goal_pose.pose.position.y;
     double distance_to_goal = std::hypot(puma_.x - goal_x, puma_.y - goal_y);
 
-    /* Comprobar estado del destino */
-    int cell_x, cell_y;
-    getAdjustXYCostmap(goal_x, goal_x, cell_x, cell_y);
-    unsigned char cost = costmap_->getCost(cell_x, cell_y);
-
-    if (cost == costmap_2d::LETHAL_OBSTACLE && distance_to_goal <= 4.0) {
-      ROS_WARN("El destino se encuentra en un obstaculo. Finalizando navegación...");
-      return true;
-    }
-
-    if (cost >= (unsigned char) 120U && cost < (unsigned char) 253U  && distance_to_goal <= 2.0) {
-      ROS_WARN("El destino se encuentra cercano a un obstaculo. Finalizando navegación...");
-      return true;
-    }
-
     if (distance_to_goal <= xy_goal_tolerance_) {
       ROS_INFO("El robot ha alcanzado el destino dentro de la tolerancia %f metros.", xy_goal_tolerance_);
       return true;
     }
 
+    if (distance_to_goal < 3.0) {
+    
+      /* Comprobar estado del destino */
+      int cell_x, cell_y;
+      getAdjustXYCostmap(goal_x, goal_y, cell_x, cell_y);
+      if (cell_x < 0 || cell_y < 0 || 
+        cell_x >= costmap_->getSizeInCellsX() || 
+        cell_y >= costmap_->getSizeInCellsY()) {
+        ROS_WARN("Celda de comprobacion de costos invalido, sale de los limites de local cost.");
+        ROS_WARN("Goalx %.2f Goaly %.2f CellX %d Celly %d", goal_x, goal_y, cell_x, cell_y);
+        return false; 
+      } 
+      unsigned char cost = costmap_->getCost(cell_x, cell_y);
+
+      if (cost == costmap_2d::LETHAL_OBSTACLE ) {
+        ROS_WARN("El destino se encuentra en un obstaculo. Finalizando navegación...");
+        return true;
+      }
+
+      if (cost >= (unsigned char) 80U && cost < (unsigned char) 253U) {
+        ROS_WARN("El destino se encuentra cercano a un obstaculo. Finalizando navegación...");
+        return true;
+      }
+    }
+    
     return false;
   }
 
@@ -312,26 +322,40 @@ namespace puma_dwa_local_planner {
     double last_x = path.back().x;
     double last_y = path.back().y;
     double last_yaw = path.back().yaw;
-    double min_distance = std::numeric_limits<double>::max();
-    size_t closest_index = 0;
+    double min_distance_end = std::numeric_limits<double>::max();
+    double min_distance_begin = std::numeric_limits<double>::max();
+    size_t closest_index_end = 0;
+    size_t closest_index_begin = 0;
     for (size_t i = 0; i < global_plan_.size(); ++i) {
-        double dist = std::hypot(global_plan_[i].pose.position.x - last_x, global_plan_[i].pose.position.y - last_y);
-        if (dist < min_distance) {
-          min_distance = dist;
-          closest_index = i;
-        }
+      double dist_end = std::hypot(global_plan_[i].pose.position.x - last_x, global_plan_[i].pose.position.y - last_y);
+      if (dist_end < min_distance_end) {
+        min_distance_end = dist_end;
+        closest_index_end = i;
+      }
+      double dist_begin = std::hypot(global_plan_[i].pose.position.x - puma_.x, global_plan_[i].pose.position.y - puma_.y);
+      if (dist_begin < min_distance_begin) {
+        min_distance_begin = dist_begin;
+        closest_index_begin = i;
+      }
     }
-    if (min_distance == std::numeric_limits<double>::max()) {
+
+    if (min_distance_end == std::numeric_limits<double>::max()) {
       ROS_WARN("Error al estimar distancia entre la ruta planteada y la global");
       return std::numeric_limits<double>::max();
     }
-
+  
     /* Desviacion de la ruta */
-    double deviation = std::hypot(last_x- global_plan_[closest_index].pose.position.x, last_y - global_plan_[closest_index].pose.position.y);
-    cost += deviation * factor_cost_deviation_;
+    int divitionsPath = path.size() / (closest_index_end-closest_index_begin);
+    for (size_t i = closest_index_begin; i < closest_index_end; i++) {
+      int indexPath = (i - closest_index_begin)* divitionsPath;
+      double deviation = std::hypot(path[indexPath].x - global_plan_[i].pose.position.x, path[indexPath].y - global_plan_[i].pose.position.y);
+      cost += deviation * factor_cost_deviation_;
+    }
+    double deviation_final = std::hypot(last_x- global_plan_[closest_index_end].pose.position.x, last_y - global_plan_[closest_index_end].pose.position.y);
+    cost += deviation_final * factor_cost_deviation_;
 
     /* Costo asociado de diferencia de angulo respecto al plan */
-    double normalized_cost_angle = std::abs(last_yaw - tf::getYaw(global_plan_[closest_index].pose.orientation));
+    double normalized_cost_angle = std::abs(last_yaw - tf::getYaw(global_plan_[closest_index_end].pose.orientation));
     cost += normalized_cost_angle + factor_cost_angle_to_plan_;
 
     /* Costo por distancia al objetivo */
@@ -385,6 +409,7 @@ namespace puma_dwa_local_planner {
         return std::max(current_velocity - acceleration_x_, target_velocity);
     }
   }
+
   /* Calcular valor de celdas ajustada */
   void PumaDwaLocalPlanner::getAdjustXYCostmap(double pos_x, double pos_y, int& cell_x, int& cell_y) {
     /* Calcular posiciones ajustadas al origen del mapa */
