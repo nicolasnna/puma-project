@@ -7,10 +7,6 @@ Panels:
         - /Global Options1
         - /TF scale 1001/Frames1
         - /Navigation1
-        - /Navigation1/localplanner1
-        - /Navigation1/Global planner1
-        - /Navigation1/global dubin planner1
-        - /Navigation1/local cost1
         - /Navigation1/Global costmap1
         - /Waypoints1/planned1
         - /Waypoints1/completed1
@@ -320,7 +316,7 @@ Visualization Manager:
           Value: true
         - Alpha: 0.699999988079071
           Class: rviz/Map
-          Color Scheme: costmap
+          Color Scheme: raw
           Draw Behind: false
           Enabled: true
           Name: Global costmap
@@ -542,7 +538,7 @@ Visualization Manager:
       Marker Topic: /move_base/PumaDwaLocalPlanner/potential_trajectories
       Name: MarkerArray
       Namespaces:
-        trajectories: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -573,7 +569,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 64.60867309570312
+      Distance: 77.59415435791016
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -609,5 +605,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1440
-  X: 416
-  Y: 84
+  X: 0
+  Y: 105

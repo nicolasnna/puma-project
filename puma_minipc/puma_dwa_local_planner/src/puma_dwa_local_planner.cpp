@@ -345,12 +345,12 @@ namespace puma_dwa_local_planner {
     }
   
     /* Desviacion de la ruta */
-    int divitionsPath = path.size() / (closest_index_end-closest_index_begin);
-    for (size_t i = closest_index_begin; i < closest_index_end; i++) {
-      int indexPath = (i - closest_index_begin)* divitionsPath;
-      double deviation = std::hypot(path[indexPath].x - global_plan_[i].pose.position.x, path[indexPath].y - global_plan_[i].pose.position.y);
-      cost += deviation * factor_cost_deviation_;
-    }
+    // int divitionsPath = path.size() / (closest_index_end-closest_index_begin);
+    // for (size_t i = closest_index_begin; i < closest_index_end; i++) {
+    //   int indexPath = (i - closest_index_begin)* divitionsPath;
+    //   double deviation = std::hypot(path[indexPath].x - global_plan_[i].pose.position.x, path[indexPath].y - global_plan_[i].pose.position.y);
+    //   cost += deviation * factor_cost_deviation_;
+    // }
     double deviation_final = std::hypot(last_x- global_plan_[closest_index_end].pose.position.x, last_y - global_plan_[closest_index_end].pose.position.y);
     cost += deviation_final * factor_cost_deviation_;
 
