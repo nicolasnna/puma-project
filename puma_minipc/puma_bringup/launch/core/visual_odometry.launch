@@ -1,32 +1,25 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- Argumentos principales -->
-  <arg name="use_sim_time" default="false"/>
+  <!-- Argumentos principales -->/>
+  <arg name="camera_name" default="camera_front"/>
+  <arg name="camera_prefix" default="/puma/sensors/$(arg camera_name)"/>
   <arg name="frame_id" default="base_link"/>
-  <arg name="map_frame_id" default="map"/>
   <arg name="odom_topic" default="odom_visual"/>
-  <arg name="rgb_topic" value="/puma/camera/color/image_raw"/>
-  <arg name="depth_topic" value="/puma/camera/aligned_depth_to_color/image_raw"/>
-  <arg name="camera_info_topic" value="/puma/camera/color/camera_info"/>
-  <arg name="depth_camera_info_topic" value="/puma/camera/aligned_depth_to_color/camera_info"/>
-  <arg name="imu_topic" default="/puma/camera/imu"/>
   <arg name="output" default="log"/>
-  <arg name="approx_sync" default="false"/>
+  <arg name="approx_sync" default="true"/>
   <arg name="args" default="--delete_db_on_start"/>
-
-  <!-- Parámetro de tiempo simulado -->
-  <param name="use_sim_time" value="$(arg use_sim_time)"/>
+  <arg name="rgb_topic" value="$(arg camera_prefix)/color/image_raw"/>
+  <arg name="depth_topic" value="$(arg camera_prefix)/aligned_depth_to_color/image_raw"/>
+  <arg name="camera_info_topic" value="$(arg camera_prefix)/color/camera_info"/>
 
   <!-- Nodo de odometría RGB-D -->
-  <node pkg="rtabmap_odom" ns="puma/rtabmap" type="rgbd_odometry" 
-        name="rgbd_odometry" args="$(arg args)">
+  <node pkg="rtabmap_odom" ns="puma/rtabmap/$(arg camera_name)" type="rgbd_odometry" name="rgbd_odometry" args="$(arg args)" output="$(arg output)">
     
     <!-- Remapeo de tópicos -->
     <remap from="rgb/image" to="$(arg rgb_topic)"/>
     <remap from="depth/image" to="$(arg depth_topic)"/>
     <remap from="rgb/camera_info" to="$(arg camera_info_topic)"/>
     <remap from="odom" to="$(arg odom_topic)"/>
-    <remap from="imu" to="$(arg imu_topic)"/>
 
     <param name="Odom/Strategy" type="string" value="0"/>      <!-- 0=Frame-to-Map, 1=Frame-to-KeyFrame -->
     <param name="Odom/ResetCountdown" type="string" value="15"/>

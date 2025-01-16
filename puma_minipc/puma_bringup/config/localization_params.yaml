@@ -29,38 +29,35 @@ puma_ekf_odom:
   base_link_frame: base_link
   world_frame: odom
 
-  odom0: puma/localization/odom_wheel
+  odom0: puma/rtabmap/camera_front/odom_visual
   odom0_config: [false, false, false,
-                 false, false, false,
-                 true,  true,  true,
-                 false, false, false,
-                 false, false, false]
-  odom0_queue_size: 10
-  odom0_nodelay: true
-  odom0_differential: false
+                false, false, false,
+                true,  true,  true,
+                false, false, true,
+                false, false, false]
   odom0_relative: true
+  odom0_pose_rejection_threshold: 1000
+  odom0_twist_rejection_threshold: 1000
 
-  odom1: puma/rtabmap/odom_visual
+  odom1: puma/rtabmap/camera_rear/odom_visual
   odom1_config: [false, false, false,
-                 false, false, true,
-                 true,  true,  true,
-                 false, false, false,
-                 false, false, false]
-  odom1_queue_size: 5
-  odom1_nodelay: true
-  odom1_differential: false
+                false, false, false,
+                true,  true,  true,
+                false, false, true,
+                false, false, false]
   odom1_relative: true
+  odom1_pose_rejection_threshold: 1000
+  odom1_twist_rejection_threshold: 1000
 
-  # pose0: puma/sensors/gps/enu
-  # pose0_config: [true,  true,  true,
-  #                false, false, false,
-  #                false, false, false,
-  #                false, false, false,
-  #                false, false, false]
-  # pose0_queue_size: 4
-  # pose0_nodelay: true
-  # pose0_differential: false
-  # pose0_relative: false
+  odom2: puma/localization/odometry_wheel
+  odom2_config: [false, false, false,
+                false, false, false,
+                true,  true,  true,
+                false, false, false,
+                false, false, false]
+  odom2_differential: false
+  odom2_relative: false
+
 
   # imu0: puma/sensors/imu/filtered
   # imu0_config: [false, false, false,
@@ -76,17 +73,23 @@ puma_ekf_odom:
   # imu0_linear_acceleration_rejection_threshold: 0.2
   # imu0_remove_gravitational_acceleration: true
 
-  imu1: puma/camara/imu
+  imu0: puma/sensors/camera_front/imu/filtered
+  imu0_config: [false, false, false,
+                false,  false,  false,
+                false, false, false,
+                true,  true,  true,
+                false,  false,  false]
+  imu0_differential: true
+  imu0_relative: false
+
+  imu1: puma/sensors/camera_rear/imu/filtered
   imu1_config: [false, false, false,
                 false,  false,  false,
                 false, false, false,
                 true,  true,  true,
                 false,  false,  false]
-  imu1_nodelay: false
-  imu1_differential: false
-  imu1_relative: true
-  imu1_queue_size: 10
-  imu1_remove_gravitational_acceleration: true
+  imu1_differential: true
+  imu1_relative: false
 
   use_control: false
 

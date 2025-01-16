@@ -25,13 +25,25 @@ namespace puma_hybrid_astar_planner {
 
       initializePotentialMap();
 
-      path_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 2);
-      path_dubin_pub_= private_nh.advertise<nav_msgs::Path>("global_dubin_plan", 2);
+      path_pub_ = private_nh.advertise<nav_msgs::Path>("global_sub_plan", 2);
+      path_combined_pub_= private_nh.advertise<nav_msgs::Path>("global_plan", 2);
       potential_map_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential_map", 1);
-      
+      waypoints_sub_ = private_nh.subscribe("set_waypoints", 1, &PumaHybridAStarPlanner::waypointsCallback, this);
+      waypoints_to_local_ = private_nh.advertise<geometry_msgs::PoseArray>("/move_base/PumaDwaLocalPlanner/set_waypoints", 1);
+
       initialized_ = true;
     }
   }
+
+  void PumaHybridAStarPlanner::waypointsCallback(const geometry_msgs::PoseArray& msg){
+    waypoints_.clear();
+    waypoints_msg_ = msg;
+    for (const geometry_msgs::Pose& pose : msg.poses) {
+      auto new_pose = Node(pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
+      waypoints_.push_back(new_pose);
+    }
+  }
+
   /* Cargar rosparam */
   void PumaHybridAStarPlanner::loadRosParam(ros::NodeHandle
   & nh){
@@ -40,7 +52,6 @@ namespace puma_hybrid_astar_planner {
     nh.param("factor_cost_distance", factor_cost_distance_, 10);
     nh.param("factor_cost_angle_curve", factor_cost_angle_curve_, 5);
     nh.param("division_curve", division_curve_, 3);
-    nh.param("enable_dubin", enable_dubin_, false);
     nh.param("theta_limit", theta_limit_, M_PI / 5);
     nh.param("division_theta", division_theta_, 4);
     nh.param("factor_cost_angle_goal", factor_cost_angle_goal_, 2);
@@ -67,22 +78,48 @@ namespace puma_hybrid_astar_planner {
       ROS_ERROR("No se ha inicializado correctamente Puma Hybrid A* planner.");
       return false;
     }
+    
+    if (waypoints_.size() == 0) {
+      ROS_WARN_THROTTLE(5, "No se tienen waypoints definidos, se cancela la navegacion.");
+      return false;
+    }
+
     plan.clear();
     initializePotentialMap();
-    /* Limpiar mapa de potencial */
-    std::fill(potential_map_.data.begin(), potential_map_.data.end(), -1);
-
-    if (enable_dubin_) {
-      ROS_INFO("Usando curvas dubin...");
-    } else {
-      ROS_INFO("Ejecutando sin suavizado de curvas dubin...");
-    }
     
+    nav_msgs::Path path_complete_;
+    std::vector<geometry_msgs::PoseStamped> plan_complete;
+    path_complete_.header.stamp = ros::Time::now();
+    path_complete_.header.frame_id  = "map";
     ROS_INFO("Iniciando con el calculo de la ruta.");
-    ROS_INFO("Busqueda hacia el destino -> x: %lf , y: %lf", goal.pose.position.x, goal.pose.position.y);
-    /* Crear nodos iniciales y finales */
-    auto start_node = std::make_shared<Node>(start.pose.position.x, start.pose.position.y, tf::getYaw(start.pose.orientation));
-    auto goal_node = std::make_shared<Node>(goal.pose.position.x, goal.pose.position.y, tf::getYaw(goal.pose.orientation));
+    Node begin = Node(start.pose.position.x, start.pose.position.y, tf::getYaw(start.pose.orientation));
+    for (const Node& point : waypoints_) {
+      ROS_INFO("Busqueda hacia el destino -> x: %lf , y: %lf", point.x, point.y);
+      /* Limpiar mapa de potencial */
+      std::fill(potential_map_.data.begin(), potential_map_.data.end(), -1);
+      
+      std::vector<geometry_msgs::PoseStamped> result = getSubPlan(begin, point);
+      if (result.size() == 0){
+        ROS_WARN("Error a la hora de efectuar el plan");
+        return false;
+      }
+      
+      plan_complete.insert(plan_complete.end(), result.begin(), result.end());
+      
+      begin = point;
+      path_complete_.poses = plan_complete;
+      ROS_INFO("Punto de inicio (%.2f, %.2f) ", begin.x, begin.y);
+      path_combined_pub_.publish(path_complete_);
+    }
+    plan = plan_complete;
+    ROS_WARN("Plan creado exitosamente.");
+    waypoints_to_local_.publish(waypoints_msg_);
+    return true;
+  }
+
+  std::vector<geometry_msgs::PoseStamped> PumaHybridAStarPlanner::getSubPlan(Node start, Node end) {
+    auto start_node = std::make_shared<Node>(start);
+    auto goal_node = std::make_shared<Node>(end);
     /* Obtencion del valor maximo al destino */
     dist_max_to_goal = std::abs(start_node->distance(*goal_node));
     getAdjustXYCostmap(*goal_node, goal_node->cell_x, goal_node->cell_y);
@@ -109,12 +146,10 @@ namespace puma_hybrid_astar_planner {
           ROS_INFO("Encontrado nodo final -> x: %lf , y: %lf", current_node->x, current_node->y);
 
           nav_msgs::Path path_normal_msg;
-          nav_msgs::Path path_dubin_msg;
-          path_normal_msg.header.stamp = path_dubin_msg.header.stamp = ros::Time::now();
-          path_normal_msg.header.frame_id = path_dubin_msg.header.frame_id = "map"; // Ajusta al frame de tu entorno
+          path_normal_msg.header.stamp = ros::Time::now();
+          path_normal_msg.header.frame_id  = "map"; // Ajusta al frame de tu entorno
 
           std::vector<std::shared_ptr<Node>> plan_nodes;
-          std::vector<std::shared_ptr<Node>> plan_dubins;
 
           auto path_node = current_node;
           while (path_node) {
@@ -135,40 +170,10 @@ namespace puma_hybrid_astar_planner {
             path_pub_.publish(path_normal_msg);
           }
 
-          /* Generar curva dubins en nodos intermedios */
-          if (enable_dubin_) {
-            std::shared_ptr<Node> previus_node = plan_nodes.front();
-            plan_dubins.push_back(previus_node);
-            for (auto it = plan_nodes.begin() + 1; it != plan_nodes.end(); ++it) {
-              std::shared_ptr<Node> node_end = *it;
-              std::vector<std::shared_ptr<Node>> nodes_extra = generateDubinsPath(*previus_node, *node_end);
-              if (nodes_extra.empty()) {
-                ROS_WARN("Error al generar las curvas dubins");
-                return false;
-              }
-              for (std::shared_ptr<Node>& node : nodes_extra) {
-                plan_dubins.push_back(node);
-              }
-              previus_node = *it;
-            }
-            for (std::shared_ptr<Node>& node : plan_dubins) {
-              geometry_msgs::PoseStamped pose;
-              pose.header.stamp = ros::Time::now();
-              pose.header.frame_id = "map";
-              pose.pose.position.x = node->x;
-              pose.pose.position.y = node->y;
-              pose.pose.orientation = tf::createQuaternionMsgFromYaw(node->theta);
-              path_dubin_msg.poses.push_back(pose);
-              path_dubin_pub_.publish(path_dubin_msg);
-            }
-          }
-
           /* Reconstruir plan final */
-          plan = enable_dubin_? path_dubin_msg.poses : path_normal_msg.poses;
           
           path_pub_.publish(path_normal_msg);
-          path_dubin_pub_.publish(path_dubin_msg);
-          return true;
+          return path_normal_msg.poses;
       }
       closed_set.insert(*current_node);
 
@@ -201,9 +206,7 @@ namespace puma_hybrid_astar_planner {
           publishPotentialMap();
       }
     }
-
-    ROS_WARN("No se encontro una ruta al objetivo.");
-    return false;
+    return std::vector<geometry_msgs::PoseStamped>();
   }
 
   /* Actualizar mapa potencial */

@@ -41,10 +41,21 @@ namespace puma_dwa_local_planner {
       odometry_puma = private_nh.subscribe("/"+topic_odom_, 2, &PumaDwaLocalPlanner::odometryCallback, this);
       trajectory_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("potential_trajectories", 1);
       path_local_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan",1);
+      path_global_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan",1);
+      waypoints_sub_ = private_nh.subscribe("set_waypoints", 1, &PumaDwaLocalPlanner::waypointsCallback, this);
 
       initialized_ = true;
       reversing_ = false;
       ROS_INFO("PumaDwaLocalPlanner inicializado.");
+    }
+  }
+
+  void PumaDwaLocalPlanner::waypointsCallback(const geometry_msgs::PoseArray& msg){
+    waypoints_.clear();
+    ROS_WARN("Se han recibido %lu waypoints.", msg.poses.size());
+    for (const geometry_msgs::Pose& pose : msg.poses) {
+      auto new_pose = Position(pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
+      waypoints_.push_back(new_pose);
     }
   }
 
@@ -75,6 +86,7 @@ namespace puma_dwa_local_planner {
 
   /* Definir plan */
   bool PumaDwaLocalPlanner::setPlan(const std::vector<geometry_msgs::PoseStamped>& orig_global_plan) {
+
     if(!initialized_){
       ROS_ERROR("El planificador PumaDwaLocalPlanner no ha sido inicializado.");
       return false;
@@ -93,6 +105,14 @@ namespace puma_dwa_local_planner {
       return false;
     }
 
+    if(waypoints_.empty()){
+      ROS_ERROR("No se han definido waypoints para el planificador PumaDwaLocalPlanner.");
+      return false;
+    }
+
+    /* Actualizar el plan global */
+    updateGlobalPlan();
+
     /* Comprueba si existe informacion de la posicion del robot */
     if (std::isnan(puma_.x)) {
       ROS_WARN("Aun no se ha recibido informacion de la odometria. esperando topico %s. -- PumaDwaLocalPlanner", topic_odom_.c_str());
@@ -102,12 +122,22 @@ namespace puma_dwa_local_planner {
     /* Control de estado en reversa*/
     if (reversing_){
       double distance_run = std::hypot(pos_start_reverse.x - puma_.x, pos_start_reverse.y - puma_.y);
-      if (distance_run < reverse_limit_distance_) {
-        cmd_vel.linear.x = -min_velocity_;  // Velocidad hacia atrás
-        cmd_vel.angular.z = 0;
-        ROS_WARN_THROTTLE(1, "Retrocediendo para intentar evitar obstáculo -- PumaDwaLocalPlanner.");
-        return true;
+      auto path_reverse = simulatePath(-min_velocity_, 0);
+      if (isValidPath(path_reverse)) {
+        publishLocalPath(path_reverse);
+        if (distance_run < reverse_limit_distance_) {
+          cmd_vel.linear.x = -min_velocity_;  // Velocidad hacia atrás
+          cmd_vel.angular.z = 0;
+          ROS_WARN_THROTTLE(1, "Retrocediendo para intentar evitar obstáculo -- PumaDwaLocalPlanner.");
+          return true;
+        } else {
+          ROS_INFO_THROTTLE(1, "Se ha completado la maniobra de retroceso -- PumaDwaLocalPlanner.");
+          cmd_vel.linear.x = 0;
+          reversing_ = false;
+          return false;
+        }
       } else {
+        ROS_WARN_THROTTLE(1, "No se ha encontrado una ruta válida para retroceder -- PumaDwaLocalPlanner.");
         cmd_vel.linear.x = 0;
         reversing_ = false;
         return false;
@@ -195,6 +225,37 @@ namespace puma_dwa_local_planner {
     return true;
   }
 
+  /* Actualizar el plan gloval */
+  void PumaDwaLocalPlanner::updateGlobalPlan() {
+    if (global_plan_.empty()) {
+      return;
+    }
+
+    double min_distance = std::numeric_limits<double>::max();
+    size_t closest_index = 0;
+
+    for (size_t i = 0; i < global_plan_.size(); ++i) {
+      double distance = std::hypot(global_plan_[i].pose.position.x - puma_.x, global_plan_[i].pose.position.y - puma_.y);
+      if (distance < min_distance) {
+        min_distance = distance;
+        closest_index = i;
+      }
+    }
+
+    if (closest_index > 0) {
+      global_plan_.erase(global_plan_.begin(), global_plan_.begin() + closest_index);
+    }
+
+    /* Publicar plan global */
+    nav_msgs::Path global_path;
+    global_path.header.frame_id = "map";
+    global_path.header.stamp = ros::Time::now();
+    for (const auto& pose : global_plan_) {
+      global_path.poses.push_back(pose);
+    }
+    path_global_pub_.publish(global_path);
+  }
+
   /* Limpiar rutas del marcador*/
   visualization_msgs::Marker PumaDwaLocalPlanner::createDeleteAllMarker() const {
     visualization_msgs::Marker delete_marker;
@@ -267,8 +328,16 @@ namespace puma_dwa_local_planner {
       return true;
     }
 
+    const Position goal_point = *waypoints_.begin();
+    double distance_to_waypoint = std::hypot(goal_point.x - puma_.x, 
+                                        goal_point.y - puma_.y);
+    if (distance_to_waypoint <= xy_goal_tolerance_) {
+      ROS_INFO("El robot ha alcanzado el waypoint dentro de la tolerancia %f metros.", xy_goal_tolerance_);
+      waypoints_.erase(waypoints_.begin());
+      return false;
+    }
+
     if (distance_to_goal < 3.0) {
-    
       /* Comprobar estado del destino */
       int cell_x, cell_y;
       getAdjustXYCostmap(goal_x, goal_y, cell_x, cell_y);
@@ -345,12 +414,12 @@ namespace puma_dwa_local_planner {
     }
   
     /* Desviacion de la ruta */
-    int divitionsPath = path.size() / (closest_index_end-closest_index_begin);
-    for (size_t i = closest_index_begin; i < closest_index_end; i++) {
-      int indexPath = (i - closest_index_begin)* divitionsPath;
-      double deviation = std::hypot(path[indexPath].x - global_plan_[i].pose.position.x, path[indexPath].y - global_plan_[i].pose.position.y);
-      cost += deviation * factor_cost_deviation_;
-    }
+    // int divitionsPath = path.size() / (closest_index_end-closest_index_begin);
+    // for (size_t i = closest_index_begin; i < closest_index_end; i++) {
+    //   int indexPath = (i - closest_index_begin)* divitionsPath;
+    //   double deviation = std::hypot(path[indexPath].x - global_plan_[i].pose.position.x, path[indexPath].y - global_plan_[i].pose.position.y);
+    //   cost += deviation * factor_cost_deviation_;
+    // }
     double deviation_final = std::hypot(last_x- global_plan_[closest_index_end].pose.position.x, last_y - global_plan_[closest_index_end].pose.position.y);
     cost += deviation_final * factor_cost_deviation_;
 
@@ -359,8 +428,9 @@ namespace puma_dwa_local_planner {
     cost += normalized_cost_angle + factor_cost_angle_to_plan_;
 
     /* Costo por distancia al objetivo */
-    double distance_to_goal = std::hypot(last_x - goal_pose.pose.position.x, 
-                                        last_y - goal_pose.pose.position.y);
+    const Position goal_point = *waypoints_.begin();
+    double distance_to_goal = std::hypot(goal_point.x - goal_pose.pose.position.x, 
+                                        goal_point.y - goal_pose.pose.position.y);
     cost += distance_to_goal * factor_cost_distance_goal_;
 
     /* Costo por obstaculo */

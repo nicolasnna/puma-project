@@ -7,11 +7,6 @@ Panels:
         - /Global Options1
         - /TF scale 1001/Frames1
         - /Navigation1
-        - /Navigation1/localplanner1
-        - /Navigation1/Global planner1
-        - /Navigation1/global dubin planner1
-        - /Navigation1/local cost1
-        - /Navigation1/Global costmap1
         - /Waypoints1/planned1
         - /Waypoints1/completed1
         - /grid for changemap1/Offset1
@@ -62,18 +57,200 @@ Visualization Manager:
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: false
+      Enabled: true
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_component_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camara_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camara_trasera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_front_accel_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_accel_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_gyro_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_gyro_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_imu_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_infra1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_infra1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_infra2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_infra2_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_rear_accel_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_accel_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_bottom_screw_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_color_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_color_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_gyro_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_gyro_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_imu_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_infra1_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_infra1_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_infra2_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_infra2_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rear_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        dir_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        dir_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gps_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_left_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_left_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: false
+      Value: true
       Visual Enabled: true
     - Class: rviz/TF
       Enabled: false
@@ -249,30 +426,6 @@ Visualization Manager:
           Unreliable: false
           Value: true
         - Alpha: 1
-          Buffer Length: 1
-          Class: rviz/Path
-          Color: 92; 53; 102
-          Enabled: true
-          Head Diameter: 0.30000001192092896
-          Head Length: 0.20000000298023224
-          Length: 0.30000001192092896
-          Line Style: Lines
-          Line Width: 0.029999999329447746
-          Name: global dubin planner
-          Offset:
-            X: 0
-            Y: 0
-            Z: 0
-          Pose Color: 255; 85; 255
-          Pose Style: None
-          Queue Size: 10
-          Radius: 0.029999999329447746
-          Shaft Diameter: 0.10000000149011612
-          Shaft Length: 0.10000000149011612
-          Topic: /move_base/PumaHybridAStarPlanner/global_dubin_plan
-          Unreliable: false
-          Value: true
-        - Alpha: 1
           Class: rviz/Polygon
           Color: 25; 255; 0
           Enabled: true
@@ -320,13 +473,37 @@ Visualization Manager:
           Value: true
         - Alpha: 0.699999988079071
           Class: rviz/Map
-          Color Scheme: costmap
+          Color Scheme: raw
           Draw Behind: false
           Enabled: true
           Name: Global costmap
           Topic: /move_base/global_costmap/costmap
           Unreliable: false
           Use Timestamp: false
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 25; 255; 0
+          Enabled: true
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Lines
+          Line Width: 0.029999999329447746
+          Name: dwa global plan
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Queue Size: 10
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic: /move_base/PumaDwaLocalPlanner/global_plan
+          Unreliable: false
           Value: true
       Enabled: true
       Name: Navigation
@@ -387,68 +564,12 @@ Visualization Manager:
       Reference Frame: <Fixed Frame>
       Value: false
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
-        base_component_link:
-          Value: false
-        base_link:
-          Value: true
-        camara_link:
-          Value: true
-        camera_accel_frame:
-          Value: false
-        camera_accel_optical_frame:
-          Value: false
-        camera_bottom_screw_frame:
-          Value: false
-        camera_color_frame:
-          Value: false
-        camera_color_optical_frame:
-          Value: false
-        camera_depth_frame:
-          Value: false
-        camera_depth_optical_frame:
-          Value: false
-        camera_gyro_frame:
-          Value: false
-        camera_gyro_optical_frame:
-          Value: false
-        camera_imu_optical_frame:
-          Value: false
-        camera_infra1_frame:
-          Value: false
-        camera_infra1_optical_frame:
-          Value: false
-        camera_infra2_frame:
-          Value: false
-        camera_infra2_optical_frame:
-          Value: false
-        camera_link:
-          Value: false
-        dir_left_link:
-          Value: false
-        dir_right_link:
-          Value: false
-        gps_link:
-          Value: false
-        imu_link:
-          Value: false
-        map:
-          Value: false
-        odom:
-          Value: false
-        wheel_left_back_link:
-          Value: false
-        wheel_left_front_link:
-          Value: false
-        wheel_right_back_link:
-          Value: false
-        wheel_right_front_link:
-          Value: false
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -456,49 +577,9 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        map:
-          odom:
-            base_link:
-              base_component_link:
-                {}
-              camara_link:
-                camera_bottom_screw_frame:
-                  camera_link:
-                    camera_accel_frame:
-                      camera_accel_optical_frame:
-                        {}
-                    camera_color_frame:
-                      camera_color_optical_frame:
-                        {}
-                    camera_depth_frame:
-                      camera_depth_optical_frame:
-                        {}
-                    camera_gyro_frame:
-                      camera_gyro_optical_frame:
-                        camera_imu_optical_frame:
-                          {}
-                    camera_infra1_frame:
-                      camera_infra1_optical_frame:
-                        {}
-                    camera_infra2_frame:
-                      camera_infra2_optical_frame:
-                        {}
-              dir_left_link:
-                wheel_left_front_link:
-                  {}
-              dir_right_link:
-                wheel_right_front_link:
-                  {}
-              gps_link:
-                {}
-              imu_link:
-                {}
-              wheel_left_back_link:
-                {}
-              wheel_right_back_link:
-                {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -542,7 +623,7 @@ Visualization Manager:
       Marker Topic: /move_base/PumaDwaLocalPlanner/potential_trajectories
       Name: MarkerArray
       Namespaces:
-        trajectories: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -573,7 +654,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 64.60867309570312
+      Distance: 82.97984313964844
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -581,17 +662,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 10.34347152709961
-        Y: -2.9421114921569824
-        Z: -18.865415573120117
+        X: 7.799545764923096
+        Y: -4.3044538497924805
+        Z: -19.670373916625977
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9951745271682739
+      Pitch: 1.1951743364334106
       Target Frame: <Fixed Frame>
-      Yaw: 2.9535419940948486
+      Yaw: 2.8785409927368164
     Saved: ~
 Window Geometry:
   Displays:
@@ -609,5 +690,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1440
-  X: 416
-  Y: 84
+  X: 0
+  Y: 105

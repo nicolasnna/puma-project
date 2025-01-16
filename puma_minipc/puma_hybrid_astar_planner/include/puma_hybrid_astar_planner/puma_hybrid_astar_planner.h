@@ -11,7 +11,8 @@
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <dynamic_reconfigure/server.h>
-
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/Pose.h>
 
 using std::string;
 
@@ -81,21 +82,24 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
 
     void updateCostNode(std::shared_ptr<Node>& new_node, double new_cost,  std::shared_ptr<Node>& goal_node, std::shared_ptr<Node>& current_node);
 
-    double calculateThetaLimit(double step);
+    std::vector<geometry_msgs::PoseStamped> getSubPlan(Node start, Node end);
 
   private:
     bool isValidNode(const Node& node);
     std::vector<std::shared_ptr<Node>> generateDubinsPath(const Node& start, const Node& end);
     void getAdjustXYCostmap(const Node& node, int& cell_x, int& cell_y);
     double normalizeAngle(double angle);
+    void waypointsCallback(const geometry_msgs::PoseArray& msg);
 
     costmap_2d::Costmap2DROS* costmap_ros_;
     costmap_2d::Costmap2D* costmap_;
     bool initialized_ = false;
-    ros::Publisher potential_map_pub_;
-    ros::Publisher path_dubin_pub_;
-    ros::Publisher path_pub_;
+    ros::Publisher potential_map_pub_, path_combined_pub_, path_pub_, waypoints_to_local_;
+    ros::Subscriber waypoints_sub_;
     nav_msgs::OccupancyGrid potential_map_;
+
+    std::vector<Node> waypoints_;
+    geometry_msgs::PoseArray waypoints_msg_;
 
     /* Parametros */
     double step_size_meters_;
@@ -107,7 +111,6 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     double factor_cost_unknown_;
     double dist_max_to_goal;
     int division_curve_, division_theta_; 
-    bool enable_dubin_;
   };
 };
 

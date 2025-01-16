@@ -2,9 +2,15 @@
 <launch>
 
   <rosparam command="load" file="$(find puma_simulation)/config/localization_params.yaml"/>
-  <node name="ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
-    <remap from="odometry/filtered" to="puma/odometry/filtered"/>
+  <node name="puma_ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
+    <remap from="odometry/filtered" to="puma/localization/ekf_odometry"/>
   </node>
+  <include file="$(find puma_simulation)/launch/core/visual_odometry.launch">
+    <arg name="camera_name" value="camera_front"/>
+  </include>
+  <include file="$(find puma_simulation)/launch/core/visual_odometry.launch">
+    <arg name="camera_name" value="camera_rear"/>
+  </include>
 
   <!-- <node name="robot" pkg="robot_localization" type="robot" output="screen"/> -->
   
@@ -13,16 +19,6 @@
   </node>
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_map" clear_params="true">
     <remap from="odometry/filtered" to="odometry/filtered_map"/>
-  </node> -->
-
-  <include file="$(find puma_simulation)/launch/visual_odometry.launch"/>
-
-  <!-- <node pkg="rtabmap_odom" type="rgbd_odometry" name="odom" output="screen" clear_params="true">
-    <param name="frame_id" value="camera_link" />
-    <remap from="rgb/image" to="/puma/camera/color/image_raw" />
-    <remap from="depth/image" to="/puma/camera/aligned_depth_to_color/image_raw" />
-    <remap from="rgb/camera_info" to="/puma/camera/color/camera_info" />
-    <remap from="odom"            to="/odometry_visual"/>
   </node> -->
 
 </launch>

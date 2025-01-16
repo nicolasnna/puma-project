@@ -31,7 +31,7 @@ class PathFollow(smach.State):
     self.pose_array_completed = rospy.Publisher(ns_topic+'/path_completed', PoseArray, queue_size=3)
     self.mode_selector_pub = rospy.Publisher(change_mode_topic, String, queue_size=3)
     self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
-    
+    self.waypoints_global_planer_pub = rospy.Publisher('/move_base/PumaHybridAStarPlanner/set_waypoints', PoseArray, queue_size=1)
     
   def start_subscriber(self):
     ns_topic = rospy.get_param('~ns_topic','')
@@ -116,65 +116,27 @@ class PathFollow(smach.State):
     copy_gps_info = userdata.gps_nav if userdata.gps_nav else GoalGpsNavInfo()
 
     try:
-      while not rospy.is_shutdown() and not self.is_aborted and index_waypoints < len(userdata.waypoints):
-        waypoint = userdata.waypoints[index_waypoints]
-        ''' Publicar destino uno por uno '''
-        goal = MoveBaseGoal()
-        goal.target_pose.header.frame_id = self.frame_id
-        goal.target_pose.pose.position = waypoint.pose.pose.position
-        goal.target_pose.pose.orientation = waypoint.pose.pose.orientation
-        goal_pos_x = waypoint.pose.pose.position.x
-        goal_pos_y =  waypoint.pose.pose.position.y
-        rospy.loginfo('Ejecutando move_base goal a la position(x,y, theta): %.3f, %.3s, %.3s', 
-                      goal_pos_x, goal_pos_y, waypoint.pose.pose.orientation.z)
-        rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
-
-        ''' Actualizar informacion del waypoints gps '''
-        if (len(userdata.gps_nav.goals) > 0 and index_waypoints > 0 ):
-          if userdata.gps_index[index_waypoints-1]:
-            anterior_index = copy_gps_info.index_to 
-            copy_gps_info.index_from = anterior_index
-            copy_gps_info.index_to = anterior_index + 1
-            copy_gps_info.next_goal = userdata.gps_nav.goals[anterior_index]
-        self.nav_gps_info_pub.publish(copy_gps_info)
-          
-        ''' Enviar destino '''
-        if index_waypoints != 0:
-          self.client.cancel_all_goals()
-          rospy.sleep(0.1) 
-        self.client.send_goal(goal)
-        if waypoint == userdata.waypoints[-1]: 
-          ''' Esperar en caso de ser el ultimo destino '''
-          rospy.loginfo('Esperando en el ultimo destino...')
-          self.send_log("Esperando la llegada al último destino de la ruta.",0)
-          self.client.wait_for_result()
-          if (len(userdata.gps_nav.goals) > 0):
-            copy_gps_info.index_from = len(userdata.gps_nav.goals)
-            copy_gps_info.index_to = len(userdata.gps_nav.goals)
-            self.nav_gps_info_pub.publish(copy_gps_info)
-        else:
-          ''' Bucle para comprobar distancia al destino '''
-          distance = 999
-          while(distance > self.distance_tolerance):
-            self.check_move_base_status()
-            if self.is_aborted:
-              return 'aborted'
-            self.listener.waitForTransform(self.odom_frame_id, self.base_frame_id, rospy.Time(0), rospy.Duration(self.duration))
-            trans,rot = self.listener.lookupTransform(self.odom_frame_id, self.base_frame_id, rospy.Time(0))
-            distance = math.sqrt(pow(goal_pos_x-trans[0],2) + pow(goal_pos_y-trans[1],2))
+      
+      waypoint = userdata.waypoints[index_waypoints]
+      ''' Publicar destino uno por uno '''
+      goal = MoveBaseGoal()
+      goal.target_pose.header.frame_id = self.frame_id
+      goal.target_pose.pose.position = waypoint.pose.pose.position
+      goal.target_pose.pose.orientation = waypoint.pose.pose.orientation
+      
+      msg_to_move_base = PoseArray()
+      msg_to_move_base.header.frame_id = self.frame_id
+      for point in userdata.waypoints:
+        msg_to_move_base.poses.append(point.pose.pose)
         
-        ''' Asegurarse de terminar la ultima orden '''
-        self.client.cancel_all_goals()
-        rospy.sleep(0.1)
-        ''' Actualizar waypoints completados y planificados '''
-        path_complete.poses.append(path_planned.poses[0])
-        path_planned.poses.pop(0)
-        rospy.loginfo('Completado del destino (x, y, theta): %.3f, %.3s, %.3s', 
-                      goal_pos_x, goal_pos_y, waypoint.pose.pose.orientation.z)
-        self.pose_array_completed.publish(path_complete)
-        self.pose_array_planned.publish(path_planned)
-        ''' Actualizar index '''
-        index_waypoints += 1
+      self.waypoints_global_planer_pub.publish(msg_to_move_base)
+      rospy.sleep(0.1)
+      self.waypoints_global_planer_pub.publish(msg_to_move_base)
+      
+      self.client.send_goal(goal)
+      rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
+      self.client.wait_for_result()
+
     except Exception as e:
       self.client.cancel_all_goals()
       rospy.sleep(0.1) 
