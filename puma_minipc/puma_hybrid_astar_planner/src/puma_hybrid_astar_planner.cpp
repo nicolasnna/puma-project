@@ -29,6 +29,7 @@ namespace puma_hybrid_astar_planner {
       path_combined_pub_= private_nh.advertise<nav_msgs::Path>("global_plan", 2);
       potential_map_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential_map", 1);
       waypoints_sub_ = private_nh.subscribe("set_waypoints", 1, &PumaHybridAStarPlanner::waypointsCallback, this);
+      waypoints_to_local_ = private_nh.advertise<geometry_msgs::PoseArray>("/move_base/PumaDwaLocalPlanner/set_waypoints", 1);
 
       initialized_ = true;
     }
@@ -36,6 +37,7 @@ namespace puma_hybrid_astar_planner {
 
   void PumaHybridAStarPlanner::waypointsCallback(const geometry_msgs::PoseArray& msg){
     waypoints_.clear();
+    waypoints_msg_ = msg;
     for (const geometry_msgs::Pose& pose : msg.poses) {
       auto new_pose = Node(pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
       waypoints_.push_back(new_pose);
@@ -111,6 +113,7 @@ namespace puma_hybrid_astar_planner {
     }
     plan = plan_complete;
     ROS_WARN("Plan creado exitosamente.");
+    waypoints_to_local_.publish(waypoints_msg_);
     return true;
   }
 

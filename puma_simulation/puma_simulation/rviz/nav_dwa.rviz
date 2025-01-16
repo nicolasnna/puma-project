@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /TF scale 1001/Frames1
-        - /Navigation1/Global costmap1
+        - /Navigation1
         - /Waypoints1/planned1
         - /Waypoints1/completed1
         - /grid for changemap1/Offset1
@@ -426,30 +426,6 @@ Visualization Manager:
           Unreliable: false
           Value: true
         - Alpha: 1
-          Buffer Length: 1
-          Class: rviz/Path
-          Color: 92; 53; 102
-          Enabled: true
-          Head Diameter: 0.30000001192092896
-          Head Length: 0.20000000298023224
-          Length: 0.30000001192092896
-          Line Style: Lines
-          Line Width: 0.029999999329447746
-          Name: global dubin planner
-          Offset:
-            X: 0
-            Y: 0
-            Z: 0
-          Pose Color: 255; 85; 255
-          Pose Style: None
-          Queue Size: 10
-          Radius: 0.029999999329447746
-          Shaft Diameter: 0.10000000149011612
-          Shaft Length: 0.10000000149011612
-          Topic: /move_base/PumaHybridAStarPlanner/global_dubin_plan
-          Unreliable: false
-          Value: true
-        - Alpha: 1
           Class: rviz/Polygon
           Color: 25; 255; 0
           Enabled: true
@@ -504,6 +480,30 @@ Visualization Manager:
           Topic: /move_base/global_costmap/costmap
           Unreliable: false
           Use Timestamp: false
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz/Path
+          Color: 25; 255; 0
+          Enabled: true
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Lines
+          Line Width: 0.029999999329447746
+          Name: dwa global plan
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Queue Size: 10
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic: /move_base/PumaDwaLocalPlanner/global_plan
+          Unreliable: false
           Value: true
       Enabled: true
       Name: Navigation
@@ -654,7 +654,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 27.10763931274414
+      Distance: 82.97984313964844
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -662,9 +662,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 6.840407371520996
-        Y: -3.0148496627807617
-        Z: -20.167835235595703
+        X: 7.799545764923096
+        Y: -4.3044538497924805
+        Z: -19.670373916625977
       Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

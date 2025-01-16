@@ -13,6 +13,7 @@
 #include <cmath>
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/Path.h>
+#include <geometry_msgs/PoseArray.h>
 
 struct Position {
   double x, y, yaw;
@@ -57,6 +58,9 @@ namespace puma_dwa_local_planner {
       double adjustVelocityForAcceleration(double target_velocity, double current_velocity);
       void publishLocalPath(std::vector<Position>);
       void getAdjustXYCostmap(double, double, int&, int&);
+      void waypointsCallback(const geometry_msgs::PoseArray& msg);
+      void updateGlobalPlan();
+
       /* Variables heredadas */
       costmap_2d::Costmap2DROS* costmap_ros_;
       costmap_2d::Costmap2D* costmap_;
@@ -80,10 +84,13 @@ namespace puma_dwa_local_planner {
       /* Factor cost */
       double factor_cost_deviation_, factor_cost_distance_goal_;
       double factor_cost_angle_to_plan_, factor_cost_obstacle_;
+      std::vector<Position> waypoints_;
       std::string topic_odom_;
       ros::Subscriber odometry_puma;
+      ros::Subscriber waypoints_sub_;
       ros::Publisher trajectory_pub_;
       ros::Publisher path_local_pub_;
+      ros::Publisher path_global_pub_;
 
   };
 

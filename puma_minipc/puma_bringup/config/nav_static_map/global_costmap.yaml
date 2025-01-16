@@ -9,8 +9,8 @@ global_costmap:
   obstacle_layer:
     footprint_clearing_enabled: true
     inflation_radius: 2
-    observation_sources: camera_sensor
-    camera_sensor:
+    observation_sources: camera_front_sensor
+    camera_front_sensor:
       {
         sensor_frame: camera_depth_optical_frame,
         data_type: PointCloud2,

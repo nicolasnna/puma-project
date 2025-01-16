@@ -14,7 +14,7 @@ global_costmap:
   inflation_layer:
     enabled: true
     cost_scaling_factor: 2.0 # exponential rate at which the obstacle cost drops off (default: 10)
-    inflation_radius: 4 # max. distance from an obstacle at which costs are incurred for planning paths.
+    inflation_radius: 2 # max. distance from an obstacle at which costs are incurred for planning paths.
 
   transform_tolerance: 0.5
   plugins:
