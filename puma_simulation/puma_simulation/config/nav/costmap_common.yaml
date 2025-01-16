@@ -1,5 +1,5 @@
-#footprint: [[-1.6, -0.65], [-1.6, 0.65], [0.4, 0.65], [0.4, -0.65]]
-footprint: [[-0.4, -0.65], [-0.4, 0.65], [1.6, 0.65], [1.6, -0.65]]
+footprint: [[-0.9, -0.65], [-0.9, 0.65], [1, 0.65], [1, -0.65]]
+# footprint: [[-0.4, -0.65], [-0.4, 0.65], [1.6, 0.65], [1.6, -0.65]]
 transform_tolerance: 0.2
 map_type: costmap
 
@@ -13,7 +13,7 @@ obstacle_layer:
     {
       sensor_frame: camera_depth_optical_frame,
       data_type: PointCloud2,
-      topic: /puma/camera/depth/color/points,
+      topic: /puma/sensors/camera_front/depth/color/points,
       marking: true,
       clearing: true,
       min_obstacle_height: 0.4,

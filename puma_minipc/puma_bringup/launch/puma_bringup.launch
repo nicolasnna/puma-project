@@ -1,18 +1,22 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="dual_camera" default="true"/>
   
   <!-- Arduino -->
   <node name="serial_node_minipc" pkg="rosserial_python" type="serial_node.py"  output="log" respawn="true" respawn_delay="2">
   </node>
+
+  <!-- camera -->
+  <include file="$(find puma_bringup)/launch/camera_bringup.launch">
+    <arg name="dual_camera" value="$(arg dual_camera)"/>
+  </include>
+
   <arg name="path" value="$(find puma_bringup)/launch/core"/>
-  <!-- Camera -->
-  <include file="$(arg path)/realsense_camera.launch"/>
+
   <!-- Localization -->
   <include file="$(arg path)/localization_bringup.launch"/>
   <!-- Navigation -->
   <include file="$(arg path)/puma_navigation_bringup.launch"/>
-  <!-- visual odometry -->
-  <include file="$(arg path)/visual_odometry.launch"/>
   <!-- Monitor temperature -->
   <include file="$(arg path)/minipc_monitor.launch"/>
   <!-- Web interface -->

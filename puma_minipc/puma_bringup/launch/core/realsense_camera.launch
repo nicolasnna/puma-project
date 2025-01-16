@@ -1,12 +1,19 @@
 <launch>
   <arg name="device_type"         default="d455"/>
-  <arg name="camera"              default="camera"/>
+  <arg name="camera_name"         default="camera_front"/>
+  <arg name="output"              default="screen"/>
+  <arg name="camera_prefix"       default="puma/sensors/$(arg camera_name)"/>
+  <arg name="serial_no"           default=""/>
 
-  <group ns="puma/camera">
+  <!-- 215122255064 -->
+
+  <group ns="$(arg camera_prefix)">
     <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
-      <arg name="output"                   value="screen"/>
+      <arg name="tf_prefix"                value="$(arg camera_name)"/>
+      <arg name="output"                   value="$(arg output)"/>
       <arg name="respawn"                  value="true"/>
       <arg name="device_type"              value="$(arg device_type)"/>
+      <arg name="serial_no"                value="$(arg serial_no)"/> <!-- Numero unico del dispositivo -->
 
       <arg name="depth_width"       value="640"/>
       <arg name="depth_height"      value="480"/>
@@ -26,12 +33,18 @@
       <arg name="linear_accel_cov"  value="1.0"/>
       <arg name="unite_imu_method"  value="linear_interpolation"/>
       <arg name="enable_pose"       value="true"/>
-
       <arg name="enable_pointcloud" value="true"/>
       <arg name="enable_sync"       value="true"/>
-      <arg name="tf_prefix"         value="$(arg camera)"/>
       
     </include>
   </group> 
+  
+  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_$(arg camera_name)" output="$(arg output)">
+    <param name="use_mag" type="bool" value="false" />
+    <param name="publish_tf" type="bool" value="false" />
+    <param name="world_frame" type="string" value="enu" />
+    <remap from="imu/data_raw" to="$(arg camera_prefix)/imu"/>
+    <remap from="imu/data" to="$(arg camera_prefix)/imu/filtered"/>
+  </node>
   
 </launch>

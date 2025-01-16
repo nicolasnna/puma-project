@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Argumentos principales -->
+  <arg name="camera_name" default="camera_front"/>
+  <arg name="camera_prefix" default="/puma/sensors/$(arg camera_name)"/>
+  <arg name="ns_rtabmap" default="puma/rtabmap/$(arg camera_name)"/>
+
+  <arg name="frame_id" default="base_link"/>
+  <arg name="odom_topic" default="odom_visual"/>
+  <arg name="rgb_topic" value="$(arg camera_prefix)/color/image_raw"/>
+  <arg name="depth_topic" value="$(arg camera_prefix)/aligned_depth_to_color/image_raw"/>
+  <arg name="camera_info_topic" value="$(arg camera_prefix)/color/camera_info"/>
+  <arg name="approx_sync" default="true"/>
+  <arg name="args" default="--delete_db_on_start"/>
+
+  <!-- Nodo de odometría RGB-D -->
+  <node pkg="rtabmap_odom" ns="$(arg ns_rtabmap)" type="rgbd_odometry" name="rgbd_odometry" args="$(arg args)">
+    
+    <!-- Remapeo de tópicos -->
+    <remap from="rgb/image" to="$(arg rgb_topic)"/>
+    <remap from="depth/image" to="$(arg depth_topic)"/>
+    <remap from="rgb/camera_info" to="$(arg camera_info_topic)"/>
+    <remap from="odom" to="$(arg odom_topic)"/>
+
+    <param name="Odom/Strategy" type="string" value="0"/>      <!-- 0=Frame-to-Map, 1=Frame-to-KeyFrame -->
+    <param name="Odom/ResetCountdown" type="string" value="15"/>
+    <!-- <param name="Odom/GuessSmoothingDelay" type="string" value="0"/> -->
+
+    <!-- Parámetros básicos -->
+    <param name="frame_id" type="string" value="$(arg frame_id)"/>
+    <param name="publish_tf" type="bool" value="false"/>
+    <param name="wait_for_transform" type="bool" value="true"/>
+    <param name="approx_sync" type="bool" value="$(arg approx_sync)"/>
+    <param name="queue_size" type="int" value="4"/>
+  </node>
+  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_$(arg camera_name)" output="screen">
+    <param name="use_mag" type="bool" value="false" />
+    <param name="publish_tf" type="bool" value="false" />
+    <param name="world_frame" type="string" value="enu" />
+    <remap from="imu/data_raw" to="$(arg camera_prefix)/imu"/>
+    <remap from="imu/data" to="$(arg camera_prefix)/imu/filtered"/>
+  </node>
+
+</launch>

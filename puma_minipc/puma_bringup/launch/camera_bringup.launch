@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="dual_camera" default="true"/>
+  <arg name="path" value="$(find puma_bringup)/launch/core"/>
+
+  <!-- Camera -->
+  <include file="$(arg path)/realsense_camera.launch">
+    <arg name="camera_name" value="camera_front"/>
+    <arg name="serial_no" value="215122255064"/>
+  </include>
+  <!-- visual odometry -->
+  <include file="$(arg path)/visual_odometry.launch">
+    <arg name="camera_name" value="camera_front"/>
+  </include>
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="camera_front_imu_tf" args="0 0 0 0 0 0 camera_front_link base_link"/> -->
+
+  <group if="$(arg dual_camera)">
+    <!-- Camara trasera -->
+    <include file="$(arg path)/realsense_camera.launch">
+      <arg name="camera_name" value="camera_rear"/>
+    </include>
+    <!-- visual odometry -->
+    <include file="$(arg path)/visual_odometry.launch">
+      <arg name="camera_name" value="camera_rear"/>
+    </include>
+  </group>
+
+</launch>

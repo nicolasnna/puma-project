@@ -4,7 +4,6 @@ from puma_fake_driver.wheel_controller import WheelController
 from puma_fake_driver.direction_controller import DirectionController
 from puma_fake_driver.arduino_controller import ArduinoController
 from puma_fake_driver.tachometer_controller import TachometerController
-import math
 
 if __name__ == "__main__":
   try:
@@ -47,4 +46,4 @@ if __name__ == "__main__":
       rate.sleep()
       
   except Exception as e:
-    rospy.logerr("Nodo 'puma_gazebo_controller' desactivado!!: %s", e)
+    rospy.logwarn("Nodo 'puma_gazebo_controller' desactivado!!: %s", e)

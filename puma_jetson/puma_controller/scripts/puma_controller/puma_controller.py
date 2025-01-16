@@ -94,7 +94,7 @@ class PumaController:
 
     if self.config.connect_to_ackermann_converter:
       rospy.Subscriber('/puma/control/ackermann', AckermannDriveStamped, self.ackermann_callback)
-    rospy.Subscriber('/puma/odometry/filtered', Odometry, self.odometry_callback)
+    rospy.Subscriber('/puma/localization/ekf_odometry', Odometry, self.odometry_callback)
     rospy.Subscriber('/puma/control/current_mode', String, self.selector_mode_callback)
     rospy.Subscriber('/cmd_vel', Twist, self.cmdvel_callback)
     rospy.Subscriber('/puma/web/teleop', WebTeleop, self.web_command_callback)

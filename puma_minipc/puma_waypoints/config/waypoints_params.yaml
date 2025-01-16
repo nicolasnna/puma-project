@@ -2,7 +2,7 @@ puma_waypoints:
   add_pose_topic: /initialpose
   ns_topic: /puma/waypoints 
   gps_topic: /puma/sensors/gps/fix
-  odometry_topic: /puma/odometry/filtered
+  odometry_topic: /puma/localization/ekf_odometry
   change_mode_topic: /puma/control/change_mode
 
   goal_frame_id: map

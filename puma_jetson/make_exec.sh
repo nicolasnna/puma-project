@@ -31,10 +31,10 @@ else
     echo " -X no se ha encontrado puma_controller.py"
 fi
 
-if [ -f "puma_control_mode_selector/scripts/control_mode_node.py" ]; then
-    chmod +x puma_control_mode_selector/scripts/control_mode_node.py && echo " -> control_mode_selector listo !!!"
+if [ -f "puma_mode_control/scripts/control_mode_node.py" ]; then
+    chmod +x puma_mode_control/scripts/control_mode_node.py && echo " -> control_mode_selector listo !!!"
 else
-    echo " -X no se ha encontrado puma_control_mode_selector.py"
+    echo " -X no se ha encontrado control_mode_node.py"
 fi
 
 

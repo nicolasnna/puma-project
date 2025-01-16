@@ -1,9 +1,9 @@
 PumaDwaLocalPlanner:
-  topic_odom: puma/odometry/filtered
+  topic_odom: puma/localization/ekf_odometry
 
-  max_velocity: 1.0
-  min_velocity: 0.3 # Tambien es la velocidad lineal de giro
-  max_steering_angle: 0.785 # 45 grados 
+  max_velocity: 1.2
+  min_velocity: 0.6 # Tambien es la velocidad lineal de giro
+  max_steering_angle: 0.698 # 45 grados 
   acceleration_x: 0.2
   desacceleration_x: 0.3
   distance_for_desacceleration: 4.0

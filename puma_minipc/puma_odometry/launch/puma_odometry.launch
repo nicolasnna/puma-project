@@ -2,6 +2,8 @@
 <launch>
   <rosparam command="load" file="$(find puma_odometry)/config/odometry_params.yaml"/>
   
-  <node name="puma_odometry_node" pkg="puma_odometry" type="puma_odometry_node.py" output="screen"/>
+  <node name="puma_odometry_node" pkg="puma_odometry" type="puma_odometry_node.py" output="screen">
+    <remap from="puma/odom" to="puma/localization/odometry_wheel"/>
+  </node>
   
 </launch>

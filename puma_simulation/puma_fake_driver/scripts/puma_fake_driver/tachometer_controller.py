@@ -38,23 +38,24 @@ class TachometerController():
     '''
     Gazebo model states callback
     '''
-    names = data_received.name
-    if (names.index('puma_model')):
-      index = names.index('puma_model')
-      
-      vel_x = data_received.twist[index].linear.x
-      vel_y = data_received.twist[index].linear.y
-      vel_z = data_received.twist[index].linear.z
-      
-      vel_magnitude = round(math.sqrt(vel_x**2 + vel_y**2 + vel_z**2),3)
-      vel_measurement_msg = Float64()
-      vel_measurement_msg.data = vel_magnitude
-      self.vel_measurement_pub.publish(vel_measurement_msg)
-      
-      rpm_wheels = vel_magnitude / (self.wheels_diameter * math.pi) * 60
-      time = self.limit_time / 1000
+    if isinstance(data_received.name, list):
+      names = data_received.name
+      if 'puma_model' in names:
+        index = names.index('puma_model')
+        
+        vel_x = data_received.twist[index].linear.x
+        vel_y = data_received.twist[index].linear.y
+        vel_z = data_received.twist[index].linear.z
+        
+        vel_magnitude = round(math.sqrt(vel_x**2 + vel_y**2 + vel_z**2),3)
+        vel_measurement_msg = Float64()
+        vel_measurement_msg.data = vel_magnitude
+        self.vel_measurement_pub.publish(vel_measurement_msg)
+        
+        rpm_wheels = vel_magnitude / (self.wheels_diameter * math.pi) * 60
+        time = self.limit_time / 1000
 
-      self.pulses = int(rpm_wheels * self.transmission_ratio * time / 60)
+        self.pulses = int(rpm_wheels * self.transmission_ratio * time / 60)
     
   def _velocity_callback(self, data_received):
     '''
