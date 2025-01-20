@@ -11,7 +11,7 @@ PumaDwaLocalPlanner:
   reverse_limit_distance: 2.0
   time_simulation: 4.0
 
-  xy_goal_tolerance: 0.5
+  xy_goal_tolerance: 1.5
   steering_samples: 12
 
   factor_cost_deviation_: 10.0
