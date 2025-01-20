@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   nav_msgs
   pluginlib
+  puma_msgs
   roscpp
   nav_core
   tf

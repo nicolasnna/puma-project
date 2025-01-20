@@ -6,7 +6,7 @@ import tf
 import json
 import math
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps, Log
+from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps, Log, Waypoint
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
@@ -25,6 +25,7 @@ class PathSelect(smach.State):
     self.pose_array_completed = rospy.Publisher(ns_topic + '/path_completed', PoseArray, queue_size=4)
     self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
     self.log_pub = rospy.Publisher('/puma/logs/add_log',  Log, queue_size=3)
+    self.waypoints_add_ = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=3)
     
     ''' Variables '''
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
@@ -242,11 +243,21 @@ class PathSelect(smach.State):
         poseInter.pose.pose.orientation.w = w_qua
         
         self.waypoints.append(self.convert_frame_pose(poseInter,'map'))
+        waypoint = Waypoint()
+        waypoint.x = x_inter
+        waypoint.y = y_inter
+        waypoint.yaw = math.radians(yaw)
+        self.waypoints_add_.publish(waypoint)
         distance_between_points -= distance_limit 
         x_current = x_inter
         y_current = y_inter
           
       self.waypoints.append(self.convert_frame_pose(pose,'map'))
+      waypoint = Waypoint()
+      waypoint.x = pose.pose.pose.position.x
+      waypoint.y = pose.pose.pose.position.y
+      waypoint.yaw = math.radians(yaw)
+      self.waypoints_add_.publish(waypoint)
       self.send_log(f"Añadido el waypoint local en x: {round(pose.pose.pose.position.x,2)} e y: {round(pose.pose.pose.position.y,2)}",0)
     
   def initialize_path_waypoints(self):

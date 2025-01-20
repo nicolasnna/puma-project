@@ -14,6 +14,8 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseArray.h>
+#include <puma_msgs/WaypointNav.h>
+#include <puma_msgs/Waypoint.h>
 
 struct Position {
   double x, y, yaw;
@@ -58,8 +60,9 @@ namespace puma_dwa_local_planner {
       double adjustVelocityForAcceleration(double target_velocity, double current_velocity);
       void publishLocalPath(std::vector<Position>);
       void getAdjustXYCostmap(double, double, int&, int&);
-      void waypointsCallback(const geometry_msgs::PoseArray& msg);
       void updateGlobalPlan();
+      void loadParams(ros::NodeHandle& nh);
+      bool validateGoalReached(double goal_x, double goal_y, double current_x, double current_y);
 
       /* Variables heredadas */
       costmap_2d::Costmap2DROS* costmap_ros_;
@@ -69,6 +72,7 @@ namespace puma_dwa_local_planner {
       std::vector<geometry_msgs::PoseStamped> global_plan_;
       geometry_msgs::PoseStamped goal_pose;
       bool reversing_;
+      bool waypoints_received_ = false;
       Position pos_start_reverse;
 
       /* Params */
@@ -79,18 +83,21 @@ namespace puma_dwa_local_planner {
       double acceleration_x_, desacceleration_x_;
       double distance_for_desacceleration_;
       int steering_samples_;
+      int max_index_path_compare_;
+      std::string ns_waypoints_manager_, ns_plan_manager_;
       Position puma_;
 
       /* Factor cost */
       double factor_cost_deviation_, factor_cost_distance_goal_;
       double factor_cost_angle_to_plan_, factor_cost_obstacle_;
       std::vector<Position> waypoints_;
+      puma_msgs::WaypointNav waypoints_info_;
       std::string topic_odom_;
       ros::Subscriber odometry_puma;
-      ros::Subscriber waypoints_sub_;
       ros::Publisher trajectory_pub_;
       ros::Publisher path_local_pub_;
       ros::Publisher path_global_pub_;
+      ros::Publisher waypoints_achieved_pub_, plan_update_pub_;
 
   };
 
