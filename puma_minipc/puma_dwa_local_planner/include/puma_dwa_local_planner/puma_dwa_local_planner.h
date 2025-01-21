@@ -73,6 +73,7 @@ namespace puma_dwa_local_planner {
       geometry_msgs::PoseStamped goal_pose;
       bool reversing_;
       Position pos_start_reverse;
+      std::vector<Position> previus_selected_path;
 
       /* Params */
       double max_velocity_, min_velocity_, max_steering_angle_;
@@ -89,13 +90,13 @@ namespace puma_dwa_local_planner {
       /* Factor cost */
       double factor_cost_deviation_, factor_cost_distance_goal_;
       double factor_cost_angle_to_plan_, factor_cost_obstacle_;
+      double factor_cost_angle_between_local_path_;
       std::vector<Position> waypoints_;
       puma_msgs::WaypointNav waypoints_info_;
       std::string topic_odom_;
       ros::Subscriber odometry_puma;
       ros::Publisher trajectory_pub_;
-      ros::Publisher path_local_pub_;
-      ros::Publisher path_global_pub_;
+      ros::Publisher path_local_pub_, path_global_pub_;
       ros::Publisher waypoints_achieved_pub_, plan_update_pub_;
 
   };

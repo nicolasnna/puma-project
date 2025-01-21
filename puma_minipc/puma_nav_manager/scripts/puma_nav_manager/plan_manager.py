@@ -22,7 +22,7 @@ class PlanManager:
     self.clean_plan_pub = rospy.Subscriber(ns+'/clean', Empty, self.clean_plan_callback)
 
   def restart_plan_callback(self, msg):
-    self._plan_remaining = self._plan
+    self._plan_remaining = self._plan[:]
     
   def clean_plan_callback(self, msg):
     self._plan_remaining = []

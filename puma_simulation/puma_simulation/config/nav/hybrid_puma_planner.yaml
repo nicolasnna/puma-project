@@ -13,6 +13,9 @@ PumaHybridAStarPlanner:
   factor_cost_angle_goal: 10
   factor_cost_obstacle: 100
   factor_cost_unknown: 0.4
+  # Comprobar la carga de planes externo
+  check_plan_loader: true
 
   ns_waypoints_manager: "/puma/navigation/waypoints"
   ns_plan_manager: "/puma/navigation/plan"
+  ns_files_manager: "/puma/navigation/files"

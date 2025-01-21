@@ -56,6 +56,7 @@ namespace puma_dwa_local_planner {
     nh.param("ns_waypoints_manager", ns_waypoints_manager_, std::string("/puma/navigation/waypoints"));
     nh.param("ns_plan_manager", ns_plan_manager_, std::string("/puma/navigation/plan"));
     nh.param("max_index_path_compare", max_index_path_compare_, 20);
+    nh.param("factor_cost_angle_between_local_path", factor_cost_angle_between_local_path_, 1.0);
   }
 
   /* Callback odometry */
@@ -94,13 +95,13 @@ namespace puma_dwa_local_planner {
     global_plan_ = orig_global_plan;
     goal_pose = global_plan_.back();
     // Esperar a recibir un mensaje del tópico de waypoints
+    waypoints_.clear();
     puma_msgs::WaypointNavConstPtr waypoints_msg = ros::topic::waitForMessage<puma_msgs::WaypointNav>(ns_waypoints_manager_ + std::string("/waypoints_info"), ros::Duration(10.0));
     if (!waypoints_msg) {
       ROS_WARN("No se recibió ningún mensaje de waypoints en el tiempo esperado.");
       return false;
     }
     waypoints_info_ = *waypoints_msg;
-    waypoints_.clear();
     for (const puma_msgs::Waypoint& waypoint : waypoints_msg->waypoints) {
       Position new_pose = Position(waypoint.x, waypoint.y, waypoint.yaw);
       waypoints_.push_back(new_pose);
@@ -185,7 +186,7 @@ namespace puma_dwa_local_planner {
       cmd_vel.linear.x = adjustVelocityForAcceleration(cmd_vel.linear.x, puma_.vel_x);
     /* Publicar plan a seguir */
     publishLocalPath(best_path);
-
+    previus_selected_path = best_path;
     return true;
   }
 
@@ -375,7 +376,6 @@ namespace puma_dwa_local_planner {
   /* Calcular el costo asociado a la trayectoria  */
   double PumaDwaLocalPlanner::calculatePathCost(const std::vector<Position>& path) {
     double cost;
-
     double last_x = path.back().x;
     double last_y = path.back().y;
     double last_yaw = path.back().yaw;
@@ -390,18 +390,25 @@ namespace puma_dwa_local_planner {
       }
     }
 
+
     if (min_distance_end == std::numeric_limits<double>::max()) {
       ROS_WARN("Error al estimar distancia entre la ruta planteada y la global");
       return std::numeric_limits<double>::max();
     }
+
   
     /* Desviacion de la ruta */
     double deviation_final = std::hypot(last_x- global_plan_[closest_index_end].pose.position.x, last_y - global_plan_[closest_index_end].pose.position.y);
     cost += deviation_final * factor_cost_deviation_;
 
-    /* Costo asociado de diferencia de angulo respecto al plan */
-    double normalized_cost_angle = std::abs(last_yaw - tf::getYaw(global_plan_[closest_index_end].pose.orientation));
+    /* Costo asociado de diferencia de angulo respecto al plan */;
+    double normalized_cost_angle = std::abs(normalizeAngle(last_yaw - tf::getYaw(global_plan_[closest_index_end].pose.orientation)));
     cost += normalized_cost_angle + factor_cost_angle_to_plan_;
+
+    if (previus_selected_path.size() > 0) {
+      double diff_cost_angle_paths = std::abs(normalizeAngle(last_yaw - previus_selected_path.back().yaw));
+      cost += diff_cost_angle_paths * factor_cost_angle_between_local_path_;
+    }
 
     /* Costo por distancia al objetivo */
     const Position goal_point = *waypoints_.begin();
