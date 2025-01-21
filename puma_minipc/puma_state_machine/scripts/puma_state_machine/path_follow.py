@@ -117,12 +117,17 @@ class PathFollow(smach.State):
 
     try:
       rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
+      is_complete = False
       goal = MoveBaseGoal()
       goal.target_pose.header.frame_id = self.frame_id
       goal.target_pose.header.stamp = rospy.Time.now()
       goal.target_pose.pose.orientation.w = 1.0
       self.client.send_goal(goal)
-      self.client.wait_for_result()
+      while not is_complete:
+        self.check_move_base_status()
+        is_complete = self.client.wait_for_result(rospy.Duration(1))
+        if self.is_aborted:
+          break
 
     except Exception as e:
       self.client.cancel_all_goals()

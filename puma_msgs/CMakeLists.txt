@@ -52,6 +52,7 @@ add_message_files(
   AcceleratorInfo.msg
   ArduinoControlInfo.msg
   BrakeInfo.msg
+  ConfigurationStateMachine.msg
   DirectionCmd.msg
   DirectionInfo.msg
   GoalGps.msg
