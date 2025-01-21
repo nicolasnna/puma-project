@@ -10,7 +10,7 @@ from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from pathlib import Path
-from puma_waypoints.utils import calc_goal_from_gps, calculate_bearing_from_xy, yaw_to_quaternion
+from puma_state_machine.utils import calc_goal_from_gps, calculate_bearing_from_xy, yaw_to_quaternion
 import tf.transformations
 
 class PathSelect(smach.State):
@@ -28,7 +28,7 @@ class PathSelect(smach.State):
     self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=3)
     
     ''' Variables '''
-    self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
+    self.output_file_path = rospkg.RosPack().get_path('puma_state_machine') + "/saved_path"
     self.waypoints = []
     self.activate_mode = False
     
@@ -55,7 +55,7 @@ class PathSelect(smach.State):
   def send_log(self, msg, level):
     log = Log()
     log.level = level
-    log.node = 'puma_waypoints/path_select'
+    log.node = 'puma_state_machine/path_select'
     log.content = msg
     self.log_pub.publish(log)
     
@@ -213,7 +213,7 @@ class PathSelect(smach.State):
     rospy.loginfo('------------------------------')
     rospy.loginfo('----- Estado Path Select -----')
     rospy.loginfo('------------------------------')
-    self.send_log("Iniciando el estado de selección de ruta (puma_waypoints).",0)
+    self.send_log("Iniciando el estado de selección de ruta (puma_state_machine).",0)
     self.start_subscriber()
     self.initialize_path_waypoints()
     self.path_ready = False
@@ -225,8 +225,8 @@ class PathSelect(smach.State):
         self.publish_waypoints_rviz()
         rospy.Rate(10).sleep()
     except rospy.exceptions.ROSInterruptException:
-      self.send_log("Interrupcion de ROS en la 'selección de ruta' en puma_waypoints.",2)
-      rospy.logwarn("-> Cerrando puma_waypoints -- PATH_SELECT.")
+      self.send_log("Interrupcion de ROS en la 'selección de ruta' en puma_state_machine.",2)
+      rospy.logwarn("-> Cerrando puma_state_machine -- PATH_SELECT.")
       
     ''' Enviar datos al siguiente estado '''
     self.end_subscriber()

@@ -1,6 +1,6 @@
-puma_waypoints:
+puma_state_machine:
   add_pose_topic: /initialpose
-  ns_topic: /puma/waypoints 
+  ns_topic: /puma/state_machine 
   gps_topic: /puma/sensors/gps/fix
   odometry_topic: /puma/localization/ekf_odometry
   change_mode_topic: /puma/control/change_mode

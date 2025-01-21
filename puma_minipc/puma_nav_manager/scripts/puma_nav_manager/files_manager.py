@@ -46,8 +46,7 @@ class FilesManager:
         rospy.loginfo(f'Plan exportado con éxito con el nombre {file_name.data}.json')
       except Exception as e:
         rospy.logerr(f'Error al exportar plan: {e}')
-        
-    
+  
   def set_plan_callback(self, plan):
     self._plan = plan
   

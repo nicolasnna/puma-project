@@ -7,7 +7,7 @@ Panels:
         - /Global Options1
         - /TF scale 1001/Frames1
         - /Navigation1
-        - /Navigation1/dwa global plan1
+        - /Waypoints1
         - /Waypoints1/planned1
         - /Waypoints1/completed1
         - /grid for changemap1/Offset1
@@ -524,7 +524,7 @@ Visualization Manager:
           Shaft Length: 0.23000000417232513
           Shaft Radius: 0.009999999776482582
           Shape: Arrow (Flat)
-          Topic: /puma/waypoints/path_planned
+          Topic: /puma/state_machine/path_planned
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -624,7 +624,7 @@ Visualization Manager:
       Marker Topic: /move_base/PumaDwaLocalPlanner/potential_trajectories
       Name: MarkerArray
       Namespaces:
-        trajectories: true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -655,7 +655,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 80.6843490600586
+      Distance: 62.48196029663086
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1

@@ -7,7 +7,7 @@ namespace buttons_waypoints {
 
   ReadyPath::ReadyPath() {
     ros::NodeHandle nh_;
-    publisher_ = nh_.advertise<std_msgs::Empty>("/puma/waypoints/plan_ready", 1);
+    publisher_ = nh_.advertise<std_msgs::Empty>("/puma/state_machine/plan_ready", 1);
   }
 
   ReadyPath::~ReadyPath() {}

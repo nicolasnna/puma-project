@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import rospy
-from puma_waypoints.path_select import PathSelect
-from puma_waypoints.path_follow import PathFollow
-from puma_waypoints.path_complete import PathComplete
-from puma_waypoints.charge_mode import ChargeMode
+from puma_state_machine.path_select import PathSelect
+from puma_state_machine.path_follow import PathFollow
+from puma_state_machine.path_complete import PathComplete
+from puma_state_machine.charge_mode import ChargeMode
 import smach
 import smach_ros
 
 if __name__ == "__main__":
-  rospy.init_node('puma_waypoints')
+  rospy.init_node('puma_state_machine')
   sm = smach.StateMachine(outcomes=['success'])
   
   with sm:
@@ -22,13 +22,13 @@ if __name__ == "__main__":
                           transitions={'finish_charge':'PATH_SELECT'})
     
   # For see state machine in diagram
-  sis = smach_ros.IntrospectionServer('puma', sm, '/WAYPOINTS')
+  sis = smach_ros.IntrospectionServer('puma', sm, '/state_machine')
   sis.start()
   
   try:
     outcome = sm.execute()
   except:
-    rospy.logwarn("Interrupción detectada. Cerrando puma_waypoints.")
+    rospy.logwarn("Interrupción detectada. Cerrando puma_state_machine.")
   finally:
     sis.stop()  # Ensure introspection server is stopped if the node is interrupted
-    rospy.logwarn("Nodo puma_waypoints cerrado correctamente.")
+    rospy.logwarn("Nodo puma_state_machine cerrado correctamente.")

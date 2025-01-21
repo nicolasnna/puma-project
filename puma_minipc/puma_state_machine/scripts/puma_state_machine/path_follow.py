@@ -47,7 +47,7 @@ class PathFollow(smach.State):
     
   def check_move_base_status(self):
     if (rospy.get_time() - self.last_time_status_mb) > self.limit_time_status_mb:
-      rospy.logwarn("-> Navegacion interrumpida puma_waypoints - PATH FOLLOW - debido a error en move_base.")
+      rospy.logwarn("-> Navegacion interrumpida puma_state_machine - PATH FOLLOW - debido a error en move_base.")
       self.is_aborted = True
       self.client.cancel_all_goals()
       rospy.sleep(0.1) 
@@ -57,13 +57,13 @@ class PathFollow(smach.State):
   def send_log(self, msg, level):
     log = Log()
     log.level = level
-    log.node = 'puma_waypoints/path_follow'
+    log.node = 'puma_state_machine/path_follow'
     log.content = msg
     self.log_pub.publish(log)
     
   def arduino_callback(self, msg): 
     if msg.control.security_signal and not self.is_aborted:
-      rospy.logwarn("-> Navegacion interrumpida puma_waypoints - PATH FOLLOW - debido a señal de seguridad en el arduino.")
+      rospy.logwarn("-> Navegacion interrumpida puma_state_machine - PATH FOLLOW - debido a señal de seguridad en el arduino.")
       self.is_aborted = True
       self.client.cancel_all_goals()
       rospy.sleep(0.1)
@@ -81,7 +81,7 @@ class PathFollow(smach.State):
     rospy.loginfo('------------------------------')
     rospy.loginfo('----- Estado Path Follow -----')
     rospy.loginfo('------------------------------')
-    self.send_log("Iniciando el estado de seguimiento de ruta (puma_waypoints).",0)
+    self.send_log("Iniciando el estado de seguimiento de ruta (puma_state_machine).",0)
 
     ''' Iniciar variables'''
     self.last_time_status_mb = rospy.Time.now()
@@ -130,7 +130,7 @@ class PathFollow(smach.State):
       mode_selector_msg = String()
       mode_selector_msg.data = 'idle'
       self.mode_selector_pub.publish(mode_selector_msg)
-      rospy.logwarn("-> Navegacion interrumpida puma_waypoints - PATH FOLLOW - debido error imprevisto %s.",e)
+      rospy.logwarn("-> Navegacion interrumpida puma_state_machine - PATH FOLLOW - debido error imprevisto %s.",e)
       
     self.end_subscriber()
     

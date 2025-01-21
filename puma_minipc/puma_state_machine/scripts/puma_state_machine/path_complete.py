@@ -48,7 +48,7 @@ class PathComplete(smach.State):
       while not rospy.is_shutdown() and not self.select_plan and not self.start_plan and not self.charge_mode:
         rospy.Rate(10).sleep()
     except rospy.ROSInterruptException:
-      rospy.logwarn("-> Cerrando puma_waypoints -- PATH_COMPLETE.")
+      rospy.logwarn("-> Cerrando puma_state_machine -- PATH_COMPLETE.")
       
     self.end_subscriber()
     
