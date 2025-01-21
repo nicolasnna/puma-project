@@ -72,7 +72,6 @@ namespace puma_dwa_local_planner {
       std::vector<geometry_msgs::PoseStamped> global_plan_;
       geometry_msgs::PoseStamped goal_pose;
       bool reversing_;
-      bool waypoints_received_ = false;
       Position pos_start_reverse;
 
       /* Params */

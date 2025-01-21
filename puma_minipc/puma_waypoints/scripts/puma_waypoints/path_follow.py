@@ -5,33 +5,31 @@ import actionlib
 import signal
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from actionlib_msgs.msg import GoalStatusArray
-from puma_msgs.msg import GoalGpsNavInfo, StatusArduino, Log
+from puma_msgs.msg import WaypointNav, StatusArduino, Log, Waypoint
 from geometry_msgs.msg import PoseArray
 from std_msgs.msg import Empty, String
 import tf
-import math
+import tf.transformations
 
 class PathFollow(smach.State):
   """ Smach test of path follow """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['success','aborted'], input_keys=['waypoints','path_plan', 'gps_nav', 'gps_index'], output_keys=['waypoints'])
+    smach.State.__init__(self, outcomes=['success','aborted'])
     ns_topic = rospy.get_param('~ns_topic','')
     
     ''' Obtener parametros '''
+    self.limit_time_status_mb = 0.5
     self.frame_id = rospy.get_param('~goal_frame_id', 'map')
     self.odom_frame_id = rospy.get_param('~odom_frame_id', 'odom')
     self.base_frame_id = rospy.get_param('~base_frame_id', 'base_link')
     self.duration = rospy.get_param('~wait_duration', 4.0)
-    self.distance_tolerance = rospy.get_param('~distance_tolerance', 1.2)
-    self.log_pub = rospy.Publisher('/puma/logs/add_log',  Log, queue_size=3)
+    change_mode_topic = rospy.get_param('change_mode_topic', '/puma/control/change_mode')
 
     ''' Publicadores '''
-    change_mode_topic = rospy.get_param('change_mode_topic', '/puma/control/change_mode')
-    self.pose_array_planned = rospy.Publisher(ns_topic+'/path_planned', PoseArray, queue_size=3)
-    self.pose_array_completed = rospy.Publisher(ns_topic+'/path_completed', PoseArray, queue_size=3)
     self.mode_selector_pub = rospy.Publisher(change_mode_topic, String, queue_size=3)
-    self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
-    self.waypoints_global_planer_pub = rospy.Publisher('/move_base/PumaHybridAStarPlanner/set_waypoints', PoseArray, queue_size=1)
+    self.log_pub = rospy.Publisher('/puma/logs/add_log',  Log, queue_size=3)
+    self.restart_waypoints_pub = rospy.Publisher('/puma/navigation/waypoints/restart', Empty, queue_size=3)
+
     
   def start_subscriber(self):
     ns_topic = rospy.get_param('~ns_topic','')
@@ -72,7 +70,6 @@ class PathFollow(smach.State):
       rospy.logwarn("--- Plan abortado por error en el arduino ---")
       self.send_log("La navegación ha sido interrumpida por señal de seguridad detectada en arduino Mega. Volviendo al modo de selección de rutas.",2)
     
-    
   def stop_plan_callback(self, msg):
     rospy.loginfo("-> Recibido comando de PARAR.")
     self.is_aborted = True
@@ -88,53 +85,43 @@ class PathFollow(smach.State):
 
     ''' Iniciar variables'''
     self.last_time_status_mb = rospy.Time.now()
-    self.limit_time_status_mb = 0.5
-    path_planned = userdata.path_plan
-    path_complete = PoseArray()
-    path_complete.header.frame_id = path_planned.header.frame_id
-    self.is_aborted = False
+    self.is_aborted = self.is_completed = False
     ''' Activar modo autonomo '''
     mode_selector_msg = String()
     mode_selector_msg.data = 'navegacion'
     self.mode_selector_pub.publish(mode_selector_msg)
+    rospy.sleep(0.1)
     ''' Abrir cliente move_base '''
     self.client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
     rospy.loginfo("Conectando con move_base...")
     self.client.wait_for_server()
-    rospy.loginfo('Conectado con move_base. Iniciando tf listener.')
-    self.listener = tf.TransformListener()
     ''' Iniciar suscripciones '''
     self.start_subscriber()
     
+    ''' Reiniciar waypoints por si acaso '''
+    self.restart_waypoints_pub.publish(Empty())
+    
+    ''' Obtener waypoints actuales '''
+    try:
+      waypoints_msg = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, rospy.Duration(5))
+      # waypoints = waypoints_msg.waypoints
+    except rospy.ROSException:
+      rospy.logwarn('Tiempo de espera excedido mientras se esperaban los waypoints.')
+      return 'aborted'
+    
     ''' Validar si existe waypoints '''
-    if len(userdata.waypoints) == 0:
+    if len(waypoints_msg.waypoints) == 0:
       rospy.logwarn('No se tiene waypoints almacenados.')
       return 'aborted'
-      
-    ''' Ejecutar waypoints '''
-    index_waypoints = 0
-    copy_gps_info = userdata.gps_nav if userdata.gps_nav else GoalGpsNavInfo()
+    
 
     try:
-      
-      waypoint = userdata.waypoints[index_waypoints]
-      ''' Publicar destino uno por uno '''
+      rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
       goal = MoveBaseGoal()
       goal.target_pose.header.frame_id = self.frame_id
-      goal.target_pose.pose.position = waypoint.pose.pose.position
-      goal.target_pose.pose.orientation = waypoint.pose.pose.orientation
-      
-      msg_to_move_base = PoseArray()
-      msg_to_move_base.header.frame_id = self.frame_id
-      for point in userdata.waypoints:
-        msg_to_move_base.poses.append(point.pose.pose)
-        
-      self.waypoints_global_planer_pub.publish(msg_to_move_base)
-      rospy.sleep(0.1)
-      self.waypoints_global_planer_pub.publish(msg_to_move_base)
-      
+      goal.target_pose.header.stamp = rospy.Time.now()
+      goal.target_pose.pose.orientation.w = 1.0
       self.client.send_goal(goal)
-      rospy.loginfo_throttle(10, "-> Para cancelar el destino: 'rostopic pub -1 /move_base/cancel actionlib_msgs/GoalID -- {}'")
       self.client.wait_for_result()
 
     except Exception as e:
@@ -146,8 +133,10 @@ class PathFollow(smach.State):
       rospy.logwarn("-> Navegacion interrumpida puma_waypoints - PATH FOLLOW - debido error imprevisto %s.",e)
       
     self.end_subscriber()
+    
     if self.is_aborted:
       self.send_log("La navegación ha sido interrumpida por el usuario.",1)
-    else:
-      self.send_log("La navegación ha sido completada con éxito.",0)
-    return 'aborted' if self.is_aborted else 'success'
+      return 'aborted'
+    
+    self.send_log("La navegación ha sido completada con éxito.",0)
+    return 'success'

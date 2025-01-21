@@ -3,10 +3,9 @@ import rospy
 import smach
 import rospkg
 import tf
-import json
 import math
 from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps, Log, Waypoint
+from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps, Log, WaypointNav, Waypoint
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
@@ -17,7 +16,7 @@ import tf.transformations
 class PathSelect(smach.State):
   """ Smach state for path select to waypoints """
   def __init__(self):
-    smach.State.__init__(self, outcomes=['path_follow_mode', 'charge_mode'], output_keys=['waypoints','path_plan','gps_nav', 'gps_index'], input_keys=['waypoints','gps_nav'])
+    smach.State.__init__(self, outcomes=['path_follow_mode', 'charge_mode'])
     # Get params
     ns_topic = rospy.get_param('~ns_topic','')
     ''' Publicadores para visualizacion '''
@@ -25,7 +24,8 @@ class PathSelect(smach.State):
     self.pose_array_completed = rospy.Publisher(ns_topic + '/path_completed', PoseArray, queue_size=4)
     self.nav_gps_info_pub = rospy.Publisher(ns_topic + '/gps_nav_info', GoalGpsNavInfo, queue_size=3)
     self.log_pub = rospy.Publisher('/puma/logs/add_log',  Log, queue_size=3)
-    self.waypoints_add_ = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=3)
+    self.waypoints_add_pub = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=3)
+    self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=3)
     
     ''' Variables '''
     self.output_file_path = rospkg.RosPack().get_path('puma_waypoints') + "/saved_path"
@@ -37,19 +37,16 @@ class PathSelect(smach.State):
     ns_topic = rospy.get_param('~ns_topic','')
     ''' Creacion de suscriptores '''
     self.reset_sub = rospy.Subscriber(ns_topic + "/plan_reset", Empty, self.plan_reset_callback)
-    self.upload_sub = rospy.Subscriber(ns_topic + "/plan_upload", String, self.plan_upload_callback)
-    self.save_sub = rospy.Subscriber(ns_topic + "/plan_save", String, self.plan_save_callback)
     self.ready_sub = rospy.Subscriber(ns_topic + "/plan_ready", Empty, self.plan_ready_callback)
     self.charge_mode_sub = rospy.Subscriber(ns_topic + "/run_charge_mode", Empty, self.charge_mode_callback)
     self.goal_from_gps_sub = rospy.Subscriber(ns_topic + "/planned_goal_gps", GoalGpsArray, self.plan_from_gps_callback)
     self.goal_2d_sub = rospy.Subscriber(add_pose_topic, PoseWithCovarianceStamped, self.add_pose_2d_callback)
-    
+    self.waypoints_list_sub_ = rospy.Subscriber('/puma/navigation/waypoints/waypoints_info', WaypointNav, self.waypoints_list_callback)
+  
   def end_subscriber(self):
     ''' Terminar suscriptores '''
     if self.reset_sub is not None:
       self.reset_sub.unregister()
-      self.upload_sub.unregister()
-      self.save_sub.unregister()
       self.ready_sub.unregister()
       self.charge_mode_sub.unregister()
       self.goal_from_gps_sub.unregister()
@@ -65,56 +62,18 @@ class PathSelect(smach.State):
   def plan_reset_callback(self, empty):
     rospy.loginfo("-> Recibido el comando para limpieza de waypoints.")
     self.initialize_path_waypoints()
+    self.waypoints_clear_pub.publish(Empty())
     self.send_log("Limpieza de waypoints realizada.",0)
-    
-  def plan_upload_callback(self, name):
-    rospy.loginfo("-> Recibido el comando para cargar waypoints desde json.")
-    path_file = self.output_file_path + '/' + name.data + '.json'
-    if Path(path_file).is_file():
-      with open(path_file, 'r') as file:
-        self.initialize_path_waypoints() 
-        data = json.load(file)
-        for position in data:
-          pose_plan = PoseWithCovarianceStamped()
-          pose_plan.pose.pose.position.x    = position["pos_x"]
-          pose_plan.pose.pose.position.y    = position["pos_y"]
-          pose_plan.pose.pose.position.z    = position["pos_z"]
-          pose_plan.pose.pose.orientation.x = position["rot_x"]
-          pose_plan.pose.pose.orientation.y = position["rot_y"]
-          pose_plan.pose.pose.orientation.z = position["rot_z"]
-          pose_plan.pose.pose.orientation.w = position["rot_w"]
-          self.waypoints.append(pose_plan)
-        self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
-        self.path_selected = True
-        rospy.loginfo("--> Cargado el plan: '%s'", name.data)
-    else:
-      rospy.logwarn("--> No se ha encontrado el archivo %s", path_file)
-    
-  def plan_save_callback(self, name):
-    rospy.loginfo("-> Recibido el comando para guardar waypoints en json.")
-    path_file = self.output_file_path + '/' + name.data + '.json'
-    if len(self.waypoints) != 0:
-      array_waypoint = []
-      for points in self.waypoints:
-        dict_point = {}
-        dict_point.update({"pos_x": points.pose.pose.position.x})
-        dict_point.update({"pos_y": points.pose.pose.position.y})
-        dict_point.update({"pos_z": points.pose.pose.position.z})
-        dict_point.update({"rot_x": points.pose.pose.orientation.x})
-        dict_point.update({"rot_y": points.pose.pose.orientation.y})
-        dict_point.update({"rot_z": points.pose.pose.orientation.z})
-        dict_point.update({"rot_w": points.pose.pose.orientation.w})
-        array_waypoint.append(dict_point)
-      with open(path_file, 'w') as file:
-        json.dump({array_waypoint}, file)
-      rospy.loginfo("--> Guardado el plan: '%s'", name.data)
-      
+  
   def plan_ready_callback(self, empty):
     rospy.loginfo("-> Recibido el comando de empezar.")
     if len(self.waypoints) != 0:
       self.path_ready = True
     else: 
       rospy.logwarn("--> Waypoints vacio, agrege un destino antes de empezar.")
+      
+  def waypoints_list_callback(self, waypoint):
+    self.waypoints = waypoint.waypoints
       
   def charge_mode_callback(self, empty):
     rospy.loginfo("-> Recibido el comando para el modo carga.")
@@ -208,94 +167,46 @@ class PathSelect(smach.State):
       rospy.logwarn("--> GpsArray vacio.")
   
   def add_pose_2d_callback(self, pose):
-    if not self.gps_mode:
-      rospy.loginfo("-> Recibido el waypoint x: %.3f, y: %.3f", pose.pose.pose.position.x, pose.pose.pose.position.y)
-      distance_limit = rospy.get_param("~distance_limit_points", 10.0)
-      if (len(self.waypoints) == 0):
-        odometry_topic = rospy.get_param("~odometry_topic", '/puma/odometry/filtered')
-        rospy.loginfo("--> Obteniendo la odometria.")
-        pos_current = rospy.wait_for_message(odometry_topic, Odometry)
-        x_current = pos_current.pose.pose.position.x
-        y_current = pos_current.pose.pose.position.y
-      else:
-        last_pos_waypoint = self.waypoints[-1]
-        x_current = last_pos_waypoint.pose.pose.position.x
-        y_current = last_pos_waypoint.pose.pose.position.y
-        
-      distance_between_points = math.sqrt(
-        (pose.pose.pose.position.x - x_current)**2 +
-        (pose.pose.pose.position.y - y_current)**2)
-
-      yaw = calculate_bearing_from_xy(x_current, y_current, pose.pose.pose.position.x, pose.pose.pose.position.y)
-      x_qua, y_qua, z_qua, w_qua = yaw_to_quaternion(yaw)
-      rospy.loginfo(f"distancia estimada entre puntos: {distance_between_points}")
-      while distance_between_points > distance_limit:
-        x_inter = x_current + distance_limit * math.cos(math.radians(yaw))
-        y_inter = y_current + distance_limit * math.sin(math.radians(yaw))
-        
-        poseInter = PoseWithCovarianceStamped()
-        poseInter.header.frame_id = 'map'
-        poseInter.pose.pose.position.x = x_inter
-        poseInter.pose.pose.position.y = y_inter
-        poseInter.pose.pose.orientation.x = x_qua
-        poseInter.pose.pose.orientation.y = y_qua
-        poseInter.pose.pose.orientation.z = z_qua
-        poseInter.pose.pose.orientation.w = w_qua
-        
-        self.waypoints.append(self.convert_frame_pose(poseInter,'map'))
-        waypoint = Waypoint()
-        waypoint.x = x_inter
-        waypoint.y = y_inter
-        waypoint.yaw = math.radians(yaw)
-        self.waypoints_add_.publish(waypoint)
-        distance_between_points -= distance_limit 
-        x_current = x_inter
-        y_current = y_inter
-          
-      self.waypoints.append(self.convert_frame_pose(pose,'map'))
-      waypoint = Waypoint()
-      waypoint.x = pose.pose.pose.position.x
-      waypoint.y = pose.pose.pose.position.y
-      waypoint.yaw = math.radians(yaw)
-      self.waypoints_add_.publish(waypoint)
-      self.send_log(f"Añadido el waypoint local en x: {round(pose.pose.pose.position.x,2)} e y: {round(pose.pose.pose.position.y,2)}",0)
+    rospy.loginfo("-> Recibido el waypoint x: %.3f, y: %.3f", pose.pose.pose.position.x, pose.pose.pose.position.y)
+    
+    orientation = pose.pose.pose.orientation
+    quaternion = [orientation.x, orientation.y, orientation.z, orientation.w]
+    _, _, yaw = tf.transformations.euler_from_quaternion(quaternion)
+  
+    waypoint = Waypoint()
+    waypoint.x = pose.pose.pose.position.x
+    waypoint.y = pose.pose.pose.position.y
+    waypoint.yaw = yaw
+    
+    self.waypoints_add_pub.publish(waypoint)
+    self.send_log(f"Añadido el waypoint local en x: {round(pose.pose.pose.position.x,2)} e y: {round(pose.pose.pose.position.y,2)}, yaw: {yaw}",0)
     
   def initialize_path_waypoints(self):
     """ Initialize or reset path waypoints """
     self.waypoints = []
-    self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray([]))
-    self.pose_array_completed.publish(self.convert_poseCov_to_poseArray([]))
     rospy.loginfo("El arreglo de rutas ha sido limpiado.")
+
+  def publish_waypoints_rviz(self):
+    pose_array = PoseArray()
+    pose_array.header.frame_id = 'map'
+    pose_array.header.stamp = rospy.Time.now()
     
-  def convert_frame_pose(self, waypoint, target_frame):
-    """ Convert frame of PoseWithCovariance to target_frame """
-    if waypoint.header.frame_id == target_frame:
-      # Already in correct frame
-      return waypoint
-    if not hasattr(self.convert_frame_pose, 'listener'):
-      self.convert_frame_pose.listener = tf.TransformListener()
-    tmp = PoseStamped()
-    tmp.header.frame_id = waypoint.header.frame_id
-    tmp.pose = waypoint.pose.pose
-    try:
-      self.convert_frame_pose.listener.waitForTransform(
-        target_frame, tmp.header.frame_id, rospy.Time(0), rospy.Duration(3.0)
-      )
-      pose = self.convert_frame_pose.listener.transformPose(target_frame, tmp)
-      ret = PoseWithCovarianceStamped()
-      ret.header.frame_id = target_frame
-      ret.pose.pose = pose.pose
-      return ret
-    except:
-      rospy.logwarn("No se puede transformar pose a %s frame", target_frame)
-      exit()
+    for waypoint in self.waypoints:
+      pose = PoseStamped()
+      pose.header.frame_id = 'map'
+      pose.pose.position.x = waypoint.x
+      pose.pose.position.y = waypoint.y
+      pose.pose.position.z = 0
       
-  def convert_poseCov_to_poseArray(self, waypoints):
-    """ Convert array of pose with covariance to pose array for visualization in rviz """
-    poses = PoseArray()
-    poses.header.frame_id = rospy.get_param('~goal_frame_id','map')
-    poses.poses = [pose.pose.pose for pose in waypoints]
-    return poses
+      quaternion = tf.transformations.quaternion_from_euler(0, 0, waypoint.yaw)
+      pose.pose.orientation.x = quaternion[0]
+      pose.pose.orientation.y = quaternion[1]
+      pose.pose.orientation.z = quaternion[2]
+      pose.pose.orientation.w = quaternion[3]
+      
+      pose_array.poses.append(pose.pose)
+    
+    self.pose_array_publisher.publish(pose_array)
     
   def execute(self, userdata):
     """ Generate path waypoints """
@@ -303,34 +214,21 @@ class PathSelect(smach.State):
     rospy.loginfo('----- Estado Path Select -----')
     rospy.loginfo('------------------------------')
     self.send_log("Iniciando el estado de selección de ruta (puma_waypoints).",0)
-    self.nav_info_msgs = GoalGpsNavInfo()
-    self.nav_gps_index = []
     self.start_subscriber()
-    
-    if "waypoints" in userdata:
-      self.waypoints = userdata.waypoints
-      self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
-      self.pose_array_completed.publish(self.convert_poseCov_to_poseArray([]))
-    else:
-      self.initialize_path_waypoints()
+    self.initialize_path_waypoints()
     self.path_ready = False
     self.charge_mode = False
     self.gps_mode = False
-    self.arrayPoseGoalFromGps = []
     
     try:
       while not self.path_ready and not self.charge_mode and not rospy.is_shutdown():
-        self.pose_array_publisher.publish(self.convert_poseCov_to_poseArray(self.waypoints))
-        rospy.Rate(30).sleep()
+        self.publish_waypoints_rviz()
+        rospy.Rate(10).sleep()
     except rospy.exceptions.ROSInterruptException:
       self.send_log("Interrupcion de ROS en la 'selección de ruta' en puma_waypoints.",2)
       rospy.logwarn("-> Cerrando puma_waypoints -- PATH_SELECT.")
       
     ''' Enviar datos al siguiente estado '''
-    userdata.path_plan = self.convert_poseCov_to_poseArray(self.waypoints)
-    userdata.waypoints = self.waypoints
-    userdata.gps_nav = self.nav_info_msgs
-    userdata.gps_index = self.nav_gps_index
     self.end_subscriber()
     
     if self.charge_mode:

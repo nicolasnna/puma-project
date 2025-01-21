@@ -1,6 +1,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
+from std_msgs.msg import Empty
 
 class PlanManager:
   def __init__(self, ns):
@@ -17,6 +18,15 @@ class PlanManager:
   def start_subscriber(self, ns):
     self.add_plan_sub = rospy.Subscriber(ns+'/add', Path, self.add_plan_callback)
     self.plan_update_sub = rospy.Subscriber(ns+'/update', Path, self.update_plan_callback)
+    self.restart_plan_pub = rospy.Subscriber(ns+'/restart', Empty, self.restart_plan_callback)
+    self.clean_plan_pub = rospy.Subscriber(ns+'/clean', Empty, self.clean_plan_callback)
+
+  def restart_plan_callback(self, msg):
+    self._plan_remaining = self._plan
+    
+  def clean_plan_callback(self, msg):
+    self._plan_remaining = []
+    self._plan = []
 
   def update_plan_callback(self, plan):
     self._plan_remaining = plan.poses

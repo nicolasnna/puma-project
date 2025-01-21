@@ -332,7 +332,6 @@ namespace puma_dwa_local_planner {
     if (waypoints_.size() == 1) {
       /* Comprobar si se ha alcanzado el destino */
       if (validateGoalReached(goal_pose.pose.position.x, goal_pose.pose.position.y, puma_.x, puma_.y)) {
-        waypoints_received_ = false;
         waypoints_.erase(waypoints_.begin());
         waypoints_achieved_pub_.publish(waypoints_info_.waypoints[0]);
         waypoints_info_.waypoints.erase(waypoints_info_.waypoints.begin());
@@ -381,20 +380,13 @@ namespace puma_dwa_local_planner {
     double last_y = path.back().y;
     double last_yaw = path.back().yaw;
     double min_distance_end = std::numeric_limits<double>::max();
-    double min_distance_begin = std::numeric_limits<double>::max();
     size_t closest_index_end = 0;
-    size_t closest_index_begin = 0;
     size_t max_index = std::min(global_plan_.size(), size_t(max_index_path_compare_));
     for (size_t i = 0; i < max_index; ++i) {
       double dist_end = std::hypot(global_plan_[i].pose.position.x - last_x, global_plan_[i].pose.position.y - last_y);
       if (dist_end < min_distance_end) {
         min_distance_end = dist_end;
         closest_index_end = i;
-      }
-      double dist_begin = std::hypot(global_plan_[i].pose.position.x - puma_.x, global_plan_[i].pose.position.y - puma_.y);
-      if (dist_begin < min_distance_begin) {
-        min_distance_begin = dist_begin;
-        closest_index_begin = i;
       }
     }
 
@@ -413,8 +405,8 @@ namespace puma_dwa_local_planner {
 
     /* Costo por distancia al objetivo */
     const Position goal_point = *waypoints_.begin();
-    double distance_to_goal = std::hypot(goal_point.x - goal_pose.pose.position.x, 
-                                        goal_point.y - goal_pose.pose.position.y);
+    double distance_to_goal = std::hypot(goal_point.x - puma_.x, 
+                                        goal_point.y - puma_.y);
     cost += distance_to_goal * factor_cost_distance_goal_;
 
     /* Costo por obstaculo */

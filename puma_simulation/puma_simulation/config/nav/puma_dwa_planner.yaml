@@ -10,14 +10,14 @@ PumaDwaLocalPlanner:
   distance_for_desacceleration: 4.0
 
   reverse_limit_distance: 3.0
-  time_simulation: 3.0
+  time_simulation: 4.0
 
   xy_goal_tolerance: 1.2
-  steering_samples: 12
+  steering_samples: 15
 
-  factor_cost_deviation_: 10.0
-  factor_cost_distance_goal: 3.0
-  factor_cost_angle_to_plan: 15.0
+  factor_cost_deviation_: 5.0
+  factor_cost_distance_goal: 15.0
+  factor_cost_angle_to_plan: 5
   factor_cost_obstacle: 5.0
 
   ns_waypoints_manager: "/puma/navigation/waypoints"
