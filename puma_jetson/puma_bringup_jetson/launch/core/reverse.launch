@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="puma_reverse" pkg="puma_reverse" type="puma_reverse_node.py" output="screen" respawn="true" respawn_delay="3"
+  />
+
+</launch>

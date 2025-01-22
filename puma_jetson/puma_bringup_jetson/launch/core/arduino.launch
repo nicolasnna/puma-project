@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Arduino -->
+  <node name="arduino_mega" pkg="rosserial_python" type="serial_node.py" output="screen" clear_params="true">
+    <param name="port"                  value="/dev/ttyUSB0"/>
+    <param name="baud"                  value="250000" />
+  </node>
+
+</launch>

@@ -23,10 +23,3 @@ puma_joy:
   y_button_index: 3
   lb_button_index: 4
   rb_button_index: 5
-
-
-
-# ackermann_converter:
-#   cmd_vel_topic: cmd_vel
-#   wheel_base: 1.15
-

@@ -4,38 +4,23 @@
   <rosparam command="load" file="$(find puma_bringup_jetson)/config/jetson_params.yaml"/>
   
   <!-- Arduino -->
-  <node name="arduino_node" pkg="rosserial_python" type="serial_node.py" output="screen" respawn="true" respawn_delay="2">
-    <param name="port"                  value="/dev/ttyUSB0"/>
-    <param name="baud"                  value="250000" />
-  </node>
+  <include file="$(find puma_bringup_jetson)/launch/core/arduino.launch"/>
   <!-- Reverse manage -->
-  <node name="puma_reverse" pkg="puma_reverse" type="puma_reverse_node.py" output="screen" respawn="true" respawn_delay="5"
-  />
+  <include file="$(find puma_bringup_jetson)/launch/core/reverse.launch"/>
   <!-- Parking manage -->
-  <node name="puma_parking" pkg="puma_parking" type="puma_parking_node.py" output="screen" respawn="true" respawn_delay="5"
-  />
+  <include file="$(find puma_bringup_jetson)/launch/core/parking.launch"/>
   <!-- Gps -->
-  <node pkg="ublox_gps" type="ublox_gps" name="ublox" output="screen" clear_params="true" respawn="true" respawn_delay="5">
-    <rosparam command="load" file="$(find puma_bringup_jetson)/config/zed_f9p.yaml"/>
-    <remap from="ublox/fix"           to="puma/sensors/gps/fix"/>
-    <remap from="ublox/fix_velocity"  to="puma/sensors/gps/fix_velocity"/>
-  </node>
-  <!-- IMU -->
-  <include file="$(find puma_bringup_jetson)/launch/imu_bringup.launch"/>
-  <!-- Monitor pc -->
-  <include file="$(find puma_bringup_jetson)/launch/jetson_monitor.launch"/>
+  <include file="$(find puma_bringup_jetson)/launch/core/gps_ublox.launch"/>
   <!-- Joy-->
-  <node pkg="puma_joy" type="puma_joy_node.py" name="puma_joy" output="screen" respawn="true" respawn_delay="10"
-	>
-	</node>
-	<node respawn="true" pkg="joy" type="joy_node" name="joy_node" respawn_delay="5" >
-		<param name="dev" type="string" value="/dev/input/js0" />
-		<param name="deadzone" value="0.12" />
-		<param name="default_trig_val" value="true" />
-	</node>
+  <include file="$(find puma_bringup_jetson)/launch/core/joy.launch"/>
   <!-- mode selector -->
-  <node name="puma_control_mode" pkg="puma_mode_control" type="control_mode_node.py" output="screen" respawn="true" respawn_delay="1"/>
+  <include file="$(find puma_bringup_jetson)/launch/core/control_mode.launch"/>
+  <!-- Monitor pc -->
+  <include file="$(find puma_bringup_jetson)/launch/core/jetson_monitor.launch"/>
   <!-- Controller -->
-  <node pkg="puma_controller" name="puma_controller" type="puma_controller_node.py" output="screen" respawn="true" respawn_delay="10"/>
+  <include file="$(find puma_bringup_jetson)/launch/core/controller.launch"/>
+  <!-- IMU -->
+  <!-- <include file="$(find puma_bringup_jetson)/launch/imu_bringup.launch"/> -->
+  
 
 </launch>
