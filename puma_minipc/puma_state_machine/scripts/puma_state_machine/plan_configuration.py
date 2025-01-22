@@ -2,13 +2,11 @@
 import rospy
 import smach
 import math
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_msgs.msg import GoalGpsArray, GoalGpsNavInfo, GoalGps, Log, WaypointNav, Waypoint, ConfigurationStateMachine
+from geometry_msgs.msg import PoseWithCovarianceStamped
+from puma_msgs.msg import Log, WaypointNav, Waypoint, ConfigurationStateMachine
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
-from nav_msgs.msg import Odometry
-from pathlib import Path
-from puma_state_machine.utils import calc_goal_from_gps, calculate_bearing_from_xy, yaw_to_quaternion
+from nav_msgs.msg import Path
 import tf
 
 class PlanConfiguration(smach.State):
@@ -29,8 +27,8 @@ class PlanConfiguration(smach.State):
     self.waypoints_add_pub = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=2)
 
   def start_subscriber(self):
-    add_pose_topic = rospy.get_param('add_pose_topic', '/initialpose')
-    ns_topic = rospy.get_param('ns_topic', '/ns')
+    add_pose_topic = rospy.get_param('~add_pose_topic', '/initialpose')
+    ns_topic = rospy.get_param('~ns_topic', '')
     self.clear_plan_sub = rospy.Subscriber(ns_topic + '/clear_plan', Empty, self.clear_plan_cb)
     self.start_plan_sub = rospy.Subscriber(ns_topic + '/start_plan', Empty, self.start_plan_cb)
     self.add_pose_rviz_sub = rospy.Subscriber(add_pose_topic, PoseWithCovarianceStamped, self.add_pose_rviz_cb)
@@ -73,8 +71,10 @@ class PlanConfiguration(smach.State):
     try:
       file_plan = rospy.wait_for_message('/puma/navigation/files/plan_selected', Path, timeout=5)
       waypoint_plan = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
-      if file_plan is not None and len(file_plan.poses) > 0 and waypoint_plan is not None and len(waypoint_plan.waypoints) > 0:
-        self.send_log("Plan cargado correctamente.", 0)
+      if file_plan is not None and len(file_plan.poses) > 0:
+        self.send_log("Se ha detectado un plan cargado.", 0)
+      if waypoint_plan is not None and len(waypoint_plan.waypoints) > 0:
+        self.send_log("Waypoints definidos correctamente.", 0)
         self.is_plan_ready = True
 
     except Exception as e:
@@ -96,7 +96,7 @@ class PlanConfiguration(smach.State):
     rospy.sleep(0.2)
     try:
       waypoints_msgs = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
-      if len(waypoints_msgs.waypoints) > 0 and waypoints_msgs[-1] == waypoint:
+      if len(waypoints_msgs.waypoints) > 0 and waypoints_msgs.waypoints[-1] == waypoint:
         self.send_log("Waypoint añadido correctamente.", 0)
       else:
         self.send_log("No se ha añadido correctamente el waypoint.", 1)

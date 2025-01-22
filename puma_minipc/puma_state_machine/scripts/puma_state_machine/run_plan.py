@@ -8,10 +8,11 @@ from std_msgs.msg import Empty, String
 from puma_msgs.msg import Log, WaypointNav, StatusArduino
 
 class RunPlan(smach.State):
-  def __ini__(self):
+  def __init__(self):
     smach.State.__init__(self, outcomes=['success', 'plan_configuration'], input_keys=['plan_configuration_info'])
     
     self.limit_time_status_mb = 0.5
+    self.publisher()
     
   def publisher(self):
     self.log_pub = rospy.Publisher('/puma/logs/add_log', Log, queue_size=2)
@@ -21,7 +22,7 @@ class RunPlan(smach.State):
     self.mode_selector_pub = rospy.Publisher('/puma/control/change_mode', String, queue_size=2)
   
   def start_subscriber(self):
-    ns_topic = rospy.get_param('ns_topic', '')
+    ns_topic = rospy.get_param('~ns_topic', '')
     self.stop_sub = rospy.Subscriber(ns_topic + '/plan_stop', Empty, self.stop_plan_callback)
     self.arduino_sub = rospy.Subscriber('/puma/arduino/status', StatusArduino, self.arduino_callback)
     self.move_base_status_sub = rospy.Subscriber('/move_base/status', GoalStatusArray, self.move_base_status_callback)
@@ -109,12 +110,17 @@ class RunPlan(smach.State):
     
     ''' Ejecutar plan en move_base '''
     try:
+      last_waypoint = waypoints_msg.waypoints[-1]
       goal = MoveBaseGoal()
       goal.target_pose.header.frame_id = "map"
       goal.target_pose.header.stamp = rospy.Time.now()
-      goal.target_pose.pose.position.x = waypoints_msg.waypoints[-1].x
-      goal.target_pose.pose.position.y = waypoints_msg.waypoints[-1].y
-      goal.target_pose.pose.orientation = tf.transformations.quaternion_from_euler(0, 0, waypoints_msg.waypoints[-1].yaw)
+      goal.target_pose.pose.position.x = last_waypoint.x
+      goal.target_pose.pose.position.y = last_waypoint.y
+      quaternions = tf.transformations.quaternion_from_euler(0, 0, last_waypoint.yaw)
+      goal.target_pose.pose.orientation.x = quaternions[0]
+      goal.target_pose.pose.orientation.y = quaternions[1]
+      goal.target_pose.pose.orientation.z = quaternions[2]
+      goal.target_pose.pose.orientation.w = quaternions[3]
       is_complete = False
       self.send_log("Ejecutando el plan de navegación...", 0)
       self.client.send_goal(goal)

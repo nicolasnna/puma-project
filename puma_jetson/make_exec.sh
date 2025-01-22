@@ -37,5 +37,11 @@ else
     echo " -X no se ha encontrado control_mode_node.py"
 fi
 
+if [ -f "puma_bringup_jetson/scripts/supervisor_manager_node.py" ]; then
+    chmod +x puma_bringup_jetson/scripts/supervisor_manager_node.py && echo " -> supervisor_manager_node listo !!!"
+else
+    echo " -X no se ha encontrado supervisor_manager_node.py"
+fi
+
 
 echo "Cambio de permisos a ejecutables terminado"
