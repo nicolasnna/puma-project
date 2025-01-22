@@ -36,7 +36,7 @@ class PathSelect(smach.State):
     add_pose_topic = rospy.get_param('~add_pose_topic', '/initialpose')
     ns_topic = rospy.get_param('~ns_topic','')
     ''' Creacion de suscriptores '''
-    self.reset_sub = rospy.Subscriber(ns_topic + "/plan_reset", Empty, self.plan_reset_callback)
+    self.reset_sub = rospy.Subscriber(ns_topic + "/clear_plan", Empty, self.plan_reset_callback)
     self.ready_sub = rospy.Subscriber(ns_topic + "/start_plan", Empty, self.plan_ready_callback)
     self.charge_mode_sub = rospy.Subscriber(ns_topic + "/run_charge_mode", Empty, self.charge_mode_callback)
     self.goal_from_gps_sub = rospy.Subscriber(ns_topic + "/planned_goal_gps", GoalGpsArray, self.plan_from_gps_callback)

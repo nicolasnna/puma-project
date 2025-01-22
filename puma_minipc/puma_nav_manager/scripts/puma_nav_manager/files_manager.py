@@ -32,6 +32,7 @@ class FilesManager:
       waypoints, plan = self.import_plan_from_json(path_json)
       self.waypoint_set_pub.publish(waypoints)
       self.plan_add_pub.publish(plan)
+      self._plan = plan
       rospy.sleep(0.1)
       rospy.loginfo(f'Plan importado con éxito con el nombre {file_name.data}.json')
     except Exception as e:

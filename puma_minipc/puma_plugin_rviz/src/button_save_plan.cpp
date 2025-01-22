@@ -9,7 +9,7 @@ namespace buttons_waypoints
   SavePlan::SavePlan()
   {
     ros::NodeHandle nh_;
-    publisher_ = nh_.advertise<std_msgs::String>("/puma/state_machine/plan_save", 1);
+    publisher_ = nh_.advertise<std_msgs::String>("/puma/state_machine/save_plan", 1);
   }
 
   SavePlan::~SavePlan() {}

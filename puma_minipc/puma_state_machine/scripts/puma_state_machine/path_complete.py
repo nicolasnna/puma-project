@@ -11,7 +11,7 @@ class PathComplete(smach.State):
   def start_subscriber(self):
     ns_topic = rospy.get_param('~ns_topic','')
     self.reset_sub = rospy.Subscriber(ns_topic+"/start_plan", Empty, self.start_plan_callback)
-    self.select_path_sub = rospy.Subscriber(ns_topic+"/plan_reset", Empty, self.select_plan_callback)
+    self.select_path_sub = rospy.Subscriber(ns_topic+"/clear_plan", Empty, self.select_plan_callback)
     self.charge_mode_sub = rospy.Subscriber(ns_topic+"/run_charge_mode", Empty, self.charge_mode_callback)
     
   def end_subscriber(self):
