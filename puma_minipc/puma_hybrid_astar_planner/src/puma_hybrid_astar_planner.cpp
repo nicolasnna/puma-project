@@ -147,7 +147,7 @@ namespace puma_hybrid_astar_planner {
     ROS_WARN("Plan creado exitosamente.");
     /* Subir plan generado */
     publishPath(plan, plan_pub_);
-    publishPath(plan, plan_set_loader_pub_);
+    // publishPath(plan, plan_set_loader_pub_);
     ros::Duration(1.0).sleep();
     return true;
   }

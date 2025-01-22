@@ -67,6 +67,47 @@ class RunPlan(smach.State):
       rospy.sleep(0.1) 
       self.send_log("La navegación ha sido interrumpida por un error en el move_base. Volviendo al modo de selección de rutas.",2)
   
+  def check_mode_control(self):
+    try:
+      mode_msg = rospy.wait_for_message('/puma/control/current_mode', String, timeout=5)
+    except Exception as e:
+      self.send_log(f"No se ha podido obtener el modo actual por el error: {e}. Volviendo a la configuración de planes.", 1)
+      return False
+    
+    if mode_msg.data != 'navegacion':
+      self.send_log(f"No se ha podido cambiar al modo de navegación (modo actual {mode_msg.data}). Volviendo a la configuración de planes.", 1)
+      return False
+    
+    return True
+  
+  def check_waypoints_exist(self):
+    try:
+      waypoints_msg = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
+    except Exception as e:
+      self.send_log(f"No se han cargado correctamente los waypoints por el error: {e}.", 1)
+      return False, None
+    
+    rospy.loginfo(waypoints_msg)
+    
+    if len(waypoints_msg.waypoints) == 0:
+      self.send_log("No se tienen waypoints almacenados. Regresando a la configuración del plan", 1)
+      return False, None
+    
+    return True, waypoints_msg
+  
+  def get_goal_from_waypoint(self, waypoint):
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
+    goal.target_pose.pose.position.x = waypoint.x
+    goal.target_pose.pose.position.y = waypoint.y
+    quaternions = tf.transformations.quaternion_from_euler(0, 0, waypoint.yaw)
+    goal.target_pose.pose.orientation.x = quaternions[0]
+    goal.target_pose.pose.orientation.y = quaternions[1]
+    goal.target_pose.pose.orientation.z = quaternions[2]
+    goal.target_pose.pose.orientation.w = quaternions[3]
+    return goal
+  
   def execute(self, ud):
     rospy.loginfo('----- Estado ejecución de plan -----')
     self.send_log("Iniciando en el estado de ejecución de plan de navegación.", 0)
@@ -77,14 +118,7 @@ class RunPlan(smach.State):
     rospy.sleep(0.3)
     
     ''' Comprobar si se ha cambiado al modo de navegación '''
-    try:
-      mode_msg = rospy.wait_for_message('/puma/control/current_mode', String, timeout=5)
-    except Exception as e:
-      self.send_log(f"No se ha podido obtener el modo actual por el error: {e}. Volviendo a la configuración de planes.", 1)
-      return 'plan_configuration'
-    
-    if mode_msg.data != 'navegacion':
-      self.send_log(f"No se ha podido cambiar al modo de navegación (modo actual {mode_msg.data}). Volviendo a la configuración de planes.", 1)
+    if not self.check_mode_control():
       return 'plan_configuration'
     
     ''' Abrir cliente move_base '''
@@ -98,29 +132,15 @@ class RunPlan(smach.State):
     self.restart_waypoints_pub.publish(Empty()) 
     
     ''' Revisar waypoints subidos '''
-    try:
-      waypoints_msg = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
-    except Exception as e:
-      self.send_log(f"No se han cargado correctamente los waypoints por el error: {e}.", 1)
-    
-    ''' Validar si existe waypoints '''
-    if len(waypoints_msg.waypoints) == 0:
-      self.send_log("No se tienen waypoints almacenados. Regresadon a la configuración del plan", 1)
+    exist_waypoints, waypoints_msg = self.check_waypoints_exist()
+    if not exist_waypoints:
       return 'plan_configuration'
+
     
     ''' Ejecutar plan en move_base '''
     try:
       last_waypoint = waypoints_msg.waypoints[-1]
-      goal = MoveBaseGoal()
-      goal.target_pose.header.frame_id = "map"
-      goal.target_pose.header.stamp = rospy.Time.now()
-      goal.target_pose.pose.position.x = last_waypoint.x
-      goal.target_pose.pose.position.y = last_waypoint.y
-      quaternions = tf.transformations.quaternion_from_euler(0, 0, last_waypoint.yaw)
-      goal.target_pose.pose.orientation.x = quaternions[0]
-      goal.target_pose.pose.orientation.y = quaternions[1]
-      goal.target_pose.pose.orientation.z = quaternions[2]
-      goal.target_pose.pose.orientation.w = quaternions[3]
+      goal = self.get_goal_from_waypoint(last_waypoint)
       is_complete = False
       self.send_log("Ejecutando el plan de navegación...", 0)
       self.client.send_goal(goal)
