@@ -126,6 +126,7 @@ class PlanConfiguration(smach.State):
       self.send_log(f"No se ha logrado revisar el estado de los waypoints {e}.", 1)
     
   def configuration_cmd_cb(self, msg):
+    rospy.loginfo("-> Recibido el comando de configuración: %s", msg.plan_to_load)
     if msg.plan_to_load != '':
       if msg.load_plan_from == 0:
         self.file_import_local_pub.publish(String(msg.plan_to_load))
