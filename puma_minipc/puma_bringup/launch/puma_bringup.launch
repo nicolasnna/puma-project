@@ -24,4 +24,6 @@
   
   <include file="$(arg path)/nav_manager.launch"/>
 
+  <include file="$(find puma_state_machine)/launch/state_machine_v2.launch"/>
+
 </launch>
