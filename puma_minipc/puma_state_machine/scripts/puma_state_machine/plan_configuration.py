@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import rospy
 import smach
+import math
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from puma_msgs.msg import Log, WaypointNav, Waypoint, ConfigurationStateMachine
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
-from nav_msgs.msg import Path
-from puma_state_machine.utils import create_and_publish_log, check_plan_load_file, check_and_get_waypoints
+from nav_msgs.msg import Path, Odometry
+from puma_state_machine.utils import create_and_publish_log, check_plan_load_file, check_and_get_waypoints, calc_goal_from_gps
 import tf
 
 class PlanConfiguration(smach.State):
@@ -24,6 +25,7 @@ class PlanConfiguration(smach.State):
     # waypoints manager
     self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=2)
     self.waypoints_add_pub = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=2)
+    self.waypoints_set_pub = rospy.Publisher('/puma/navigation/waypoints/set', WaypointNav, queue_size=2)
 
   def start_subscriber(self):
     add_pose_topic = rospy.get_param('~add_pose_topic', '/initialpose')
@@ -31,6 +33,7 @@ class PlanConfiguration(smach.State):
     self.clear_plan_sub = rospy.Subscriber(ns_topic + '/clear_plan', Empty, self.clear_plan_cb)
     self.start_plan_sub = rospy.Subscriber(ns_topic + '/start_plan', Empty, self.start_plan_cb)
     self.add_pose_rviz_sub = rospy.Subscriber(add_pose_topic, PoseWithCovarianceStamped, self.add_pose_rviz_cb)
+    self.add_waypoints_web_sub = rospy.Subscriber(ns_topic + '/add_waypoints_web', WaypointNav, self.add_from_waypoints_web_cb)
     self.configuration_cmd_sub = rospy.Subscriber(ns_topic + '/configuration_cmd', ConfigurationStateMachine, self.configuration_cmd_cb)
     self.save_plan_sub = rospy.Subscriber(ns_topic + '/save_plan', String, self.save_plan_cb)
     self.load_plan_sub = rospy.Subscriber(ns_topic + '/load_plan', String, self.load_plan_cb)
@@ -124,6 +127,44 @@ class PlanConfiguration(smach.State):
         self.send_log("No se ha añadido correctamente el waypoint.", 1)
     except Exception as e:
       self.send_log(f"No se ha logrado revisar el estado de los waypoints {e}.", 1)
+    
+  def add_from_waypoints_web_cb(self, msg):
+    rospy.loginfo("-> Recibido arreglo de waypoints desde la web.")
+    waypoints = msg.waypoints
+    if len(waypoints) > 0:
+      try:
+        gps_topic = rospy.get_param("~gps_topic",'/puma/sensors/gps/fix')
+        odom_topic = rospy.get_param("~odom_topic",'/puma/localization/ekf_odometry')
+        gps_robot = rospy.wait_for_message(gps_topic, NavSatFix, timeout=5)
+        odom_robot = rospy.wait_for_message(odom_topic, Odometry, timeout=5)
+      except Exception as e:
+        self.send_log(f"No se ha podido obtener la posición actual del robot: {e}.", 1)
+        return
+      
+      pos_x = odom_robot.pose.pose.position.x
+      pos_y = odom_robot.pose.pose.position.y
+      latitude_rbt = gps_robot.latitude
+      longitude_rbt = gps_robot.longitude
+      new_waypoints = WaypointNav()
+      
+      for waypoint in waypoints:
+        new_waypoint = Waypoint()
+        x, y = calc_goal_from_gps(latitude_rbt, longitude_rbt, waypoint.latitude, waypoint.longitude)
+        new_waypoint.x = x + pos_x
+        new_waypoint.y = y + pos_y
+        new_waypoint.yaw = waypoint.yaw * math.pi / 180
+        new_waypoint.latitude = waypoint.latitude
+        new_waypoint.longitude = waypoint.longitude
+        new_waypoints.waypoints.append(new_waypoint)
+        
+      self.waypoints_set_pub.publish(new_waypoints)
+      rospy.sleep(0.2)
+      try: 
+        is_correct, _ = check_and_get_waypoints(self.send_log)
+        if is_correct:
+          self.send_log("Waypoints ajustados a 2d y añadidos correctamente.", 0)
+      except Exception as e:
+        self.send_log(f"No se ha podido comprobar los waypoints añadidos: {e}.", 1)
     
   def configuration_cmd_cb(self, msg):
     rospy.loginfo("-> Recibido el comando de configuración: %s", msg.plan_to_load)
