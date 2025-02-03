@@ -640,10 +640,10 @@
   </joint>
 
   <xacro:sensor_d455 parent="camara_link" use_nominal_extrinsics="true" add_plug="false" name="camera_front" topics_ns="puma/sensors/camera_front" publish_pointcloud="true">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0.01 0 0" rpy="0 0 0"/>
   </xacro:sensor_d455>
 
   <xacro:sensor_d455 parent="camara_trasera_link" use_nominal_extrinsics="true" add_plug="false" name="camera_rear" topics_ns="puma/sensors/camera_rear" publish_pointcloud="true">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0.01 0 0" rpy="0 0 0"/>
   </xacro:sensor_d455>
 </robot>
