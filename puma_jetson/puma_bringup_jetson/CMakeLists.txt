@@ -155,8 +155,9 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-catkin_install_python(PROGRAMS
-  scripts/supervisor_manager_node.py
+catkin_install_python(PROGRAMS 
+  scripts/supervisor_manager_process.py
+  scripts/supervisor_manager_launcher.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

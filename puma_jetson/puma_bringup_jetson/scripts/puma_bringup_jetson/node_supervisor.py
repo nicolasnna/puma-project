@@ -61,6 +61,7 @@ class NodeSupervisor:
       rospy.loginfo(f"Iniciando nodo para {self.node_name}...")
       self.node_process = subprocess.Popen(self.node_command, shell=True)
       self.last_message_time = time.time()
+      rospy.sleep(4)
 
   def stop_node(self):
     """Detiene el nodo si está ejecutándose."""
@@ -86,7 +87,7 @@ class NodeSupervisor:
     self.running = False
     rospy.sleep(0.5)
     self.stop_node()
-    self.send_log(f"El nodo {self.node_name} ha sido detenido por mensaje.", 0)
+    self.send_log(f"El nodo {self.node_name} ha sido detenido por comando.", 0)
       
   def start_cb(self, msg):
     """Inicia el nodo si se recibe un mensaje de inicio."""
@@ -95,7 +96,7 @@ class NodeSupervisor:
       self.running = True
       self.count_respawn = 0
       self.thread_init()
-      self.send_log(f"El nodo {self.node_name} ha sido iniciado por mensaje.", 0)
+      self.send_log(f"El nodo {self.node_name} ha sido iniciado por comando.", 0)
 
   def message_callback(self, msg):
     """Actualiza el tiempo del último mensaje recibido."""
