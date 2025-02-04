@@ -10,11 +10,11 @@ fi
 # Definir rutas de origen (asumiendo que los archivos están en el mismo directorio que el script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVICE_SRC="${SCRIPT_DIR}/boot/puma-jetson.service"
-LAUNCHUP_SRC="${SCRIPT_DIR}/boot/puma-bringup-ros.sh"
+LAUNCHUP_SRC="${SCRIPT_DIR}/boot/jetson-bringup-ros.sh"
 
 # Definir destinos
 SERVICE_DST="/etc/systemd/system/puma-jetson.service"
-LAUNCHUP_DST="/usr/local/bin/puma-bringup-ros.sh"
+LAUNCHUP_DST="/usr/local/bin/jetson-bringup-ros.sh"
 
 echo "Copiando el archivo de servicio..."
 if [ -f "$SERVICE_SRC" ]; then
