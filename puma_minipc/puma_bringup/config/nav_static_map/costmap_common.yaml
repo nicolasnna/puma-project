@@ -30,7 +30,7 @@ obstacle_layer:
   enabled: true
   track_unknown_space: true
   combination_method: 1
-  lethal_cost_threshold: 100
+  lethal_cost_threshold: 100rtabmap_odom
 
 inflation_layer:
   enabled: true

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find puma_bringup_jetson)/launch/core/realsense.launch"/>
+  <include file="$(find puma_bringup_jetson)/launch/core/odom_rtabmap.launch"/>
+
+</launch>

@@ -1,0 +1,54 @@
+<launch>
+  <arg name="device_type"         default="d455"/>
+  <arg name="camera_name"         default="camera_rear"/>
+  <arg name="output"              default="screen"/>
+  <arg name="camera_prefix"       default="puma/sensors/$(arg camera_name)"/>
+  <arg name="serial_no"           default="215122255064"/>
+  <arg name="initial_reset"       default="false"/>
+  <arg name="reconnect_timeout"   default="6.0"/>
+
+  <!-- 215122255064 -->
+
+  <group ns="$(arg camera_prefix)">
+    <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+      <arg name="tf_prefix"                value="$(arg camera_name)"/>
+      <arg name="output"                   value="$(arg output)"/>
+      <arg name="respawn"                  value="true"/>
+      <arg name="device_type"              value="$(arg device_type)"/>
+      <arg name="serial_no"                value="$(arg serial_no)"/> <!-- Numero unico del dispositivo -->
+      <arg name="initial_reset"            value="$(arg initial_reset)"/>
+      <arg name="reconnect_timeout"        value="$(arg reconnect_timeout)"/>
+      <arg name="publish_odom_tf"          value="false"/>
+      <arg name="depth_width"              value="640"/>
+      <arg name="depth_height"             value="480"/>
+      <arg name="depth_fps"                value="30"/>
+      <arg name="color_width"              value="640"/>
+      <arg name="color_height"             value="480"/>
+      <arg name="color_fps"                value="30"/>
+      <arg name="enable_depth"             value="true"/>
+      <arg name="enable_color"             value="true"/>
+      <arg name="enable_infra1"            value="false"/>
+      <arg name="enable_infra2"            value="false"/>
+      <arg name="enable_fisheye"           value="false"/>
+      <arg name="align_depth"              value="false"/>
+      <arg name="pointcloud_texture_stream" value="RS2_STREAM_ANY"/> <!-- Requerido para jetson -->
+      <arg name="gyro_fps"                 value="200"/>
+      <arg name="accel_fps"                value="100"/>
+      <arg name="enable_gyro"              value="true"/>
+      <arg name="enable_accel"             value="true"/>
+      <arg name="unite_imu_method"         value="linear_interpolation"/>
+      <arg name="enable_pointcloud"        value="true"/>
+    </include>
+  </group> 
+  
+  <!-- 
+  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_$(arg camera_name)" output="$(arg output)">
+    <param name="use_mag" type="bool" value="false" />
+    <param name="publish_tf" type="bool" value="false" />
+    <param name="world_frame" type="string" value="enu" />
+    <remap from="imu/data_raw" to="$(arg camera_prefix)/imu"/>
+    <remap from="imu/data" to="$(arg camera_prefix)/imu/filtered"/>
+  </node> 
+  -->
+  
+</launch>
