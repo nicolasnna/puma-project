@@ -67,6 +67,10 @@ if __name__ == '__main__':
     {
       'node_name': 'puma_odom_visual_rear',
       'launch_file': f"{path}/launch/core/odom_rtabmap.launch",
+    },
+    {
+      'node_name': 'filter_imu_realsense_rear',
+      'launch_file': f"{path}/launch/core/filter_imu_realsense.launch",
     }
   ]
 
