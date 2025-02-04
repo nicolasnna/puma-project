@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="supervisor_jetson_node" pkg="puma_bringup_jetson" type="supervisor_manager_node.py"  output="log" respawn="true" respawn_delay="3"/>
+
+</launch>

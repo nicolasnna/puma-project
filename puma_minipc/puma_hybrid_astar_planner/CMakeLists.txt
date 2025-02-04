@@ -10,6 +10,7 @@ project(puma_hybrid_astar_planner)
 find_package(catkin REQUIRED COMPONENTS
   costmap_2d
   geometry_msgs
+  puma_msgs
   nav_core
   pluginlib
   roscpp

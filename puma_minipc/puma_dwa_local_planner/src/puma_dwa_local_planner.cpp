@@ -22,27 +22,14 @@ namespace puma_dwa_local_planner {
       ros::NodeHandle private_nh("~/" + name);
 
       /* Cargar parametros */
-      private_nh.param("max_velocity", max_velocity_, 1.0);
-      private_nh.param("min_velocity", min_velocity_, 0.2);
-      private_nh.param("max_steering_angle", max_steering_angle_, 0.52);
-      private_nh.param("desacceleration_x", desacceleration_x_, 0.3);
-      private_nh.param("acceleration_x", acceleration_x_, 0.2);
-      private_nh.param("distance_for_desacceleration", distance_for_desacceleration_, 4.0);
-      private_nh.param("reverse_limit_distance", reverse_limit_distance_, 3.0);
-      private_nh.param("time_simulation", time_simulation_, 2.0);
-      private_nh.param<std::string>("topic_odom", topic_odom_, "odom");
-      private_nh.param("xy_goal_tolerance", xy_goal_tolerance_, 0.4);
-      private_nh.param("steering_samples", steering_samples_, 6);
-      private_nh.param("factor_cost_deviation",factor_cost_deviation_ , 2.0);
-      private_nh.param("factor_cost_distance_goal", factor_cost_distance_goal_, 15.0);
-      private_nh.param("factor_cost_angle_to_plan", factor_cost_angle_to_plan_, 4.0);
-      private_nh.param("factor_cost_obstacle", factor_cost_obstacle_, 3.0);
+      loadParams(private_nh);
 
       odometry_puma = private_nh.subscribe("/"+topic_odom_, 2, &PumaDwaLocalPlanner::odometryCallback, this);
       trajectory_pub_ = private_nh.advertise<visualization_msgs::MarkerArray>("potential_trajectories", 1);
       path_local_pub_ = private_nh.advertise<nav_msgs::Path>("local_plan",1);
       path_global_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan",1);
-      waypoints_sub_ = private_nh.subscribe("set_waypoints", 1, &PumaDwaLocalPlanner::waypointsCallback, this);
+      waypoints_achieved_pub_ = private_nh.advertise<puma_msgs::Waypoint>(ns_waypoints_manager_ + std::string("/achieved"), 1);
+      plan_update_pub_ = private_nh.advertise<nav_msgs::Path>(ns_plan_manager_ + std::string("/update"), 1);
 
       initialized_ = true;
       reversing_ = false;
@@ -50,13 +37,26 @@ namespace puma_dwa_local_planner {
     }
   }
 
-  void PumaDwaLocalPlanner::waypointsCallback(const geometry_msgs::PoseArray& msg){
-    waypoints_.clear();
-    ROS_WARN("Se han recibido %lu waypoints.", msg.poses.size());
-    for (const geometry_msgs::Pose& pose : msg.poses) {
-      auto new_pose = Position(pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
-      waypoints_.push_back(new_pose);
-    }
+  void PumaDwaLocalPlanner::loadParams(ros::NodeHandle& nh) {
+    nh.param("max_velocity", max_velocity_, 1.0);
+    nh.param("min_velocity", min_velocity_, 0.2);
+    nh.param("max_steering_angle", max_steering_angle_, 0.52);
+    nh.param("desacceleration_x", desacceleration_x_, 0.3);
+    nh.param("acceleration_x", acceleration_x_, 0.2);
+    nh.param("distance_for_desacceleration", distance_for_desacceleration_, 4.0);
+    nh.param("reverse_limit_distance", reverse_limit_distance_, 3.0);
+    nh.param("time_simulation", time_simulation_, 2.0);
+    nh.param<std::string>("topic_odom", topic_odom_, "odom");
+    nh.param("xy_goal_tolerance", xy_goal_tolerance_, 0.4);
+    nh.param("steering_samples", steering_samples_, 6);
+    nh.param("factor_cost_deviation",factor_cost_deviation_ , 2.0);
+    nh.param("factor_cost_distance_goal", factor_cost_distance_goal_, 15.0);
+    nh.param("factor_cost_angle_to_plan", factor_cost_angle_to_plan_, 4.0);
+    nh.param("factor_cost_obstacle", factor_cost_obstacle_, 3.0);
+    nh.param("ns_waypoints_manager", ns_waypoints_manager_, std::string("/puma/navigation/waypoints"));
+    nh.param("ns_plan_manager", ns_plan_manager_, std::string("/puma/navigation/plan"));
+    nh.param("max_index_path_compare", max_index_path_compare_, 20);
+    nh.param("factor_cost_angle_between_local_path", factor_cost_angle_between_local_path_, 1.0);
   }
 
   /* Callback odometry */
@@ -94,6 +94,20 @@ namespace puma_dwa_local_planner {
     global_plan_.clear();
     global_plan_ = orig_global_plan;
     goal_pose = global_plan_.back();
+    // Esperar a recibir un mensaje del tópico de waypoints
+    waypoints_.clear();
+    puma_msgs::WaypointNavConstPtr waypoints_msg = ros::topic::waitForMessage<puma_msgs::WaypointNav>(ns_waypoints_manager_ + std::string("/waypoints_info"), ros::Duration(10.0));
+    if (!waypoints_msg) {
+      ROS_WARN("No se recibió ningún mensaje de waypoints en el tiempo esperado.");
+      return false;
+    }
+    waypoints_info_ = *waypoints_msg;
+    for (const puma_msgs::Waypoint& waypoint : waypoints_msg->waypoints) {
+      Position new_pose = Position(waypoint.x, waypoint.y, waypoint.yaw);
+      waypoints_.push_back(new_pose);
+    }
+
+
     ROS_INFO("Nuevo plan definido.");
     return true;
   }
@@ -102,11 +116,6 @@ namespace puma_dwa_local_planner {
   bool PumaDwaLocalPlanner::computeVelocityCommands(geometry_msgs::Twist& cmd_vel) {
     if(!initialized_){
       ROS_ERROR("El planificador PumaDwaLocalPlanner no ha sido inicializado.");
-      return false;
-    }
-
-    if(waypoints_.empty()){
-      ROS_ERROR("No se han definido waypoints para el planificador PumaDwaLocalPlanner.");
       return false;
     }
 
@@ -177,7 +186,7 @@ namespace puma_dwa_local_planner {
       cmd_vel.linear.x = adjustVelocityForAcceleration(cmd_vel.linear.x, puma_.vel_x);
     /* Publicar plan a seguir */
     publishLocalPath(best_path);
-
+    previus_selected_path = best_path;
     return true;
   }
 
@@ -231,10 +240,12 @@ namespace puma_dwa_local_planner {
       return;
     }
 
+
     double min_distance = std::numeric_limits<double>::max();
     size_t closest_index = 0;
+    size_t max_index = std::min(global_plan_.size(), size_t(max_index_path_compare_));
 
-    for (size_t i = 0; i < global_plan_.size(); ++i) {
+    for (size_t i = 0; i < max_index; ++i) {
       double distance = std::hypot(global_plan_[i].pose.position.x - puma_.x, global_plan_[i].pose.position.y - puma_.y);
       if (distance < min_distance) {
         min_distance = distance;
@@ -246,14 +257,15 @@ namespace puma_dwa_local_planner {
       global_plan_.erase(global_plan_.begin(), global_plan_.begin() + closest_index);
     }
 
+
+
     /* Publicar plan global */
     nav_msgs::Path global_path;
     global_path.header.frame_id = "map";
     global_path.header.stamp = ros::Time::now();
-    for (const auto& pose : global_plan_) {
-      global_path.poses.push_back(pose);
-    }
+    global_path.poses = global_plan_;
     path_global_pub_.publish(global_path);
+    plan_update_pub_.publish(global_path);
   }
 
   /* Limpiar rutas del marcador*/
@@ -315,51 +327,28 @@ namespace puma_dwa_local_planner {
     
     if (global_plan_.empty()) {
       ROS_WARN("El plan global esta vacio, no se puede comprobar el destino.");
-      return false;
-    }
-
-    /* Comprobar distancia dentro del rango */
-    double goal_x = goal_pose.pose.position.x;
-    double goal_y = goal_pose.pose.position.y;
-    double distance_to_goal = std::hypot(puma_.x - goal_x, puma_.y - goal_y);
-
-    if (distance_to_goal <= xy_goal_tolerance_) {
-      ROS_INFO("El robot ha alcanzado el destino dentro de la tolerancia %f metros.", xy_goal_tolerance_);
       return true;
     }
 
+    if (waypoints_.size() == 1) {
+      /* Comprobar si se ha alcanzado el destino */
+      if (validateGoalReached(goal_pose.pose.position.x, goal_pose.pose.position.y, puma_.x, puma_.y)) {
+        waypoints_.erase(waypoints_.begin());
+        waypoints_achieved_pub_.publish(waypoints_info_.waypoints[0]);
+        waypoints_info_.waypoints.erase(waypoints_info_.waypoints.begin());
+        return true;
+      }
+    }
+
+    /* Comprobar destino hacia el waypoint más cercano*/
     const Position goal_point = *waypoints_.begin();
-    double distance_to_waypoint = std::hypot(goal_point.x - puma_.x, 
-                                        goal_point.y - puma_.y);
-    if (distance_to_waypoint <= xy_goal_tolerance_) {
-      ROS_INFO("El robot ha alcanzado el waypoint dentro de la tolerancia %f metros.", xy_goal_tolerance_);
+    if (validateGoalReached(goal_point.x, goal_point.y, puma_.x, puma_.y)) {
       waypoints_.erase(waypoints_.begin());
+      waypoints_achieved_pub_.publish(waypoints_info_.waypoints[0]);
+      waypoints_info_.waypoints.erase(waypoints_info_.waypoints.begin());
       return false;
     }
 
-    if (distance_to_goal < 3.0) {
-      /* Comprobar estado del destino */
-      int cell_x, cell_y;
-      getAdjustXYCostmap(goal_x, goal_y, cell_x, cell_y);
-      if (cell_x < 0 || cell_y < 0 || 
-        cell_x >= costmap_->getSizeInCellsX() || 
-        cell_y >= costmap_->getSizeInCellsY()) {
-        ROS_WARN("Celda de comprobacion de costos invalido, sale de los limites de local cost.");
-        ROS_WARN("Goalx %.2f Goaly %.2f CellX %d Celly %d", goal_x, goal_y, cell_x, cell_y);
-        return false; 
-      } 
-      unsigned char cost = costmap_->getCost(cell_x, cell_y);
-
-      if (cost == costmap_2d::LETHAL_OBSTACLE ) {
-        ROS_WARN("El destino se encuentra en un obstaculo. Finalizando navegación...");
-        return true;
-      }
-
-      if (cost >= (unsigned char) 80U && cost < (unsigned char) 253U) {
-        ROS_WARN("El destino se encuentra cercano a un obstaculo. Finalizando navegación...");
-        return true;
-      }
-    }
     
     return false;
   }
@@ -387,50 +376,44 @@ namespace puma_dwa_local_planner {
   /* Calcular el costo asociado a la trayectoria  */
   double PumaDwaLocalPlanner::calculatePathCost(const std::vector<Position>& path) {
     double cost;
-
     double last_x = path.back().x;
     double last_y = path.back().y;
     double last_yaw = path.back().yaw;
     double min_distance_end = std::numeric_limits<double>::max();
-    double min_distance_begin = std::numeric_limits<double>::max();
     size_t closest_index_end = 0;
-    size_t closest_index_begin = 0;
-    for (size_t i = 0; i < global_plan_.size(); ++i) {
+    size_t max_index = std::min(global_plan_.size(), size_t(max_index_path_compare_));
+    for (size_t i = 0; i < max_index; ++i) {
       double dist_end = std::hypot(global_plan_[i].pose.position.x - last_x, global_plan_[i].pose.position.y - last_y);
       if (dist_end < min_distance_end) {
         min_distance_end = dist_end;
         closest_index_end = i;
       }
-      double dist_begin = std::hypot(global_plan_[i].pose.position.x - puma_.x, global_plan_[i].pose.position.y - puma_.y);
-      if (dist_begin < min_distance_begin) {
-        min_distance_begin = dist_begin;
-        closest_index_begin = i;
-      }
     }
+
 
     if (min_distance_end == std::numeric_limits<double>::max()) {
       ROS_WARN("Error al estimar distancia entre la ruta planteada y la global");
       return std::numeric_limits<double>::max();
     }
+
   
     /* Desviacion de la ruta */
-    // int divitionsPath = path.size() / (closest_index_end-closest_index_begin);
-    // for (size_t i = closest_index_begin; i < closest_index_end; i++) {
-    //   int indexPath = (i - closest_index_begin)* divitionsPath;
-    //   double deviation = std::hypot(path[indexPath].x - global_plan_[i].pose.position.x, path[indexPath].y - global_plan_[i].pose.position.y);
-    //   cost += deviation * factor_cost_deviation_;
-    // }
     double deviation_final = std::hypot(last_x- global_plan_[closest_index_end].pose.position.x, last_y - global_plan_[closest_index_end].pose.position.y);
     cost += deviation_final * factor_cost_deviation_;
 
-    /* Costo asociado de diferencia de angulo respecto al plan */
-    double normalized_cost_angle = std::abs(last_yaw - tf::getYaw(global_plan_[closest_index_end].pose.orientation));
+    /* Costo asociado de diferencia de angulo respecto al plan */;
+    double normalized_cost_angle = std::abs(normalizeAngle(last_yaw - tf::getYaw(global_plan_[closest_index_end].pose.orientation)));
     cost += normalized_cost_angle + factor_cost_angle_to_plan_;
+
+    if (previus_selected_path.size() > 0) {
+      double diff_cost_angle_paths = std::abs(normalizeAngle(last_yaw - previus_selected_path.back().yaw));
+      cost += diff_cost_angle_paths * factor_cost_angle_between_local_path_;
+    }
 
     /* Costo por distancia al objetivo */
     const Position goal_point = *waypoints_.begin();
-    double distance_to_goal = std::hypot(goal_point.x - goal_pose.pose.position.x, 
-                                        goal_point.y - goal_pose.pose.position.y);
+    double distance_to_goal = std::hypot(goal_point.x - puma_.x, 
+                                        goal_point.y - puma_.y);
     cost += distance_to_goal * factor_cost_distance_goal_;
 
     /* Costo por obstaculo */
@@ -489,6 +472,38 @@ namespace puma_dwa_local_planner {
     /* Convertir las posiciones a indice de celdas */
     cell_x = static_cast<int>(adjusted_x / costmap_->getResolution());
     cell_y = static_cast<int>(adjusted_y / costmap_->getResolution());
+  }
+
+  bool PumaDwaLocalPlanner::validateGoalReached(double goal_x, double goal_y, double current_x, double current_y) {
+    double distance_to_goal = std::hypot(goal_x - current_x, goal_y - current_y);
+    if (distance_to_goal <= xy_goal_tolerance_) {
+      ROS_INFO("El robot ha alcanzado el destino dentro de la tolerancia %f metros.", xy_goal_tolerance_);
+      return true;
+    }
+
+    if (distance_to_goal < 3.0) {
+      int cell_x, cell_y;
+      getAdjustXYCostmap(goal_x, goal_y, cell_x, cell_y);
+      if (cell_x < 0 || cell_y < 0 || 
+        cell_x >= costmap_->getSizeInCellsX() || 
+        cell_y >= costmap_->getSizeInCellsY()) {
+        ROS_WARN("Celda de comprobacion de costos invalido, sale de los limites de local cost.");
+        ROS_WARN("Goalx %.2f Goaly %.2f CellX %d Celly %d", goal_x, goal_y, cell_x, cell_y);
+        return false; 
+      } 
+      unsigned char cost = costmap_->getCost(cell_x, cell_y);
+
+      if (cost == costmap_2d::LETHAL_OBSTACLE ) {
+        ROS_WARN("El destino se encuentra en un obstaculo. Objetivo completado...");
+        return true;
+      }
+
+      if (cost >= (unsigned char) 80U && cost < (unsigned char) 253U) {
+        ROS_WARN("El destino se encuentra cercano a un obstaculo.  Objetivo completado...");
+        return true;
+      }
+    }
+    return false;
   }
 
 } // namespace puma_dwa_local_planner

@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-  <rosparam command="load" file="$(find puma_waypoints)/config/waypoints_params.yaml"/>
-  <node name="puma_waypoints" pkg="puma_waypoints" type="waypoints_node.py" output="screen"/>
-  
-
-</launch>

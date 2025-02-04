@@ -60,6 +60,8 @@ class ControlPublisher:
 class PumaController:
   def __init__(self):
     self.config = NodeConfig.get_instance()
+    self.initialize_state_variables()
+    self.register_signal_handlers()
     self.setup_publishers_and_subscribers()
     self.log_publisher = LogPublisher(self.logs_pub)
     self.control_publisher = ControlPublisher(
@@ -74,8 +76,6 @@ class PumaController:
       max_value_initial=self.config.limit_accel_initial
     )
 
-    self.initialize_state_variables()
-    self.register_signal_handlers()
     self.log_publisher.publish(0, "Iniciando controlador robot puma. Recordar definir el modo de control.")
 
   def register_signal_handlers(self):
@@ -173,8 +173,8 @@ class PumaController:
       self.log_publisher.publish(0, text["enter_web"])
     
     self.mode_puma = mode.data
-  
-  def move_base_status_callback(self, status):
+    
+  def move_base_status_callback(self, _):
     self.last_time_msg["move_base"] = rospy.get_time()
   
   def arduino_status_callback(self, arduino_msg):
@@ -321,8 +321,8 @@ class PumaController:
       rospy.logerr(f"Error en el controlador: {e}")
       self.log_publisher.publish(2, f"Error en el controlador: {e}")
       self.publish_idle()
-        
-  def shutdown_hook(self, signum, frame):
+      
+  def shutdown_hook(self, _, __):
     """ Manejador de señal para apagar el nodo de manera segura. """
     rospy.logwarn(f"Cerrando el nodo {rospy.get_name()}, publicando en el tópico...")
     self.log_publisher.publish(2, "Cerrando nodo...")

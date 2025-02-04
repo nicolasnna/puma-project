@@ -160,6 +160,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/filter_topics_node.py
   scripts/logger_manager_node.py
+  scripts/ros_to_websocket.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

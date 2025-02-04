@@ -9,7 +9,7 @@ namespace buttons_waypoints
   UploadPlan::UploadPlan()
   {
     ros::NodeHandle nh_;
-    publisher_ = nh_.advertise<std_msgs::String>("/puma/waypoints/plan_upload", 1);
+    publisher_ = nh_.advertise<std_msgs::String>("/puma/state_machine/load_plan", 1);
   }
 
   UploadPlan::~UploadPlan() {}

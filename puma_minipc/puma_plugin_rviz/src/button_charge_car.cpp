@@ -9,7 +9,7 @@ namespace buttons_waypoints
   ChargeCar::ChargeCar()
   {
     ros::NodeHandle nh_;
-    publisher_ = nh_.advertise<std_msgs::Empty>("/puma/waypoints/run_charge_mode", 1);
+    publisher_ = nh_.advertise<std_msgs::Empty>("/puma/state_machine/run_charge_mode", 1);
   }
 
   ChargeCar::~ChargeCar() {}

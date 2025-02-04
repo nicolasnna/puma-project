@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="puma_control_mode" pkg="puma_mode_control" type="control_mode_node.py" output="screen" clear_params="true"/>
+
+</launch>

@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+
+  <rosparam command="load" file="$(find puma_bringup_jetson)/config/controller_params.yaml"/>
+  <node pkg="puma_controller" name="puma_controller" type="puma_controller_node.py" output="screen" respawn="true" respawn_delay="10" clear_params="true"/>
+
+</launch>

@@ -13,6 +13,8 @@
 #include <dynamic_reconfigure/server.h>
 #include <geometry_msgs/PoseArray.h>
 #include <geometry_msgs/Pose.h>
+#include <puma_msgs/WaypointNav.h>
+#include <puma_msgs/Waypoint.h>
 
 using std::string;
 
@@ -35,9 +37,6 @@ struct Node {
     return std::hypot(x - other.x, y - other.y);
   }
   /* Operador de igualdad */
-  // bool operator==(const Node& other) const {
-  //   return (x == other.x) && (y == other.y) && (theta == other.theta);
-  // }
   bool operator==(const Node& other) const {
     return (cell_x == other.cell_x) && (cell_y == other.cell_y) ;
   }
@@ -89,13 +88,15 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     std::vector<std::shared_ptr<Node>> generateDubinsPath(const Node& start, const Node& end);
     void getAdjustXYCostmap(const Node& node, int& cell_x, int& cell_y);
     double normalizeAngle(double angle);
-    void waypointsCallback(const geometry_msgs::PoseArray& msg);
+    bool chargeWaypoints();
+    void publishPath(const std::vector<geometry_msgs::PoseStamped>& plan, ros::Publisher& pub);
+    nav_msgs::Path loadPlanPreCalculated();
 
     costmap_2d::Costmap2DROS* costmap_ros_;
     costmap_2d::Costmap2D* costmap_;
     bool initialized_ = false;
-    ros::Publisher potential_map_pub_, path_combined_pub_, path_pub_, waypoints_to_local_;
-    ros::Subscriber waypoints_sub_;
+    ros::Publisher potential_map_pub_, path_combined_pub_, path_pub_;
+    ros::Publisher plan_pub_, plan_set_loader_pub_;
     nav_msgs::OccupancyGrid potential_map_;
 
     std::vector<Node> waypoints_;
@@ -111,6 +112,8 @@ class PumaHybridAStarPlanner : public nav_core::BaseGlobalPlanner {
     double factor_cost_unknown_;
     double dist_max_to_goal;
     int division_curve_, division_theta_; 
+    bool check_plan_loader_;
+    string ns_waypoints_manager_, ns_plan_manager_, ns_files_manager_;
   };
 };
 

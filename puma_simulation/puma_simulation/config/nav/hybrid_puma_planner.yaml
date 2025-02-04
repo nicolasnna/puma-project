@@ -2,12 +2,20 @@ PumaHybridAStarPlanner:
   # busqueda de celdas
   step_size_meters: 0.5
   division_theta: 3
-  theta_limit: 0.228 # (equivalente a M_PI / 5)
-  xy_goal_tolerance: 0.6
+  max_index_path_compare: 20
+  # theta_limit: 0.228 # (equivalente a M_PI / 5)
+  theta_limit: 0.174 # (equivalente a M_PI / 6)
+  xy_goal_tolerance: 1.0
 
   # factor para costes
-  factor_cost_distance: 10
+  factor_cost_distance: 15
   factor_cost_angle_curve: 4
   factor_cost_angle_goal: 10
   factor_cost_obstacle: 100
   factor_cost_unknown: 0.4
+  # Comprobar la carga de planes externo
+  check_plan_loader: true
+
+  ns_waypoints_manager: "/puma/navigation/waypoints"
+  ns_plan_manager: "/puma/navigation/plan"
+  ns_files_manager: "/puma/navigation/files"

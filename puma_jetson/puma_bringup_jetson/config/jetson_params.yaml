@@ -24,14 +24,7 @@ puma_joy:
   lb_button_index: 4
   rb_button_index: 5
 
-puma_controller:
-  range_accel_converter: [22, 35]
-  limit_angle_degree: 40
-  connect_to_ackermann_converter: false
-  limit_accel_initial: 27
-  kp: 0.6
-  ki: 0.2
-  kd: 0.05
+
 
 # ackermann_converter:
 #   cmd_vel_topic: cmd_vel

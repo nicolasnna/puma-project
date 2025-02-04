@@ -7,7 +7,7 @@ namespace buttons_waypoints {
 
   StopPlan::StopPlan() {
     ros::NodeHandle nh_;
-    publisher_ = nh_.advertise<std_msgs::Empty>("/puma/waypoints/plan_stop", 1);
+    publisher_ = nh_.advertise<std_msgs::Empty>("/puma/state_machine/plan_stop", 1);
   }
 
   StopPlan::~StopPlan() {}

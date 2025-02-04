@@ -9,6 +9,7 @@ project(puma_msgs)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   message_generation
+  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -48,7 +49,12 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   DIRECTORY msg
   FILES
+  AcceleratorInfo.msg
+  ArduinoControlInfo.msg
+  BrakeInfo.msg
+  ConfigurationStateMachine.msg
   DirectionCmd.msg
+  DirectionInfo.msg
   GoalGps.msg
   GoalGpsArray.msg
   GoalGpsNavInfo.msg
@@ -56,11 +62,9 @@ add_message_files(
   LogArray.msg
   StatusArduino.msg
   StatusTachometer.msg
+  Waypoint.msg
+  WaypointNav.msg
   WebTeleop.msg
-  AcceleratorInfo.msg
-  BrakeInfo.msg
-  DirectionInfo.msg
-  ArduinoControlInfo.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -80,7 +84,7 @@ add_message_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  #std_msgs  # Or other packages containing msgs
+  std_msgs  # Or other packages containing msgs
 )
 
 ################################################

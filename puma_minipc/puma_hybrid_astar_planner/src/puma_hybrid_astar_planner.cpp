@@ -22,25 +22,14 @@ namespace puma_hybrid_astar_planner {
 
       // Cargar parámetros de rosparam
       loadRosParam(private_nh);
-
       initializePotentialMap();
 
       path_pub_ = private_nh.advertise<nav_msgs::Path>("global_sub_plan", 2);
       path_combined_pub_= private_nh.advertise<nav_msgs::Path>("global_plan", 2);
       potential_map_pub_ = private_nh.advertise<nav_msgs::OccupancyGrid>("potential_map", 1);
-      waypoints_sub_ = private_nh.subscribe("set_waypoints", 1, &PumaHybridAStarPlanner::waypointsCallback, this);
-      waypoints_to_local_ = private_nh.advertise<geometry_msgs::PoseArray>("/move_base/PumaDwaLocalPlanner/set_waypoints", 1);
-
+      plan_pub_ = private_nh.advertise<nav_msgs::Path>(ns_plan_manager_ + std::string("/add"), 1);
+      plan_set_loader_pub_ = private_nh.advertise<nav_msgs::Path>(ns_files_manager_ + std::string("/set_plan"), 1);
       initialized_ = true;
-    }
-  }
-
-  void PumaHybridAStarPlanner::waypointsCallback(const geometry_msgs::PoseArray& msg){
-    waypoints_.clear();
-    waypoints_msg_ = msg;
-    for (const geometry_msgs::Pose& pose : msg.poses) {
-      auto new_pose = Node(pose.position.x, pose.position.y, tf::getYaw(pose.orientation));
-      waypoints_.push_back(new_pose);
     }
   }
 
@@ -57,6 +46,10 @@ namespace puma_hybrid_astar_planner {
     nh.param("factor_cost_angle_goal", factor_cost_angle_goal_, 2);
     nh.param("factor_cost_obstacle",factor_cost_obstacle_, 10);
     nh.param("factor_cost_unknown", factor_cost_unknown_, 1.0);
+    nh.param("ns_waypoints_manager", ns_waypoints_manager_, std::string("/puma/navigation/waypoints"));
+    nh.param("ns_plan_manager", ns_plan_manager_, std::string("/puma/navigation/plan"));
+    nh.param("ns_files_manager", ns_files_manager_, std::string("/puma/navigation/files"));
+    nh.param("check_plan_loader", check_plan_loader_, false);
   }
 
   /* Inicializar potential map */
@@ -72,6 +65,30 @@ namespace puma_hybrid_astar_planner {
   void PumaHybridAStarPlanner::publishPotentialMap() {
     potential_map_pub_.publish(potential_map_);
 }
+  
+  bool PumaHybridAStarPlanner::chargeWaypoints() {
+    waypoints_.clear();
+    puma_msgs::WaypointNavConstPtr waypoints_msg = ros::topic::waitForMessage<puma_msgs::WaypointNav>(ns_waypoints_manager_ + std::string("/waypoints_info"), ros::Duration(10.0));
+    if (!waypoints_msg) {
+      return false;
+    }
+    for (const puma_msgs::Waypoint& waypoint : waypoints_msg->waypoints) {
+      Node new_pose = Node(waypoint.x, waypoint.y, waypoint.yaw);
+      waypoints_.push_back(new_pose);
+    }
+    return true;
+  }
+
+  nav_msgs::Path PumaHybridAStarPlanner::loadPlanPreCalculated() {
+    nav_msgs::Path path_msg;
+    nav_msgs::PathConstPtr plan_msg = ros::topic::waitForMessage<nav_msgs::Path>(ns_files_manager_ + std::string("/plan_selected"), ros::Duration(10.0));
+    if (!plan_msg) {
+      return path_msg;
+    }
+    path_msg = *plan_msg;
+    return path_msg;
+  }
+
   /* Crear plan */
   bool PumaHybridAStarPlanner::makePlan(const geometry_msgs::PoseStamped& start, const geometry_msgs::PoseStamped& goal, std::vector<geometry_msgs::PoseStamped>& plan) {
     if (!initialized_) {
@@ -79,22 +96,37 @@ namespace puma_hybrid_astar_planner {
       return false;
     }
     
-    if (waypoints_.size() == 0) {
-      ROS_WARN_THROTTLE(5, "No se tienen waypoints definidos, se cancela la navegacion.");
+    // Esperar a recibir un mensaje del tópico de waypoints
+    if (!chargeWaypoints()) {
+      ROS_WARN("No se recibió ningún mensaje de waypoints en el tiempo definido.");
       return false;
     }
 
     plan.clear();
     initializePotentialMap();
     
+    if(check_plan_loader_){
+      ROS_INFO("Cargando plan precalculado...");
+      nav_msgs::Path path_msg = loadPlanPreCalculated();
+      if (path_msg.poses.size() > 0) {
+        plan = path_msg.poses;
+        publishPath(plan, plan_pub_);
+        ROS_INFO("Plan cargado exitosamente.");
+        return true;
+      } else {
+        ROS_WARN("No se recibió ningún plan precalculado en el tiempo definido.");
+      }
+    }
+
     nav_msgs::Path path_complete_;
     std::vector<geometry_msgs::PoseStamped> plan_complete;
     path_complete_.header.stamp = ros::Time::now();
     path_complete_.header.frame_id  = "map";
     ROS_INFO("Iniciando con el calculo de la ruta.");
     Node begin = Node(start.pose.position.x, start.pose.position.y, tf::getYaw(start.pose.orientation));
+    ROS_INFO("Orientacion de inicio: %lf", begin.theta);
     for (const Node& point : waypoints_) {
-      ROS_INFO("Busqueda hacia el destino -> x: %lf , y: %lf", point.x, point.y);
+      ROS_INFO("Busqueda hacia el destino -> x: %lf , y: %lf, theta: %lf", point.x, point.y, point.theta);
       /* Limpiar mapa de potencial */
       std::fill(potential_map_.data.begin(), potential_map_.data.end(), -1);
       
@@ -113,8 +145,19 @@ namespace puma_hybrid_astar_planner {
     }
     plan = plan_complete;
     ROS_WARN("Plan creado exitosamente.");
-    waypoints_to_local_.publish(waypoints_msg_);
+    /* Subir plan generado */
+    publishPath(plan, plan_pub_);
+    // publishPath(plan, plan_set_loader_pub_);
+    ros::Duration(1.0).sleep();
     return true;
+  }
+
+  void PumaHybridAStarPlanner::publishPath(const std::vector<geometry_msgs::PoseStamped>& plan, ros::Publisher& pub) {
+    nav_msgs::Path path_msg;
+    path_msg.header.stamp = ros::Time::now();
+    path_msg.header.frame_id  = "map"; // Ajusta al frame de tu entorno
+    path_msg.poses = plan;
+    pub.publish(path_msg);
   }
 
   std::vector<geometry_msgs::PoseStamped> PumaHybridAStarPlanner::getSubPlan(Node start, Node end) {

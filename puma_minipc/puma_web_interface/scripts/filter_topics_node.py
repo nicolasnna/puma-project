@@ -6,10 +6,12 @@ from puma_msgs.msg import StatusArduino, GoalGpsNavInfo, Log
 
 if __name__ == '__main__':
   rospy.init_node("filter_topics")
-  camera_realsense = ResendTopic('/puma/camera/color/image_raw/compressed', CompressedImage, 5, '/puma/web/camera_realsense')
-  odometry = ResendTopic('/puma/odometry/filtered', Odometry, 2, '/puma/web/odometry')
-  gps = ResendTopic('/puma/sensors/gps/fix', NavSatFix, 1, '/puma/web/gps')
+  camera_realsense = ResendTopic('/puma/sensors/camera_front/color/image_raw/compressed', CompressedImage, 5, '/puma/web/camera_realsense')
+  odometry = ResendTopic('/puma/localization/ekf_odometry', Odometry, 0.5, '/puma/web/odometry')
+  gps = ResendTopic('/puma/sensors/gps/fix', NavSatFix, 0.5, '/puma/web/gps')
   arduino_status = ResendTopic('/puma/arduino/status', StatusArduino, 1, '/puma/web/arduino_status')
+  
+  
   nav_gps = ResendTopic('/puma/waypoints/gps_nav_info', GoalGpsNavInfo, 1, '/puma/web/gps_nav_info')
   
   log_publish = rospy.Publisher('/puma/logs/add_log', Log, queue_size=1)

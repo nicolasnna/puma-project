@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+
+	<rosparam command="load" file="$(find puma_bringup_jetson)/config/joy_params.yaml"/>
+	
+  <node pkg="puma_joy" type="puma_joy_node.py" name="puma_joy" output="screen" respawn="true" respawn_delay="10"
+	>
+	</node>
+	<node respawn="true" pkg="joy" type="joy_node" name="joy_node" respawn_delay="5" >
+		<param name="dev" type="string" value="/dev/input/js0" />
+		<param name="deadzone" value="0.12" />
+		<param name="default_trig_val" value="true" />
+	</node>
+
+</launch>

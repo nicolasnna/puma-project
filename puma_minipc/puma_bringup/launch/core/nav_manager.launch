@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="nav_manager" pkg="puma_nav_manager" type="nav_manager_node.py" output="screen"/>
+  <node name="localization_manager" pkg="puma_nav_manager" type="manager_localization_node.py" output="screen"/>
+  
+
+</launch>

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="dual_camera" default="true"/>
+  <arg name="dual_camera" default="false"/>
   <arg name="path" value="$(find puma_bringup)/launch/core"/>
 
   <!-- Camera -->
   <include file="$(arg path)/realsense_camera.launch">
     <arg name="camera_name" value="camera_front"/>
-    <arg name="serial_no" value="215122255064"/>
+    <arg name="serial_no" value="215122254316"/>
   </include>
   <!-- visual odometry -->
   <include file="$(arg path)/visual_odometry.launch">
@@ -14,10 +14,19 @@
   </include>
   <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="camera_front_imu_tf" args="0 0 0 0 0 0 camera_front_link base_link"/> -->
 
+  <!-- <node pk g="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_camera_front" output="screen" launch-prefix="bash -c 'sleep 5; $0 $@'" >
+    <param name="use_mag" type="bool" value="false" />
+    <param name="publish_tf" type="bool" value="false" />
+    <param name="world_frame" type="string" value="enu" />
+    <remap from="imu/data_raw" to="/puma/sensors/camera_front/imu"/>
+    <remap from="imu/data" to="/puma/sensors/camera_front/imu/filtered"/>
+  </node> -->
+
   <group if="$(arg dual_camera)">
     <!-- Camara trasera -->
     <include file="$(arg path)/realsense_camera.launch">
       <arg name="camera_name" value="camera_rear"/>
+    <arg name="serial_no" value="215122255064"/>
     </include>
     <!-- visual odometry -->
     <include file="$(arg path)/visual_odometry.launch">

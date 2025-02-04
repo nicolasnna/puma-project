@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="dual_camera" default="true"/>
+  <arg name="dual_camera" default="false"/>
   
   <!-- Arduino -->
-  <node name="serial_node_minipc" pkg="rosserial_python" type="serial_node.py"  output="log" respawn="true" respawn_delay="2">
-  </node>
+  <!-- <node name="serial_node_minipc" pkg="rosserial_python" type="serial_node.py"  output="log" respawn="true" respawn_delay="2">
+  </node> -->
 
   <!-- camera -->
   <include file="$(find puma_bringup)/launch/camera_bringup.launch">
@@ -21,5 +21,9 @@
   <include file="$(arg path)/minipc_monitor.launch"/>
   <!-- Web interface -->
   <include file="$(arg path)/web_interface.launch"/>
+  
+  <include file="$(arg path)/nav_manager.launch"/>
+
+  <include file="$(find puma_state_machine)/launch/state_machine_v2.launch"/>
 
 </launch>
