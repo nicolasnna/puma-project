@@ -13,7 +13,7 @@
   <arg name="camera_info_topic" value="$(arg camera_prefix)/color/camera_info"/>
 
   <!-- Nodo de odometría RGB-D -->
-  <node pkg="rtabmap_odom" ns="puma/rtabmap/$(arg camera_name)" type="rgbd_odometry" name="rgbd_odometry" args="$(arg args)" output="$(arg output)" clear_params="true">
+  <node pkg="rtabmap_ros" ns="puma/rtabmap/$(arg camera_name)" type="rgbd_odometry" name="rgbd_odometry" args="$(arg args)" output="$(arg output)" clear_params="true">
     
     <!-- Remapeo de tópicos -->
     <remap from="rgb/image" to="$(arg rgb_topic)"/>

@@ -1,4 +1,9 @@
 #!/bin/bash
+
+# Define la ruta absoluta del directorio donde está el script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 echo "Cambiando permisos a los nodos"
 
 if [ -f "puma_parking/scripts/puma_parking_node.py" ]; then
@@ -37,10 +42,10 @@ else
     echo " -X no se ha encontrado control_mode_node.py"
 fi
 
-if [ -f "puma_bringup_jetson/scripts/supervisor_manager_node.py" ]; then
-    chmod +x puma_bringup_jetson/scripts/supervisor_manager_node.py && echo " -> supervisor_manager_node listo !!!"
+if [ -f "puma_bringup_jetson/scripts/supervisor_manager_launcher.py" ]; then
+    chmod +x puma_bringup_jetson/scripts/supervisor_manager_launcher.py && echo " -> supervisor_manager_launcher listo !!!"
 else
-    echo " -X no se ha encontrado supervisor_manager_node.py"
+    echo " -X no se ha encontrado supervisor_manager_launcher.py"
 fi
 
 
