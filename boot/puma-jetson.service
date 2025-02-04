@@ -4,7 +4,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-Environment="ROS_MASTER_URI=http://10.42.0.199:11311"
+Environment="ROS_MASTER_URI=http://10.42.0.100:11311"
 Environment="ROS_IP=10.42.0.11"
 ExecStart=/usr/local/bin/jetson-bringup-ros.sh
 Restart=always
