@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node pkg="imu_filter_madgwick" type="imu_filter_node" name="imu_filter_camera_front" clear_params="true">
+    <param name="use_mag" type="bool" value="false" />
+    <param name="publish_tf" type="bool" value="false" />
+    <param name="world_frame" type="string" value="enu" />
+    <remap from="imu/data_raw" to="puma/sensors/camera_front/imu"/>
+    <remap from="imu/data" to="puma/sensors/camera_front/imu/filtered"/>
+  </node>
+
+</launch>

@@ -7,7 +7,7 @@
     <param name="subscribe_rgbd" value="false" />
     <param name="subscribe_scan" value="false" /> <!-- Si no usas LiDAR -->
     <param name="subscribe_scan_cloud" value="false" />
-    <param name="frame_id" value="camera_link" />
+    <param name="frame_id" value="base_link" />
     <param name="approx_sync" value="true" />
 
     <!-- Parámetros del SLAM -->
@@ -23,19 +23,16 @@
     <param name="Grid/3D" value="false" /> <!-- Si quieres usar un mapa 2D para el costmap -->
     <param name="Grid/Sensor" type="string" value="1"/>
     <!-- Usa odometría fusionada con robot localization -->
-    <remap from="odom" to="/puma/odometry/filtered" />
-
+    <remap from="odom" to="puma/localization/ekf_odometry" />
   
     <!-- <param name="use_action_for_goal" value="true"/> -->
     
     <remap from="grid_map" to="map"/>
     
     <!-- Tópicos de la cámara Realsense -->
-    <remap from="rgb/image" to="/puma/camera/color/image_raw" />
-    <remap from="depth/image" to="/puma/camera/aligned_depth_to_color/image_raw" />
-    <remap from="rgb/camera_info" to="/puma/camera/color/camera_info" />
-    <remap from="depth/camera_info" to="/puma/camera/aligned_depth_to_color/camera_info" />
+    <!-- <remap from="rgb/image" to="/puma/camera/color/image_raw" />
+    <remap from="rgb/camera_info" to="/puma/camera/color/camera_info" /> -->
+    <remap from="depth/image" to="/puma/sensors/camera_front/aligned_depth_to_color/image_raw" />
   </node>
 
- 
 </launch>

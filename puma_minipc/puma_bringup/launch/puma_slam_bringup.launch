@@ -19,5 +19,6 @@
   <include file="$(arg path)/slam_rtabmap.launch"/>
   <!-- Web interface -->
   <include file="$(arg path)/web_interface.launch"/>
-  
+  <!-- Imu filter for realsense  -->
+  <include file="$(arg path)/imu_filter_realsense.launch"/>
 </launch>

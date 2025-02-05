@@ -10,8 +10,6 @@
   <!-- TF states -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-  <!-- Static Tf between map and odom -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
   
   <!-- <node name="puma_odometry_node" pkg="puma_odometry" type="puma_odometry_node.py" output="screen">
     <remap from="puma/odom" to="puma/localization/odometry_wheel"/>

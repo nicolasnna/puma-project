@@ -4,6 +4,9 @@
   <!-- Map server -->
   <arg name="map_file" default="$(find puma_bringup)/map/blank_map.yaml"/>
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <!-- Static Tf between map and odom -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
+  
   <!-- Navigation -->
   <arg name="path" value="$(find puma_bringup)/config/nav_static_map"/>
   <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
