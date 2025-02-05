@@ -28,10 +28,10 @@
     <!-- <param name="use_action_for_goal" value="true"/> -->
     
     <remap from="grid_map" to="map"/>
-    
+    <remap from="gps/fix" to="/puma/sensors/gps/fix" />
     <!-- Tópicos de la cámara Realsense -->
-    <!-- <remap from="rgb/image" to="/puma/camera/color/image_raw" />
-    <remap from="rgb/camera_info" to="/puma/camera/color/camera_info" /> -->
+    <remap from="rgb/image" to="/puma/sensors/camera_front/color/image_raw" />
+    <remap from="rgb/camera_info" to="/puma/sensors/camera_front/color/camera_info" />
     <remap from="depth/image" to="/puma/sensors/camera_front/aligned_depth_to_color/image_raw" />
   </node>
 
