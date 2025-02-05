@@ -2,32 +2,28 @@
 <launch>
   
   <!-- RTAB-Map (mapeo y SLAM) -->
-  <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="screen" args="--delete_db_on_start">
+  <node pkg="rtabmap_slam" ns="puma/rtabmap/camera_front" type="rtabmap" name="rtabmap" output="screen" args="--delete_db_on_start">
     <param name="subscribe_depth" value="true" /> <!-- Si usas la cámara Realsense -->
     <param name="subscribe_rgbd" value="false" />
     <param name="subscribe_scan" value="false" /> <!-- Si no usas LiDAR -->
     <param name="subscribe_scan_cloud" value="false" />
     <param name="frame_id" value="base_link" />
     <param name="approx_sync" value="true" />
+    <param name="wait_for_transform" type="bool"   value="true"/>
 
     <!-- Parámetros del SLAM -->
-    <param name="RGBD/ProximityPathFilteringRadius" value="1.0" />
-    <param name="RGBD/LinearUpdate" value="0.1" />
-    <param name="RGBD/AngularUpdate" value="0.1" />
-    <param name="RGBD/LoopClosurePathFilteringRadius" value="5.0" /> <!-- Reduce falsos bucles -->
-    <param name="RGBD/CreateOccupancyGrid" value="true" /> <!-- Genera un grid de ocupación para la navegación -->
-    <param name="Grid/RangeMax" value="10.0" /> <!-- Aumenta el rango de visibilidad -->
+    <param name="Grid/RangeMax" value="8.0" /> <!-- Aumenta el rango de visibilidad -->
     <param name="Grid/NormalsSegmentation" value="true" /> <!-- Habilitar la segmentación del suelo según las normales -->
     <param name="Grid/FromDepth" value="true" />
     <param name="Grid/MaxGroundHeight" value="0.4" /> 
     <param name="Grid/3D" value="false" /> <!-- Si quieres usar un mapa 2D para el costmap -->
     <param name="Grid/Sensor" type="string" value="1"/>
     <!-- Usa odometría fusionada con robot localization -->
-    <remap from="odom" to="puma/localization/ekf_odometry" />
+    <remap from="odom" to="/puma/localization/ekf_odometry" />
   
     <!-- <param name="use_action_for_goal" value="true"/> -->
     
-    <remap from="grid_map" to="map"/>
+    <remap from="grid_map" to="/map"/>
     <remap from="gps/fix" to="/puma/sensors/gps/fix" />
     <!-- Tópicos de la cámara Realsense -->
     <remap from="rgb/image" to="/puma/sensors/camera_front/color/image_raw" />
