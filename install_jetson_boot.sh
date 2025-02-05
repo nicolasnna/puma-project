@@ -3,8 +3,8 @@
 
 # Verifica que el script se ejecute como root
 if [ "$EUID" -ne 0 ]; then
-  echo "Por favor, ejecuta el script como root."
-  exit 1
+    echo "Por favor, ejecuta el script como root."
+    exit 1
 fi
 
 # Definir rutas de origen (asumiendo que los archivos están en el mismo directorio que el script)

@@ -1,14 +1,9 @@
 #!/bin/bash
-set -e  # Detiene el script si hay errores
+set -e
 source /home/puma/.bashrc
-source /opt/ros/melodic/setup.bash
+source /opt/ros/noetic/setup.bash
 source /home/puma/puma_ws/devel/setup.bash
 
-sudo chown root.gpio /dev/gpiochip0
-sudo chmod 660 /dev/gpiochip0
-sudo chown root.gpio /dev/gpiochip1
-sudo chmod 660 /dev/gpiochip1
-sudo usermod -a -G dialout puma
 if [ -e /dev/ttyUSB0 ]; then
   sudo chmod a+rw /dev/ttyUSB0
 fi
@@ -21,5 +16,4 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 2
 done
 
-roslaunch puma_bringup_jetson jetson_supervised_bringup.launch
-
+roslaunch puma_bringup puma_bringup.launch
