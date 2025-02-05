@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="supervisor_minipc_node" pkg="puma_bringup" type="supervisor_manager.py"  output="log" respawn="true" respawn_delay="30"/>
+
+</launch>

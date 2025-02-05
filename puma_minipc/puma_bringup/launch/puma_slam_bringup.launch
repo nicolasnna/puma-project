@@ -21,4 +21,8 @@
   <include file="$(arg path)/web_interface.launch"/>
   <!-- Imu filter for realsense  -->
   <include file="$(arg path)/imu_filter_realsense.launch"/>
+
+  <include file="$(arg path)/nav_manager.launch"/>
+
+  <include file="$(find puma_state_machine)/launch/state_machine_v2.launch"/>
 </launch>

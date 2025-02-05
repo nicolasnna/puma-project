@@ -7,7 +7,7 @@ from sensor_msgs.msg import NavSatFix
 import rospkg
 
 if __name__ == '__main__':
-  rospy.init_node('supervisor_manager_node')
+  rospy.init_node('supervisor_jetson_node')
   
   path = rospkg.RosPack().get_path('puma_bringup_jetson')
   
@@ -61,11 +61,11 @@ if __name__ == '__main__':
       'times_respawn': 2
     },
     {
-      'node_name': 'puma_realsense_rear',
+      'node_name': 'realsense_rear',
       'launch_file': f"{path}/launch/core/realsense.launch",
     },
     {
-      'node_name': 'puma_odom_visual_rear',
+      'node_name': 'odom_visual_rear',
       'launch_file': f"{path}/launch/core/odom_rtabmap.launch",
     },
     {
