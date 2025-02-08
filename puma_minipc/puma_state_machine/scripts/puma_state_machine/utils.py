@@ -23,11 +23,11 @@ def calc_goal_from_gps(origin_lat, origin_long, goal_lat, goal_long):
   azimuth = math.radians(azimuth)
 
 
-  y = adjacent = math.cos(azimuth) * hypotenuse # ESTE
-  x = opposite = math.sin(azimuth) * hypotenuse # NORTE
+  # y = adjacent = math.cos(azimuth) * hypotenuse # ESTE
+  # x = opposite = math.sin(azimuth) * hypotenuse # NORTE
   
-  # x = math.cos(azimuth) * hypotenuse  # ESTE
-  # y = math.sin(azimuth) * hypotenuse # NORTE
+  x = math.cos(azimuth) * hypotenuse  # ESTE
+  y = math.sin(azimuth) * hypotenuse # NORTE
 
   return x,y
 
