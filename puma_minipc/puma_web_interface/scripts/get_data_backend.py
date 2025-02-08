@@ -31,6 +31,17 @@ def get_remain_command_robot():
   except requests.exceptions.RequestException as e:
     rospy.logwarn(f"Error al obtener datos: {e}")
     
+def update_complete_command(id: int):
+  global headers
+  try:
+    response = requests.put(BACKEND_URL+f"/db/command_robot/{id}/complete", headers=headers, timeout=5)
+    if response.status_code == 200:
+      return response
+    else:
+      rospy.logwarn(f"Error al actualizar datos: {response.status_code} - {response.text}")
+  except requests.exceptions.RequestException as e:
+    rospy.logwarn(f"Error al actualizar datos: {e}")
+    
 def check_and_send_remain_commands():
   global completed_commands
   res = get_remain_command_robot()
@@ -41,10 +52,13 @@ def check_and_send_remain_commands():
         if cmd not in completed_commands:
           time = datetime.fromisoformat(cmd['updated_at'])
           diff_time = datetime.now() - time
-          rospy.loginfo(f"comando efectuado hace {diff_time.seconds/60} minutos")
-          translate_command[cmd['type']](cmd['cmd'])
-          # Process the command here
-          completed_commands.append(cmd)
+          
+          # rospy.loginfo(f"comando efectuado hace {diff_time.seconds/60} minutos")
+          if diff_time.seconds/60 < 5:
+            translate_command[cmd['type']](cmd['cmd'])
+            # Process the command here
+            update_complete_command(cmd['id'])
+            completed_commands.append(cmd)
     except ValueError:
       rospy.logwarn("Error: Response content is not valid JSON")
       

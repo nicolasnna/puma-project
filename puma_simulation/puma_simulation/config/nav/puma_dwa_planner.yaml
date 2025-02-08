@@ -10,8 +10,8 @@ PumaDwaLocalPlanner:
   distance_for_desacceleration: 4.0
 
   reverse_limit_distance: 3.0
-  time_simulation: 4.0
-  max_index_path_compare: 15
+  time_simulation: 2.0
+  max_index_path_compare: 10 # Si coloca en cero, queda en blucle infinito de retroseso
 
   xy_goal_tolerance: 1.2
   steering_samples: 15

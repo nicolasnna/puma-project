@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="post_ros_to_web" pkg="puma_web_interface" type="post_data_backend.py" output="screen"/>
+  <node name="get_web_to_ros" pkg="puma_web_interface" type="get_data_backend.py" output="screen"/>
+  
+
+</launch>
