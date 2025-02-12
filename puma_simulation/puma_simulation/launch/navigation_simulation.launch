@@ -6,6 +6,7 @@
   <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
   <node name="puma_nav_manager" pkg="puma_nav_manager" type="nav_manager_node.py" output="screen" clear_params="true" respawn="true" />
+  <node name="localization_manager" pkg="puma_nav_manager" type="manager_localization_node.py" output="screen"/>
 
   <!-- xterm -e gdb - -args -->
   <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
