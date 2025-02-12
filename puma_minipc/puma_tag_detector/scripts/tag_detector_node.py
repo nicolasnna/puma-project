@@ -18,7 +18,7 @@ if __name__ == "__main__":
   enable_topic = rospy.get_param('/tag_detector/enable_topic', '/puma/tag_detector/enable')
   rospy.Subscriber(enable_topic, Bool, callback_activate_detector)
   # Array with multiples classes 
-  tag_names = rospy.get_param('/tag_detector/tag_names',['/tag_0'])
+  tag_names = rospy.get_param('/tag_detector/tag_names',['/tag_1'])
   transform_tags = []
   goal_tag = []
   for tag in tag_names:

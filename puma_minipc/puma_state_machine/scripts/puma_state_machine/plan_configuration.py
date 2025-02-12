@@ -12,7 +12,7 @@ import tf
 
 class PlanConfiguration(smach.State):
   def __init__(self):
-    smach.State.__init__(self, outcomes=['run_plan', 'run_plan_custom'], input_keys=[], output_keys=['plan_configuration_info'])
+    smach.State.__init__(self, outcomes=['run_plan', 'run_plan_custom', 'run_parking_station_charge'], input_keys=[], output_keys=['plan_configuration_info'])
     self.configuration_info = {'name_plan': '', 'repeat': 0, 'minutes_between_repeats': 0}
     self.publishers()
 
@@ -37,6 +37,11 @@ class PlanConfiguration(smach.State):
     self.configuration_cmd_sub = rospy.Subscriber(ns_topic + '/configuration_cmd', ConfigurationStateMachine, self.configuration_cmd_cb)
     self.save_plan_sub = rospy.Subscriber(ns_topic + '/save_plan', String, self.save_plan_cb)
     self.load_plan_sub = rospy.Subscriber(ns_topic + '/load_plan', String, self.load_plan_cb)
+    self.charge_mode_sub = rospy.Subscriber(ns_topic + "/run_charge_mode", Empty, self.charge_mode_cb)
+
+  def charge_mode_cb(self, msg):
+    rospy.loginfo("-> Recibido comando de carga.")
+    self.charge_mode_on = True
     
   def end_subscriber(self):
     if self.clear_plan_sub is not None:
@@ -194,13 +199,17 @@ class PlanConfiguration(smach.State):
     rospy.loginfo('----- Estado Configuración de plan -----')
     self.send_log("Iniciando en el estado de configuración de plan de navegación.", 0)
     
+    self.charge_mode_on = False
     self.is_plan_ready = False
     self.start_subscriber()
     
-    while not self.is_plan_ready and not rospy.is_shutdown():
+    while not self.is_plan_ready and not rospy.is_shutdown() and not self.charge_mode_on:
       rospy.Rate(1).sleep()
       
     self.end_subscriber()
+    
+    if self.charge_mode_on:
+      return 'run_parking_station_charge'
     
     userdata.plan_configuration_info = self.configuration_info
     if self.configuration_info['repeat'] > 0:

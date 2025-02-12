@@ -2,7 +2,7 @@
 <launch>
   <!-- Configure inputs -->
   <arg name="node_namespace" default="apriltag_ros_node"/>
-  <arg name="camera_name" default="/camera/color"/>
+  <arg name="camera_name" default="/puma/sensors/camera_front/color"/>
   <arg name="camera_frame" default="camera_link"/>
   <arg name="image_topic" default="image_raw"/>
   <!-- Set params -->

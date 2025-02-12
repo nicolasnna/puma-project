@@ -1,5 +1,5 @@
 tag_detector:
-  tag_names: [/tag_0]
+  tag_names: [/tag_1]
   output_frame: /map
   camera_frame: /camera_link
   wait_duration: 3.0
