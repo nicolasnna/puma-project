@@ -9,15 +9,14 @@ from std_msgs.msg import String
 from smach_msgs.msg import SmachContainerStatus
 import base64
 
-BACKEND_URL = "http://localhost:8000"
 
-BACKEND_LOGIN = "http://localhost:8000/auth/login"
 
 def get_token():
+  global BACKEND_URL
   headers = { 'Content-Type': 'application/x-www-form-urlencoded'}
   body = { 'username': 'admin', 'password': 'admin'}
   try:
-    response = requests.post(BACKEND_LOGIN, headers=headers, data=body, timeout=5)
+    response = requests.post(BACKEND_URL+"/auth/login", headers=headers, data=body, timeout=5)
     if response.status_code == 200:
       return response.json()
     else:
@@ -26,7 +25,7 @@ def get_token():
     rospy.logwarn(f"Error al obtener token: {e}")
 
 def callback_camera(data: CompressedImage):
-  global times, headers
+  global times, headers, BACKEND_URL
   time_now = rospy.Time.now().to_sec()
   if time_now - times["camera_front"]> 1:
     image = base64.b64encode(data.data).decode('utf-8')
@@ -43,7 +42,7 @@ def callback_camera(data: CompressedImage):
     times["camera_front"] = time_now
     
 def callback_gps(data: NavSatFix):
-  global times, headers
+  global times, headers, BACKEND_URL
   time_now = rospy.Time.now().to_sec()
   if time_now - times["gps"] > 2:
     dataToSend = {"latitude": data.latitude, "longitude": data.longitude, "altitude": data.altitude}
@@ -59,7 +58,7 @@ def callback_gps(data: NavSatFix):
     times["gps"] = time_now
 
 def arduino_status_cb(data: StatusArduino):
-  global times, headers
+  global times, headers, BACKEND_URL
   time_now = rospy.Time.now().to_sec()
   if time_now - times["arduino_status"] > 2:
     dataToSend = {
@@ -81,7 +80,7 @@ def arduino_status_cb(data: StatusArduino):
     times["arduino_status"] = time_now
     
 def mode_control_cb(data: String):
-  global times, headers
+  global times, headers, BACKEND_URL
   dataToSend = {"mode": data.data}
   time_now = rospy.Time.now().to_sec()
   if time_now - times["control_mode"] > 2:
@@ -97,7 +96,7 @@ def mode_control_cb(data: String):
     times["control_mode"] = time_now
     
 def odometry_cb(data: Odometry):
-  global times, headers
+  global times, headers, BACKEND_URL
   time_now = rospy.Time.now().to_sec()
   if time_now - times["odometry"] > 1:
     dataToSend = {
@@ -122,7 +121,7 @@ def odometry_cb(data: Odometry):
     times["odometry"] = time_now
     
 def state_machine_cb(data: SmachContainerStatus):
-  global times, headers, previus_sm
+  global times, headers, previus_sm, BACKEND_URL
   time_now = rospy.Time.now().to_sec()
   if time_now - times["state_machine"] > 3:
     if previus_sm == data.active_states[0]:
@@ -153,6 +152,8 @@ def setting_up():
 if __name__ == "__main__":
   rospy.init_node("post_data_backend")
   rospy.loginfo("Starting post_data_backend node")
+  global BACKEND_URL
+  BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
   
   time_now = rospy.Time.now().to_sec()
   global times, headers, previus_sm

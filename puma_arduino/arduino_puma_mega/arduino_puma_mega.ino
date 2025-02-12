@@ -13,8 +13,8 @@
 
 #define ANALOG_TO_RAD 0.006135937
 #define RAD_TO_DEG 57.2958279
-#define TIME_PUBLISH_IMU 50 // freq 20
-#define TIME_PUBLISH_STATUS 200 // freq 5
+#define TIME_PUBLISH_IMU 100 // freq 20
+#define TIME_PUBLISH_STATUS 300 // freq 5
 
 /* Señal seguridad */
 const int SECURITY_PIN = 45;
@@ -42,14 +42,14 @@ unsigned long initTimeBrakeCmd = 0;
 #define PWM_REAR_BRAKE 100
 
 /* Variables direccion */
-const int SENSOR_DIRECTION_PIN = A2;
+const int SENSOR_DIRECTION_PIN = A3;
 const int RIGHT_DIRECTION_PIN = 3;
 const int LEFT_DIRECTION_PIN = 4;
 const int ENABLE_DIRECTION_PIN = 5;
 // 45 grados limite
-const int LIMIT_DIR_ANALOG_MIN = 291; //263
-const int LIMIT_DIR_ANALOG_MAX = 549; //521
-int ZERO_DIR_ANALOG = 420;  //392
+const int LIMIT_DIR_ANALOG_MIN = 296; //263
+const int LIMIT_DIR_ANALOG_MAX = 554; //521
+int ZERO_DIR_ANALOG = 425;  //392
 #define PWM_DIRECTION 100
 
 float angleGoal = 0; // Is save angle goal in rads
@@ -117,11 +117,11 @@ void setup() {
   /* Configuracion de pines */
   configPinMode();
   attachInterrupt(digitalPinToInterrupt(TACHOMETER_PIN), countPulse, RISING); 
-  /* Config i2c */
-  Wire.begin();
-  Wire.setClock(400000);
-  /* Configuracion IMU y Mag */
-  configImuMag();
+  // /* Config i2c */
+  // Wire.begin();
+  // Wire.setClock(400000);
+  // /* Configuracion IMU y Mag */
+  // configImuMag();
 }
 
 void loop() {
@@ -134,7 +134,7 @@ void loop() {
     brakeController();
     /* Publicadores */
     publishTachometer();
-    publishImuMag();
+    // publishImuMag();
     publishMsgStatus();
     publishSecurityLog();
     publishModeLog();
@@ -153,7 +153,7 @@ void configRos() {
   nh.subscribe(mode_sub);
   nh.advertise(arduinoStatusPub);
   nh.advertise(tacometerStatusPub);
-  nh.advertise(imuRawPub);
+  // nh.advertise(imuRawPub);
   nh.advertise(compassRawPub);
   nh.advertise(logInfoPub);
   /* Escribir tópicos en el mensaje de estado */
@@ -187,19 +187,19 @@ void configPinMode() {
   pinMode(TACHOMETER_PIN, INPUT_PULLUP); 
 }
 
-void configImuMag() {
-  imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
-  imu.Begin();
-  imu.ConfigSrd(19);
-  imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G);
-  imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS);
-  imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ);
-  compass.init();
-  compass.setSmoothing(10, true);
-  compass.setCalibrationOffsets(177.00, 155.00, -70.00);
-  compass.setCalibrationScales(0.72, 0.72, 4.83);
-  imu_msg.header.frame_id = compass_msg.header.frame_id = "gps_link";
-}
+// void configImuMag() {
+//   imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
+//   imu.Begin();
+//   imu.ConfigSrd(19);
+//   imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G);
+//   imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS);
+//   imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ);
+//   compass.init();
+//   compass.setSmoothing(10, true);
+//   compass.setCalibrationOffsets(177.00, 155.00, -70.00);
+//   compass.setCalibrationScales(0.72, 0.72, 4.83);
+//   imu_msg.header.frame_id = compass_msg.header.frame_id = "gps_link";
+// }
 
 void readSecurityAndControlMode() {
   int readSecurity = digitalRead(SECURITY_PIN);
@@ -281,9 +281,9 @@ void directionController(){
     }
 
     /* Comprobar direccion a realizar giro y si es necesario */
-    bool is_missing_goal = (positionGoal - 13 > sensorPositionValue ) || (positionGoal + 13 < sensorPositionValue );
-    bool is_diff_angle_positiv = (angleCurrent < angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN-10);
-    bool is_diff_angle_negativ = (angleCurrent > angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX+10) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN);
+    bool is_missing_goal = (positionGoal - 5 > sensorPositionValue ) || (positionGoal + 5 < sensorPositionValue );
+    bool is_diff_angle_positiv = (angleCurrent < angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN-5);
+    bool is_diff_angle_negativ = (angleCurrent > angleGoal) && (sensorPositionValue <= LIMIT_DIR_ANALOG_MAX+5) && (sensorPositionValue >= LIMIT_DIR_ANALOG_MIN);
 
     if (is_diff_angle_negativ && enablePinDirection && is_missing_goal){
       analogWrite(LEFT_DIRECTION_PIN,0);

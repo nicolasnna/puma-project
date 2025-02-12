@@ -2,7 +2,7 @@
 <launch>
 
   <node name="logger_puma" pkg="puma_web_interface" type="logger_manager_node.py" output="screen"/>
-  <node name="filter_msg_web" pkg="puma_web_interface" type="filter_topics_node.py" output="screen"/>
+  <!-- <node name="filter_msg_web" pkg="puma_web_interface" type="filter_topics_node.py" output="screen"/> -->
 
 
 </launch>
