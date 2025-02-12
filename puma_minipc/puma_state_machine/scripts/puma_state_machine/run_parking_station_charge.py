@@ -13,7 +13,7 @@ from geometry_msgs.msg import PoseStamped, Twist
 from puma_msgs.msg import WaypointNav, Waypoint
 import tf.transformations
 
-class ParkingStationCharge(smach.State):
+class RunParkingStationCharge(smach.State):
   def __init__(self):
     smach.State.__init__(self, outcomes=['finish_charge'])
     enable_topic = rospy.get_param('~enable_topic', "/puma/tag_detector/enable")
