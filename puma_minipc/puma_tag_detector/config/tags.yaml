@@ -21,8 +21,8 @@
 #   ]
 standalone_tags: # For implementation
   [
-    {id: 0, size: 0.100, name: tag_0},
-    {id: 1, size: 0.100, name: tag_1},
+    {id: 0, size: 0.165, name: tag_0},
+    {id: 1, size: 0.165, name: tag_1},
   ]
 # standalone_tags: # For simulation
 #   [

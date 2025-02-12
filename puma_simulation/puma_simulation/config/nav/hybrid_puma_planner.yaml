@@ -8,7 +8,7 @@ PumaHybridAStarPlanner:
   xy_goal_tolerance: 1.0
 
   # factor para costes
-  factor_cost_distance: 40
+  factor_cost_distance: 100
   factor_cost_angle_curve: 4
   factor_cost_angle_goal: 10
   factor_cost_obstacle: 100
