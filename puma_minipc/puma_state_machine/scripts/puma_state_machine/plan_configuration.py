@@ -2,12 +2,12 @@
 import rospy
 import smach
 import math
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
 from puma_msgs.msg import Log, WaypointNav, Waypoint, ConfigurationStateMachine
 from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Path, Odometry
-from puma_state_machine.utils import create_and_publish_log, check_plan_load_file, check_and_get_waypoints, calc_goal_from_gps
+from puma_state_machine.utils import *
 import tf
 
 class PlanConfiguration(smach.State):
@@ -26,6 +26,9 @@ class PlanConfiguration(smach.State):
     self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=2)
     self.waypoints_add_pub = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=2)
     self.waypoints_set_pub = rospy.Publisher('/puma/navigation/waypoints/set', WaypointNav, queue_size=2)
+    # rviz
+    ns_topic = rospy.get_param('~ns_topic', '')
+    self.pose_array_publisher = rospy.Publisher(ns_topic + '/path_planned', PoseArray, queue_size=4)
 
   def start_subscriber(self):
     add_pose_topic = rospy.get_param('~add_pose_topic', '/initialpose')
@@ -155,14 +158,17 @@ class PlanConfiguration(smach.State):
       for waypoint in waypoints:
         new_waypoint = Waypoint()
         x, y = calc_goal_from_gps(latitude_rbt, longitude_rbt, waypoint.latitude, waypoint.longitude)
-        new_waypoint.x = x + pos_x
-        new_waypoint.y = y + pos_y
-        new_waypoint.yaw = waypoint.yaw * math.pi / 180
+        x2, y2 = get_xy_based_on_lat_long(latitude_rbt, longitude_rbt, waypoint.latitude, waypoint.longitude)
+        rospy.loginfo(f"-> Waypoint en distintos metodos: x: {x}, y: {y}, x2: {x2}, y2: {y2}")
+        new_waypoint.x = y + pos_x
+        new_waypoint.y = x + pos_y
+        new_waypoint.yaw = -waypoint.yaw * math.pi / 180
         new_waypoint.latitude = waypoint.latitude
         new_waypoint.longitude = waypoint.longitude
         new_waypoints.waypoints.append(new_waypoint)
         
       self.waypoints_set_pub.publish(new_waypoints)
+      self.publish_waypoints_rviz(new_waypoints.waypoints)
       rospy.sleep(0.2)
       try: 
         is_correct, _ = check_and_get_waypoints(self.send_log)
@@ -193,7 +199,29 @@ class PlanConfiguration(smach.State):
         
     else:
       self.send_log("No se ha especificado un plan a cargar.", 1)
+  
+  def publish_waypoints_rviz(self, waypoints):
+    pose_array = PoseArray()
+    pose_array.header.frame_id = 'map'
+    pose_array.header.stamp = rospy.Time.now()
     
+    for waypoint in waypoints:
+      pose = PoseStamped()
+      pose.header.frame_id = 'map'
+      pose.pose.position.x = waypoint.x
+      pose.pose.position.y = waypoint.y
+      pose.pose.position.z = 0
+      
+      quaternion = tf.transformations.quaternion_from_euler(0, 0, waypoint.yaw)
+      pose.pose.orientation.x = quaternion[0]
+      pose.pose.orientation.y = quaternion[1]
+      pose.pose.orientation.z = quaternion[2]
+      pose.pose.orientation.w = quaternion[3]
+      
+      pose_array.poses.append(pose.pose)
+    
+    self.pose_array_publisher.publish(pose_array)
+  
   def execute(self, userdata):
     """ Configura el plan de navegación """
     rospy.loginfo('----- Estado Configuración de plan -----')

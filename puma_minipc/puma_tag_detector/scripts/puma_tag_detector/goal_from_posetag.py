@@ -11,7 +11,7 @@ class GoalFromPoseTag:
     rospy.Subscriber('/puma/tag_detector/pose'+tag_name, PoseStamped, self.pose_from_tag)
     self.goal_pub = rospy.Publisher('/puma/tag_detector/goal'+tag_name, MoveBaseGoal, queue_size=1)
     
-    self.distance2tag = rospy.get_param('/tag_detector/distance_to_tag', 6.0)
+    self.distance2tag = rospy.get_param('/tag_detector/distance_to_tag', 3.0)
     
   def pose_from_tag(self, pose_received):
     goal = MoveBaseGoal()

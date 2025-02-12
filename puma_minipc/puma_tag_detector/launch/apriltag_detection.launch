@@ -2,8 +2,8 @@
 <launch>
   <!-- Configure inputs -->
   <arg name="node_namespace" default="apriltag_ros_node"/>
-  <arg name="camera_name" default="/puma/sensors/camera_front/aligned_depth_to_color"/>
-  <arg name="camera_frame" default="camera_link"/>
+  <arg name="camera_name" default="/puma/sensors/camera_front/color"/>
+  <arg name="camera_frame" default="camera_front_link"/>
   <arg name="image_topic" default="image_raw"/>
   <!-- Set params -->
   <rosparam command="load" file="$(find puma_tag_detector)/config/settings.yaml" ns="$(arg node_namespace)"/>

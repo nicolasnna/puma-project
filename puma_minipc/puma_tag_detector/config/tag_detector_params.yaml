@@ -1,6 +1,7 @@
 tag_detector:
   tag_names: [/tag_1]
   output_frame: /map
-  camera_frame: /camera_link
+  camera_frame: /camera_front_link
   wait_duration: 3.0
+  distance_to_tag: 1.0
   enable_topic: /puma/tag_detector/enable

@@ -8,6 +8,7 @@ from puma_msgs.msg import Log, WaypointNav, Waypoint
 from std_msgs.msg import String
 from move_base_msgs.msg import MoveBaseGoal
 from nav_msgs.msg import Path
+import geonav_transform.geonav_conversions as gc
 
 
 def calc_goal_from_gps(origin_lat, origin_long, goal_lat, goal_long):
@@ -140,3 +141,18 @@ def check_plan_load_file():
   except Exception as e:
     rospy.logwarn(f"No se ha podido revisar el ultimo plan empleado: {e}")
     return False
+  
+def get_xy_based_on_lat_long(lat_origin,lon_origin,lat,lon):
+    # Define a local orgin, latitude and longitude in decimal degrees
+    
+    xg2, yg2 = gc.ll2xy(lat,lon,lat_origin,lon_origin)
+    # utmy, utmx, utmzone = gc.LLtoUTM(lat,lon)
+    # xa,ya = axy.ll2xy(lat,lon,olat,olon)
+
+    # rospy.loginfo("#########  "+name+"  ###########")  
+    # rospy.loginfo("LAT COORDINATES ==>"+str(lat)+","+str(lon))  
+    # rospy.loginfo("COORDINATES XYZ ==>"+str(xg2)+","+str(yg2))
+    # rospy.loginfo("COORDINATES AXY==>"+str(xa)+","+str(ya))
+    # rospy.loginfo("COORDINATES UTM==>"+str(utmx)+","+str(utmy))
+
+    return xg2, yg2

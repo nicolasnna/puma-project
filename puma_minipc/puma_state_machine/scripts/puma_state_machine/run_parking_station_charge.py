@@ -6,7 +6,7 @@ import actionlib
 import roslaunch
 import math
 import tf
-from std_msgs.msg import Empty, Bool
+from std_msgs.msg import Empty, Bool, String
 from apriltag_ros.msg import AprilTagDetectionArray
 from move_base_msgs.msg import MoveBaseGoal, MoveBaseAction
 from geometry_msgs.msg import PoseStamped, Twist
@@ -22,6 +22,8 @@ class RunParkingStationCharge(smach.State):
     self.file_plan_clear_pub = rospy.Publisher('/puma/navigation/files/clear_plan', Empty, queue_size=2)
     self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=2)
     self.waypoints_set_pub = rospy.Publisher('/puma/navigation/waypoints/set', WaypointNav, queue_size=2)
+    ''' Modo de control '''
+    self.mode_selector_pub = rospy.Publisher('/puma/control/change_mode', String, queue_size=2)
   
   def start_subscriber(self):
     ns_topic = rospy.get_param('ns_topic', '')
@@ -131,6 +133,9 @@ class RunParkingStationCharge(smach.State):
         waypoints.waypoints.append(Waypoint1)
         self.waypoints_set_pub.publish(waypoints)
         rospy.sleep(0.5)
+        self.mode_selector_pub.publish(String(data='navegacion'))
+        rospy.sleep(0.3)
+    
       
       if not self.stop:
         ''' Acercandose al tag con move_base '''
@@ -153,6 +158,9 @@ class RunParkingStationCharge(smach.State):
         rospy.loginfo("-> Estacionamiento completo!!")
     except:
       rospy.logwarn("-> Cerrando puma_waypoints -- CHARGE_MODE.")
+      
+    self.mode_selector_pub.publish(String(data='idle'))
+    rospy.sleep(0.1)
     
     if tag_sub is not None:
       tag_sub.unregister()
