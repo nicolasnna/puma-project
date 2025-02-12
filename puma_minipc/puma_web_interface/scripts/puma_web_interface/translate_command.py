@@ -1,5 +1,5 @@
 import rospy
-from std_msgs.msg import Empty, String
+from std_msgs.msg import Empty, String, Float64
 from puma_msgs.msg import ConfigurationStateMachine, WaypointNav, Waypoint
 
 # ------ Publishers ------
@@ -10,6 +10,7 @@ save_plan_pub = rospy.Publisher("/puma/state_machine/save_plan", String, queue_s
 load_plan_pub = rospy.Publisher("/puma/state_machine/load_plan", String, queue_size=1)
 configuration_plan_pub = rospy.Publisher("/puma/state_machine/configuration_cmd", ConfigurationStateMachine, queue_size=1)
 add_waypoints_pub = rospy.Publisher("/puma/state_machine/add_waypoints_web", WaypointNav, queue_size=1)
+set_orientation_localization_pub = rospy.Publisher("/puma/localization/change_angle_degree", Float64, queue_size=1)
 
 # ------ Functions ------
 def start_plan_fn(cmd):
@@ -49,6 +50,9 @@ def add_waypoints_fn(waypoints):
     waypoints_msg.waypoints.append(Waypoint(latitude=waypoint['latitude'], longitude=waypoint['longitude'], yaw=waypoint['yaw']))
   add_waypoints_pub.publish(waypoints_msg)
   
+def change_angle_degree_fn(cmd):
+  rospy.loginfo(f"Detectado comando para cambiar orientación {cmd}")
+  set_orientation_localization_pub.publish(Float64(cmd["angle"]))
   
 translate_command = {
   "start_plan": start_plan_fn,
@@ -57,5 +61,6 @@ translate_command = {
   "save_plan": save_plan_fn,
   "load_plan": load_plan_fn,
   "config_plan": configuration_plan_fn,
-  "upload_waypoints_to_robot": add_waypoints_fn
+  "upload_waypoints_to_robot": add_waypoints_fn,
+  "change_angle_robot": change_angle_degree_fn
 }
