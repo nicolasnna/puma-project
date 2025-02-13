@@ -9,8 +9,6 @@ from std_msgs.msg import String
 from smach_msgs.msg import SmachContainerStatus
 import base64
 
-
-
 def get_token():
   global BACKEND_URL
   headers = { 'Content-Type': 'application/x-www-form-urlencoded'}
@@ -30,11 +28,11 @@ def callback_camera(data: CompressedImage):
   if time_now - times["camera_front"]> 1:
     image = base64.b64encode(data.data).decode('utf-8')
     dataToSend= {"camera": "realsense-front", "data": image}
-    rospy.loginfo("Sending data to backend camera")
+    # rospy.loginfo("Sending data to backend camera")
     try:
       response = requests.post(BACKEND_URL+"/db/camera", data=json.dumps(dataToSend), headers=headers, timeout=5)
       if response.status_code == 200:
-        rospy.loginfo("Data sent to backend")
+        pass
       else:
         rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
@@ -46,11 +44,11 @@ def callback_gps(data: NavSatFix):
   time_now = rospy.Time.now().to_sec()
   if time_now - times["gps"] > 2:
     dataToSend = {"latitude": data.latitude, "longitude": data.longitude, "altitude": data.altitude}
-    rospy.loginfo("Sending data to backend gps")
+    # rospy.loginfo("Sending data to backend gps")
     try:
       response = requests.post(BACKEND_URL+"/db/gps", data=json.dumps(dataToSend), headers=headers, timeout=5)
       if response.status_code == 200:
-        rospy.loginfo("Data sent to backend")
+        pass
       else:
         rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
@@ -68,11 +66,11 @@ def arduino_status_cb(data: StatusArduino):
       "voltage_accel": data.accelerator.voltage_out,
       "pwm": data.accelerator.pwm,
       "security_signal": data.control.security_signal}
-    rospy.loginfo("Sending data to backend arduino")
+    # rospy.loginfo("Sending data to backend arduino")
     try:
       response = requests.post(BACKEND_URL+"/db/arduino_status", data=json.dumps(dataToSend), headers=headers, timeout=5)
       if response.status_code == 200:
-        rospy.loginfo("Data sent to backend")
+        pass
       else:
         rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
@@ -84,11 +82,11 @@ def mode_control_cb(data: String):
   dataToSend = {"mode": data.data}
   time_now = rospy.Time.now().to_sec()
   if time_now - times["control_mode"] > 2:
-    rospy.loginfo("Sending data to backend mode")
+    # rospy.loginfo("Sending data to backend mode")
     try:
       response = requests.post(BACKEND_URL+"/db/control_mode", data=json.dumps(dataToSend), headers=headers, timeout=5)
       if response.status_code == 200:
-        rospy.loginfo("Data sent to backend")
+        pass
       else:
         rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
@@ -113,7 +111,8 @@ def odometry_cb(data: Odometry):
     try:
       response = requests.post(BACKEND_URL+"/db/odometry", data=json.dumps(dataToSend), headers=headers)
       if response.status_code == 200:
-        rospy.loginfo("Data sent to backend odometry")
+        # rospy.loginfo("Data sent to backend odometry")
+        pass
       else:
         rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:
@@ -133,6 +132,7 @@ def state_machine_cb(data: SmachContainerStatus):
       response = requests.post(BACKEND_URL+"/db/state_machine", data=json.dumps(dataToSend), headers=headers)
       if response.status_code == 200:
         rospy.loginfo("Data sent to backend state machine")
+        pass
       else:
         rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
     except requests.exceptions.RequestException as e:

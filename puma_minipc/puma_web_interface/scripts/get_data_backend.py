@@ -3,22 +3,10 @@ import rospy
 import requests
 from datetime import datetime
 from puma_web_interface.translate_command import translate_command
+from puma_web_interface.utils import get_token
 import json
 
-def get_token():
-  global BACKEND_URL
-  headers = { 'Content-Type': 'application/x-www-form-urlencoded'}
-  body = { 'username': 'admin', 'password': 'admin'}
-  try:
-    response = requests.post(BACKEND_URL+"/auth/login", headers=headers, data=body, timeout=5)
-    if response.status_code == 200:
-      return response.json()['access_token']
-    else:
-      rospy.logwarn(f"Error al obtener token: {response.status_code} - {response.text}")
-  except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"Error al obtener token: {e}")
-    
-    
+
 def get_remain_command_robot():
   global headers, BACKEND_URL
   try:
@@ -76,7 +64,7 @@ if __name__ == "__main__":
       global headers, completed_commands, intial_configuration
       intial_configuration = False
       completed_commands = []
-      token = get_token()
+      token = get_token(BACKEND_URL)
       
       if token:
         bearer_token = f"Bearer {str(token)}"

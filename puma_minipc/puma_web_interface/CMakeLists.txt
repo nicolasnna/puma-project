@@ -162,6 +162,7 @@ catkin_install_python(PROGRAMS
   scripts/logger_manager_node.py
   scripts/post_data_backend.py
   scripts/get_data_backend.py
+  scripts/get_teleop_backend.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
