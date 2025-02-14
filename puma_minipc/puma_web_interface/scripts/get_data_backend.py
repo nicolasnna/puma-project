@@ -10,7 +10,7 @@ import json
 def get_remain_command_robot():
   global headers, BACKEND_URL
   try:
-    response = requests.get(BACKEND_URL+"/db/command_robot/planned", headers=headers, timeout=5)
+    response = requests.get(BACKEND_URL+"/robot/command_robot", headers=headers, timeout=5)
     if response.status_code == 200:
       return response
     else:
@@ -32,28 +32,28 @@ def update_complete_command(body):
 def check_and_send_remain_commands():
   global completed_commands, intial_configuration
   res = get_remain_command_robot()
-  if res and res.content:
+  if res:
     try:
       res_cmd = res.json()
-      for cmd in res_cmd:
-        if cmd not in completed_commands:
-          if not intial_configuration:
-            update_complete_command(cmd)
-          else:
-            time = datetime.fromisoformat(cmd['updated_at'])
-            diff_time = datetime.now() - time
-            
-            # rospy.loginfo(f"comando efectuado hace {diff_time.seconds/60} minutos")
-            if diff_time.seconds/60 < 305:
+      rospy.loginfo(f"Respuesta del servidor: {res_cmd}")  #  Imprime la respuesta
+
+      if isinstance(res_cmd, list) and res_cmd:  # Si es una lista y no está vacía
+        for cmd in res_cmd:
+          if cmd not in completed_commands:
+            if not intial_configuration:
+              pass  # update_complete_command(cmd)
+            else:
+              # time = datetime.fromisoformat(cmd['updated_at'])
+              # diff_time = datetime.now() - time
+              rospy.loginfo(f"comando {cmd}")
+              
               translate_command[cmd['type']](cmd['cmd'])
-              # Process the command here
-              update_complete_command(cmd)
               completed_commands.append(cmd)
-          intial_configuration = True
+            intial_configuration = True
+              
     except ValueError:
       rospy.logwarn("Error: Response content is not valid JSON")
       
-
 if __name__ == "__main__":
     rospy.init_node("get_data_backend")
     rospy.loginfo("Node get_data_backend started")
@@ -65,7 +65,11 @@ if __name__ == "__main__":
       intial_configuration = False
       completed_commands = []
       token = get_token(BACKEND_URL)
-      
+      # while not token:
+      #   rospy.loginfo("Token no encontrado, esperando 3 segundos")
+      #   rospy.sleep(3)
+      #   token = get_token(BACKEND_URL)
+    
       if token:
         bearer_token = f"Bearer {str(token)}"
         headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}

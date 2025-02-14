@@ -4,10 +4,10 @@
 
   <node name="logger_puma" pkg="puma_web_interface" type="logger_manager_node.py"/>
   <node name="post_ros_to_web" pkg="puma_web_interface" type="post_data_backend.py" output="screen">
-    <!-- <param name="backend_url" value="http://smartbot.la/test2api"/> -->
+    <param name="backend_url" value="http://smartbot.la/test2api"/>
   </node>
   <node name="get_web_to_ros" pkg="puma_web_interface" type="get_data_backend.py" output="screen">
-    <!-- <param name="backend_url" value="http://smartbot.la/test2api"/> -->
+    <param name="backend_url" value="http://smartbot.la/test2api"/>
   </node>
   
 

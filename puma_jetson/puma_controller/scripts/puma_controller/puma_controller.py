@@ -111,6 +111,7 @@ class PumaController:
     self.web_angle = 0
     self.web_brake = False
     self.web_reverse = False
+    self.web_parking = False
     self.mode_puma = ''
     self.last_time_msg = {key: 0 for key in ["odometry", "ackermann", "web", "pid_control", "move_base"]}
     self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure"]}
@@ -118,7 +119,7 @@ class PumaController:
     self.time_between_msg = {
       "odometry": 0.3,
       "ackermann": 0.3,
-      "web": 0.5,
+      "web": 0.8,
       "pid_control": 2,
       "move_base": 0.5
     }
