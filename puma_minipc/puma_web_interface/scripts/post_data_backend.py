@@ -27,7 +27,23 @@ def callback_camera(data: CompressedImage):
     except requests.exceptions.RequestException as e:
       rospy.logwarn(f"Error al enviar datos: {e}")
     times["camera_front"] = time_now
+
+def callback_camera_rear(data: CompressedImage):
+  global times, headers, BACKEND_URL
+  time_now = rospy.Time.now().to_sec()
+  if time_now - times["camera_rear"]> 1:
+    image = base64.b64encode(data.data).decode('utf-8')
+    dataToSend= { "data": {"image": image} , "created_at": datetime.now().isoformat()}
     
+    try:
+      response = requests.post(BACKEND_URL+"/database/latest-data/realsense_rear", data=json.dumps(dataToSend), headers=headers, timeout=5)
+      if response.status_code == 200:
+        pass
+      else:
+        rospy.logwarn(f"Error al enviar datos: {response.status_code} - {response.text}")
+    except requests.exceptions.RequestException as e:
+      rospy.logwarn(f"Error al enviar datos: {e}")
+    times["camera_rear"] = time_now
     
 def callback_gps(data: NavSatFix):
   global times, headers, BACKEND_URL
@@ -134,6 +150,7 @@ def state_machine_cb(data: SmachContainerStatus):
 
 def setting_up():
   rospy.Subscriber("/puma/sensors/camera_front/color/image_raw/compressed", CompressedImage, callback_camera)
+  rospy.Subscriber("/puma/sensors/camera_rear/color/image_raw/compressed", CompressedImage, callback_camera_rear)
   rospy.Subscriber("/puma/sensors/gps/fix", NavSatFix, callback_gps)
   rospy.Subscriber("/puma/arduino/status", StatusArduino, arduino_status_cb)
   rospy.Subscriber("/puma/control/current_mode", String, mode_control_cb)
@@ -151,6 +168,7 @@ if __name__ == "__main__":
   global times, headers, previus_sm
   times = { 
           "camera_front": time_now,
+          "camera_rear": time_now,
           "gps": time_now,
           "arduino_status": time_now,
           "control_mode": time_now,
