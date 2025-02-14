@@ -35,7 +35,7 @@ def check_and_send_remain_commands():
   if res:
     try:
       res_cmd = res.json()
-      rospy.loginfo(f"Respuesta del servidor: {res_cmd}")  #  Imprime la respuesta
+      # rospy.loginfo(f"Respuesta del servidor: {res_cmd}")  #  Imprime la respuesta
 
       if isinstance(res_cmd, list) and res_cmd:  # Si es una lista y no está vacía
         for cmd in res_cmd:
@@ -45,7 +45,7 @@ def check_and_send_remain_commands():
             else:
               # time = datetime.fromisoformat(cmd['updated_at'])
               # diff_time = datetime.now() - time
-              rospy.loginfo(f"comando {cmd}")
+              # rospy.loginfo(f"comando {cmd}")
               
               translate_command[cmd['type']](cmd['cmd'])
               completed_commands.append(cmd)

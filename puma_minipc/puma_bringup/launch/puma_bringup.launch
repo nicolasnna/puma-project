@@ -19,8 +19,6 @@
   <include file="$(arg path)/puma_navigation_bringup.launch"/>
   <!-- Monitor temperature -->
   <include file="$(arg path)/minipc_monitor.launch"/>
-  <!-- Web interface -->
-  <include file="$(arg path)/web_interface.launch"/>
   
   <include file="$(arg path)/nav_manager.launch"/>
 

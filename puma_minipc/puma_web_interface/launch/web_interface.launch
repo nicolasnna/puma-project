@@ -5,16 +5,15 @@
   <arg name="backend_url" default="http://smartbot.la/test2api"/>
 
   <node name="logger_puma" pkg="puma_web_interface" type="logger_manager_node.py"/>
-  <node name="post_ros_to_web" pkg="puma_web_interface" type="post_data_backend.py" output="screen">
+  <node name="post_ros_to_web" pkg="puma_web_interface" type="post_data_backend.py" output="screen" respawn="true" respawn_delay="4"> 
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
-  <node name="get_web_to_ros" pkg="puma_web_interface" type="get_data_backend.py" output="screen">
+  <node name="get_web_to_ros" pkg="puma_web_interface" type="get_data_backend.py" output="screen" respawn="true" respawn_delay="4">
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
-  <node name="get_teleop_backend" pkg="puma_web_interface" type="get_teleop_backend.py" output="screen">
+  <node name="get_teleop_backend" pkg="puma_web_interface" type="get_teleop_backend.py" output="screen" respawn="true" respawn_delay="4">
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
 
-  
 
 </launch>
