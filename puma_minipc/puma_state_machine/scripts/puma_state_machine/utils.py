@@ -3,34 +3,11 @@ import math
 import rospy
 import tf
 from typing import Tuple
-from geographiclib.geodesic import Geodesic
 from puma_msgs.msg import Log, WaypointNav, Waypoint
 from std_msgs.msg import String
 from move_base_msgs.msg import MoveBaseGoal
 from nav_msgs.msg import Path
 import geonav_transform.geonav_conversions as gc
-
-
-def calc_goal_from_gps(origin_lat, origin_long, goal_lat, goal_long):
-  # Source: https://github.com/danielsnider/gps_goal/blob/master/src/gps_goal/gps_goal.py
-  '''
-  Convencion ENU (East, North, Up) X apunta al este e Y apunta al Norte
-  '''
-  geod = Geodesic.WGS84
-  g = geod.Inverse(origin_lat, origin_long, goal_lat, goal_long)
-  hypotenuse = distance = g['s12']
-  azimuth = g['azi1']
-
-  azimuth = math.radians(azimuth)
-
-
-  # y = adjacent = math.cos(azimuth) * hypotenuse # ESTE
-  # x = opposite = math.sin(azimuth) * hypotenuse # NORTE
-  
-  x = math.cos(azimuth) * hypotenuse  # ESTE
-  y = math.sin(azimuth) * hypotenuse # NORTE
-
-  return x,y
 
 def calculate_bearing_from_xy(x1, y1, x2, y2):
   """

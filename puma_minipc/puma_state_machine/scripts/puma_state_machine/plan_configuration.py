@@ -157,11 +157,9 @@ class PlanConfiguration(smach.State):
       
       for waypoint in waypoints:
         new_waypoint = Waypoint()
-        x, y = calc_goal_from_gps(latitude_rbt, longitude_rbt, waypoint.latitude, waypoint.longitude)
         x2, y2 = get_xy_based_on_lat_long(latitude_rbt, longitude_rbt, waypoint.latitude, waypoint.longitude)
-        rospy.loginfo(f"-> Waypoint en distintos metodos: x: {x}, y: {y}, x2: {x2}, y2: {y2}")
-        new_waypoint.x = y + pos_x
-        new_waypoint.y = x + pos_y
+        new_waypoint.x = x2 + pos_x
+        new_waypoint.y = y2 + pos_y
         new_waypoint.yaw = -waypoint.yaw * math.pi / 180
         new_waypoint.latitude = waypoint.latitude
         new_waypoint.longitude = waypoint.longitude
