@@ -50,6 +50,7 @@ namespace puma_global_planner
     nh.param("turning_radius", turning_radius_, 2.5);
     nh.param("meters_subsamples", meters_subsamples_, 7.0);
     nh.param("step_size_dubins", step_size_dubins_, 0.3);
+    nh.param("use_dubins", use_dubins_, true);
   }
 
   void PumaGlobalPlanner::reconfigureCB(puma_global_planner::PumaGlobalPlannerConfig &config, uint32_t level)
@@ -70,6 +71,7 @@ namespace puma_global_planner
   turning_radius_ = config.turning_radius; 
   step_size_dubins_ = config.step_size_dubins;  
   meters_subsamples_ = config.meters_subsamples;
+  use_dubins_ = config.use_dubins;
 }
 
   /* Generar plan */
@@ -108,16 +110,11 @@ namespace puma_global_planner
       return false;
     }
 
-
     return true;
   }
 
   nav_msgs::Path PumaGlobalPlanner::transformNodeReachedToPath(const Node &node_goal_reached)
   {
-    nav_msgs::Path path;
-    path.header.frame_id = "map";
-    path.header.stamp = ros::Time::now();
-
     std::vector<std::shared_ptr<Node>> plan_nodes;
     auto path_node = std::make_shared<Node>(node_goal_reached);
     while (path_node)
@@ -127,9 +124,27 @@ namespace puma_global_planner
     }
     std::reverse(plan_nodes.begin(), plan_nodes.end());
 
+    nav_msgs::Path path = generatePlanFromNodes(plan_nodes);
 
-    for (std::shared_ptr<Node> &node : plan_nodes)
-    {
+    // PostProcesamiento de la trayectoria con dubin
+    std::vector<std::shared_ptr<Node>> plan_postprocessing = getDubinsCurvePath(plan_nodes);
+    nav_msgs::Path path_post = generatePlanFromNodes(plan_postprocessing);
+
+    // Publicar planes 
+    plan_post_pub_.publish(path_post);
+    plan_pub_.publish(path);
+
+    // Devolver la trayectoria postprocesada si se usa dubins
+    if (use_dubins_)
+      return path_post;
+    return path;
+  }
+
+  nav_msgs::Path PumaGlobalPlanner::generatePlanFromNodes(const std::vector<std::shared_ptr<Node>> &plan_nodes) {
+    nav_msgs::Path path;
+    path.header.frame_id = "map";
+    path.header.stamp = ros::Time::now();
+    for (const std::shared_ptr<Node> &node : plan_nodes) {
       geometry_msgs::PoseStamped pose;
       pose.header.stamp = ros::Time::now();
       pose.header.frame_id = "map";
@@ -138,42 +153,21 @@ namespace puma_global_planner
       pose.pose.orientation = tf::createQuaternionMsgFromYaw(node->theta);
       path.poses.push_back(pose);
     }
-
-    // PostProcesamiento de la trayectoria con dubin
-    std::vector<Node> path_postprocessing = getDubinsCurvePath(plan_nodes);
-    nav_msgs::Path path_post;
-    path_post.header.frame_id = "map";
-    path_post.header.stamp = ros::Time::now();
-
-    for (Node &node : path_postprocessing)
-    {
-      geometry_msgs::PoseStamped pose;
-      pose.header.stamp = ros::Time::now();
-      pose.header.frame_id = "map";
-      pose.pose.position.x = node.x;
-      pose.pose.position.y = node.y;
-      pose.pose.orientation = tf::createQuaternionMsgFromYaw(node.theta);
-      path_post.poses.push_back(pose);
-    }
-    plan_post_pub_.publish(path_post);
-    plan_pub_.publish(path);
     return path;
   }
 
-  std::vector<Node> PumaGlobalPlanner::getDubinsCurvePath(std::vector<std::shared_ptr<Node>> &path) {
-    std::vector<Node> path_postprocessing;
+
+  std::vector<std::shared_ptr<Node>> PumaGlobalPlanner::getDubinsCurvePath(std::vector<std::shared_ptr<Node>> &path) {
+    std::vector<std::shared_ptr<Node>> path_postprocessing;
     int len_path = path.size();
     if (len_path < 2)
       return path_postprocessing; // no hay ruta para suavizar
     
     // Agregar el primer punto
-    path_postprocessing.push_back(*path.front());
+    path_postprocessing.push_back(path.front());
   
-    // Definimos un intervalo de submuestreo (por ejemplo, cada 10 puntos)
     int i_prev = 0;
-    // Iteramos sobre la ruta en bloques
     for (int i = 0; i < len_path; i++) {
-      // Nos aseguramos de no salir del vector
       int i_end = i;
       if (i_end >= len_path)
       i_end = len_path - 1;
@@ -203,7 +197,7 @@ namespace puma_global_planner
           double t = j * (length / (num_samples - 1)); // distribuir uniformemente entre 0 y length
           double q[3];
           dubins_path_sample(&dubins_path, t, q);
-          Node node_dubins(q[0], q[1], q[2], resolution_);
+          auto node_dubins = std::make_shared<Node>(q[0], q[1], q[2], resolution_);
           path_postprocessing.push_back(node_dubins);
         }
         if (near_to_goal) 
@@ -215,9 +209,9 @@ namespace puma_global_planner
   
     // Agregar el último punto de la ruta si no está incluido
     if (path_postprocessing.empty() || 
-        (path_postprocessing.back().x != path.back()->x || path_postprocessing.back().y != path.back()->y))
+        (path_postprocessing.back()->x != path.back()->x || path_postprocessing.back()->y != path.back()->y))
     {
-      path_postprocessing.push_back(*path.back());
+      path_postprocessing.push_back(path.back());
     }
   
     return path_postprocessing;

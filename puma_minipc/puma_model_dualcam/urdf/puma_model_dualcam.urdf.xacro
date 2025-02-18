@@ -1,0 +1,650 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+    Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+    For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="puma_model_dualcam" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find puma_model_dualcam)/urdf/puma_model_dualcam.gazebo.xacro"/>
+  <xacro:include filename="$(find puma_model_dualcam)/urdf/d455.urdf.xacro" />
+
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="0.71457 2.9961E-07 0.46648"
+        rpy="0 0 0" />
+      <mass
+        value="207.45" />
+      <inertia
+        ixx="9.0004"
+        ixy="7.1018E-06"
+        ixz="-0.96037"
+        iyy="26.4"
+        iyz="1.7506E-05"
+        izz="23.098" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.98824 0.73725 0.51765 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="dir_right_link">
+    <inertial>
+      <origin
+        xyz="-2.22044604925031E-16 -0.0294777193153578 1.11022302462516E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.214607285846125" />
+      <inertia
+        ixx="0.000161787233745492"
+        ixy="-1.24829896241142E-20"
+        ixz="-1.74611829797598E-21"
+        iyy="0.000212842937751498"
+        iyz="1.00804994612644E-20"
+        izz="0.000169651482672632" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/dir_right_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.823529411764706 0.823529411764706 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/dir_right_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="dir_right_joint"
+    type="continuous">
+    <origin
+      xyz="1.15 -0.337 0.265"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="dir_right_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="wheel_right_front_link">
+    <inertial>
+      <origin
+        xyz="0 1.11022302462516E-16 0.07"
+        rpy="0 0 0" />
+      <mass
+        value="40.746899028908" />
+      <inertia
+        ixx="0.940114186286073"
+        ixy="2.10269346059008E-32"
+        ixz="6.51599441141691E-17"
+        iyy="0.940114186286073"
+        iyz="-1.4129129295913E-17"
+        izz="1.71674100062734" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_right_front_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_right_front_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_right_front_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.0480000000000001 0"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="dir_right_link" />
+    <child
+      link="wheel_right_front_link" />
+    <axis
+      xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
+  </joint>
+  <link
+    name="dir_left_link">
+    <inertial>
+      <origin
+        xyz="0 0.0294777193153578 1.11022302462516E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.214607285846125" />
+      <inertia
+        ixx="0.000161787233745492"
+        ixy="2.45503257089474E-21"
+        ixz="-2.60217453562839E-21"
+        iyy="0.000212842937751498"
+        iyz="4.05831478719612E-20"
+        izz="0.000169651482672632" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/dir_left_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.823529411764706 0.823529411764706 0.823529411764706 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/dir_left_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="dir_left_joint"
+    type="continuous">
+    <origin
+      xyz="1.15 0.337 0.265"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="dir_left_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="wheel_left_front_link">
+    <inertial>
+      <origin
+        xyz="-1.11022302462516E-16 0 0.0699999999999999"
+        rpy="0 0 0" />
+      <mass
+        value="40.746899028908" />
+      <inertia
+        ixx="0.940114186286073"
+        ixy="6.96729071871739E-32"
+        ixz="-5.08248184397749E-17"
+        iyy="0.940114186286073"
+        iyz="1.0534600186523E-17"
+        izz="1.71674100062734" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_left_front_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_left_front_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_left_front_joint"
+    type="continuous">
+    <origin
+      xyz="0 0.048 0"
+      rpy="1.5707963267949 0 -3.14159265358979" />
+    <parent
+      link="dir_left_link" />
+    <child
+      link="wheel_left_front_link" />
+    <axis
+      xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
+  </joint>
+  <link
+    name="wheel_right_back_link">
+    <inertial>
+      <origin
+        xyz="0 0 0.1"
+        rpy="0 0 0" />
+      <mass
+        value="52.2180097677596" />
+      <inertia
+        ixx="1.20115503942524"
+        ixy="-1.94634065542107E-32"
+        ixz="8.91545953570273E-17"
+        iyy="1.20115503942524"
+        iyz="-3.53398723507262E-16"
+        izz="1.97609087490016" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_right_back_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.666666666666667 0.666666666666667 0.666666666666667 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_right_back_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_right_back_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.275 0.25"
+      rpy="1.5708 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="wheel_right_back_link" />
+    <axis
+      xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
+  </joint>
+  <link
+    name="wheel_left_back_link">
+    <inertial>
+      <origin
+        xyz="1.11022302462516E-16 0 0.1"
+        rpy="0 0 0" />
+      <mass
+        value="52.2180097677596" />
+      <inertia
+        ixx="1.20115503942524"
+        ixy="-3.83421958002463E-33"
+        ixz="-1.15299802571578E-18"
+        iyy="1.20115503942524"
+        iyz="2.44898251523046E-17"
+        izz="1.97609087490016" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_left_back_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.666666666666667 0.666666666666667 0.666666666666667 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/wheel_left_back_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="wheel_left_back_joint"
+    type="continuous">
+    <origin
+      xyz="0 0.275 0.25"
+      rpy="-1.5707963267949 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="wheel_left_back_link" />
+    <axis
+      xyz="0 0 -1" />
+    <dynamics
+      friction="1" />
+  </joint>
+  <link
+    name="base_component_link">
+    <inertial>
+      <origin
+        xyz="-1.38777878078145E-17 -1.38777878078145E-17 0"
+        rpy="0 0 0" />
+      <mass
+        value="26.928" />
+      <inertia
+        ixx="0.399432"
+        ixy="2.42420528095977E-17"
+        ixz="4.57286160668011E-33"
+        iyy="0.368016"
+        iyz="8.15839988158966E-18"
+        izz="0.5502288" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/base_component_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 0.752941176470588 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/base_component_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="base_component_joint"
+    type="fixed">
+    <origin
+      xyz="0.7 0 0.87"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="base_component_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="gps_link">
+    <inertial>
+      <origin
+        xyz="0 0 -0.01"
+        rpy="0 0 0" />
+      <mass
+        value="0.1" />
+      <inertia
+        ixx="8.66666666666667E-05"
+        ixy="-6.77626357803855E-24"
+        ixz="1.20335147373261E-21"
+        iyy="2.41666666666667E-05"
+        iyz="-2.19415414656754E-21"
+        izz="0.000104166666666667" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/gps_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.623529411764706 1 0.76078431372549 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/gps_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="gps_joint"
+    type="fixed">
+    <origin
+      xyz="0.845 0 1"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="gps_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="imu_link">
+    <inertial>
+      <origin
+        xyz="5.08055300385557E-07 -0.000195569944066151 -0.0121628383871961"
+        rpy="0 0 0" />
+      <mass
+        value="0.0106550387325199" />
+      <inertia
+        ixx="1.16705248203446E-06"
+        ixy="2.0325615840536E-11"
+        ixz="2.11642113808104E-12"
+        iyy="2.20541869708663E-06"
+        iyz="-8.14691556822192E-10"
+        izz="2.78315231388433E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/imu_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/imu_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="imu_joint"
+    type="fixed">
+    <origin
+      xyz="1.027 0.00299999999999989 0.781"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="imu_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="camara_delantera_link">
+    <inertial>
+      <origin
+        xyz="-0.00149999999999995 2.77555756156289E-17 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.0105304777960769" />
+      <inertia
+        ixx="1.36186520257664E-05"
+        ixy="-2.34298407531536E-24"
+        ixz="-5.96948675392447E-24"
+        iyy="7.24303978619533E-07"
+        iyz="8.45562493996633E-22"
+        izz="1.2910143763841E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/camara_delantera_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/camara_delantera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="camara_delantera_joint"
+    type="fixed">
+    <origin
+      xyz="1.203 0 0.6"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="camara_delantera_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="camara_trasera_link">
+    <inertial>
+      <origin
+        xyz="-0.00150000000000006 0 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.0105304777960769" />
+      <inertia
+        ixx="1.36186520257664E-05"
+        ixy="-1.35729302282543E-23"
+        ixz="-1.19474724285335E-23"
+        iyy="7.24303978619537E-07"
+        iyz="-9.89285044379538E-21"
+        izz="1.2910143763841E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/camara_trasera_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://puma_model_dualcam/meshes/camara_trasera_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="camara_trasera_joint"
+    type="fixed">
+    <origin
+      xyz="0.017 0 0.64"
+      rpy="0 0 3.1416" />
+    <parent
+      link="base_link" />
+    <child
+      link="camara_trasera_link" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+
+  <xacro:sensor_d455 parent="camara_delantera_link" use_nominal_extrinsics="true" add_plug="false" name="camera_front" topics_ns="puma/sensors/camera_front" publish_pointcloud="true">
+    <origin xyz="0.01 0 0" rpy="0 0 0"/>
+  </xacro:sensor_d455>
+
+  <xacro:sensor_d455 parent="camara_trasera_link" use_nominal_extrinsics="true" add_plug="false" name="camera_rear" topics_ns="puma/sensors/camera_rear" publish_pointcloud="true">
+    <origin xyz="0.01 0 0" rpy="0 0 0"/>
+  </xacro:sensor_d455>
+
+</robot>

@@ -83,7 +83,10 @@ namespace puma_global_planner
     Node searchGoalAStar(const Node &start, const Node &goal);
     Node createNeighboor(const Node &current, const Node &goal, int ix, int iy);
     nav_msgs::Path transformNodeReachedToPath(const Node &node_goal_reached);
-    std::vector<Node> getDubinsCurvePath(std::vector<std::shared_ptr<Node>> &path);
+    std::vector<std::shared_ptr<Node>> getDubinsCurvePath(std::vector<std::shared_ptr<Node>> &path);
+
+    /* Generar plan */
+    nav_msgs::Path generatePlanFromNodes(const std::vector<std::shared_ptr<Node>> &plan_nodes);
 
     /* Comprobar si la celda del nodo abarca el destino */
     bool nodeIsGoal(const Node &node, const Node &goal);
@@ -95,6 +98,7 @@ namespace puma_global_planner
     int interval_subsamples_;
     double meters_subsamples_;
     double step_size_dubins_;
+    bool use_dubins_;
 
     /* Atributos */
     costmap_2d::Costmap2DROS *costmap_ros_;
