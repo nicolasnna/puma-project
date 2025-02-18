@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="path" value="$(find puma_simulation)/config/nav"/>
+  
+  <arg name="map_file" default="$(find puma_simulation)/maps/blank_map.yaml"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+
+  <node name="puma_nav_manager" pkg="puma_nav_manager" type="nav_manager_node.py" output="screen" clear_params="true" respawn="true" />
+  <node name="localization_manager" pkg="puma_nav_manager" type="manager_localization_node.py" output="screen"/>
+
+  <!-- xterm -e gdb - -args -->
+  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
+    <rosparam command="load" file="$(arg path)/global_costmap_static.yaml"/>
+    <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
+
+    <param name="base_global_planner" value="puma_global_planner/PumaGlobalPlanner"/>
+    <!-- <rosparam command="load" file="$(arg path)/base_global_planner.yaml"/> -->
+    <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" /> 
+    <rosparam command="load" file="$(arg path)/dwa_planner.yaml"/> 
+
+  </node>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_simulation)/rviz/nav_dwa.rviz" />
+</launch>

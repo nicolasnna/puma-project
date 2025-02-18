@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="lib/libpuma_global_planner">
+  <class name="puma_global_planner/PumaGlobalPlanner" type="puma_global_planner::PumaGlobalPlanner" base_class_type="nav_core::BaseGlobalPlanner">
+    <description>
+      Plugin del sistema de navegación "move_base", para planificación global personalizado para robot puma.
+    </description>
+  </class>
+</library>
