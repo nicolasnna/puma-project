@@ -67,7 +67,6 @@ class RunPlan(smach.State):
     
     ''' Comprobar si se ha cambiado al modo de navegación '''
     if not check_mode_control_navegacion('navegacion', self.send_log):
-      self.send_log("No se ha podido cambiar al modo de navegación. Volviendo a configuración de planes.", 1)
       return 'plan_configuration'
     
     ''' Abrir cliente move_base '''
@@ -87,20 +86,16 @@ class RunPlan(smach.State):
 
     ''' Ejecutar plan en move_base '''
     try:
-      for waypoint in waypoints_msg.waypoints:
-        goal = get_goal_from_waypoint(waypoint)
-        is_complete = False
-        self.send_log("Ejecutando el plan de navegación...", 0)
-        self.client.send_goal(goal)
-        while not is_complete:
-          if self.is_aborted:
-            break
-          self.check_move_base_status()
-          is_complete = self.client.wait_for_result(rospy.Duration(1))
+      last_waypoint = waypoints_msg.waypoints[-1]
+      goal = get_goal_from_waypoint(last_waypoint)
+      is_complete = False
+      self.send_log("Ejecutando el plan de navegación...", 0)
+      self.client.send_goal(goal)
+      while not is_complete:
+        self.check_move_base_status()
+        is_complete = self.client.wait_for_result(rospy.Duration(1))
         if self.is_aborted:
           break
-        if is_complete:
-          self.send_log(f"Waypoint ({round(waypoint.x,2), round(waypoint.y,2)}) completado.", 0)
       
     except Exception as e:
       self.client.cancel_all_goals()

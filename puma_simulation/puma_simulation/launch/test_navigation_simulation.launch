@@ -17,8 +17,8 @@
 
     <param name="base_global_planner" value="puma_global_planner/PumaGlobalPlanner"/>
     <rosparam command="load" file="$(arg path)/puma_global_planner.yaml"/>
-    <param name="base_local_planner" value="puma_dwa_local_planner/PumaDwaLocalPlanner" /> 
-    <rosparam command="load" file="$(arg path)/puma_dwa_planner.yaml"/> 
+    <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" /> 
+    <rosparam command="load" file="$(arg path)/puma_local_planner.yaml"/> 
     <!-- <param name="shutdown_costmaps" value="true"/> -->
   </node>
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_simulation)/rviz/nav_dwa.rviz" />

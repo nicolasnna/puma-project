@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<library path="lib/libpuma_local_planner">
+  <class name="puma_local_planner/PumaLocalPlanner" type="puma_local_planner::PumaLocalPlanner" base_class_type="nav_core::BaseLocalPlanner">
+    <description>
+      Plugin de move_base para planificador local para el robot PUMA.
+    </description>
+  </class>
+</library>

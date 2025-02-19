@@ -7,7 +7,7 @@ from std_msgs.msg import Empty, String
 from puma_msgs.msg import StatusArduino
 from puma_state_machine.utils import create_and_publish_log, check_mode_control_navegacion, get_goal_from_waypoint, check_and_get_waypoints
 
-class RunPlan(smach.State):
+class RunPlanCustom(smach.State):
   def __init__(self):
     smach.State.__init__(self, outcomes=['success', 'plan_configuration'], input_keys=['plan_configuration_info'])
     
@@ -57,7 +57,7 @@ class RunPlan(smach.State):
       self.send_log("La navegación ha sido interrumpida por un error en el move_base. Volviendo al modo de selección de rutas.",2)
   
   def execute(self, ud):
-    rospy.loginfo('----- Estado ejecución de plan -----')
+    rospy.loginfo('----- Estado ejecución de plan personalizado -----')
     self.send_log("Iniciando en el estado de ejecución de plan de navegación.", 0)
     ''' Variables '''
     self.is_aborted = False
@@ -67,7 +67,6 @@ class RunPlan(smach.State):
     
     ''' Comprobar si se ha cambiado al modo de navegación '''
     if not check_mode_control_navegacion('navegacion', self.send_log):
-      self.send_log("No se ha podido cambiar al modo de navegación. Volviendo a configuración de planes.", 1)
       return 'plan_configuration'
     
     ''' Abrir cliente move_base '''
@@ -77,30 +76,32 @@ class RunPlan(smach.State):
     ''' Iniciar suscripciones '''
     self.start_subscriber()
     
-    ''' Reiniciar waypoints logs '''
-    self.restart_waypoints_pub.publish(Empty()) 
-    
     ''' Revisar waypoints subidos '''
     exist_waypoints, waypoints_msg = check_and_get_waypoints(self.send_log)
     if not exist_waypoints:
       return 'plan_configuration'
 
-    ''' Ejecutar plan en move_base '''
+    ''' Ejecutar los planes '''
     try:
-      for waypoint in waypoints_msg.waypoints:
-        goal = get_goal_from_waypoint(waypoint)
+      for loops in range(ud.plan_configuration_info['repeat']):
+        ''' Reiniciar waypoints logs '''
+        self.restart_waypoints_pub.publish(Empty()) 
+        
+        last_waypoint = waypoints_msg.waypoints[-1]
+        goal = get_goal_from_waypoint(last_waypoint)
         is_complete = False
         self.send_log("Ejecutando el plan de navegación...", 0)
         self.client.send_goal(goal)
         while not is_complete:
-          if self.is_aborted:
-            break
           self.check_move_base_status()
           is_complete = self.client.wait_for_result(rospy.Duration(1))
+          if self.is_aborted:
+            break
+          
+        rospy.sleep(rospy.Duration(ud.plan_configuration_info['minutes_between_repeats']*60))
         if self.is_aborted:
           break
-        if is_complete:
-          self.send_log(f"Waypoint ({round(waypoint.x,2), round(waypoint.y,2)}) completado.", 0)
+      self.send_log(f"Plan de navegación completado con {loops+1} vueltas.", 0)
       
     except Exception as e:
       self.client.cancel_all_goals()

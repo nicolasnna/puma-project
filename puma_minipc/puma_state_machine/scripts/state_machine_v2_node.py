@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-from puma_state_machine.plan_configuration import PlanConfiguration
-from puma_state_machine.run_plan import RunPlan
-from puma_state_machine.run_plan_custom import RunPlanCustom
-from puma_state_machine.run_parking_station_charge import RunParkingStationCharge
+from puma_state_machine import *
 import smach
 import smach_ros
 

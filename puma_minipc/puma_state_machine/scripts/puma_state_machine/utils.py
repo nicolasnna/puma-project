@@ -54,6 +54,9 @@ def yaw_to_quaternion(yaw):
 
 
 def create_and_publish_log(msg, level, name_state):
+  '''
+  Crea un mensaje de log y lo publica en el tópico /puma/logs/add_log
+  '''
   log = Log()
   log.level = level
   log.content = msg
@@ -80,6 +83,9 @@ def check_mode_control_navegacion(mode, send_log):
   return True
 
 def get_goal_from_waypoint(waypoint: Waypoint):
+  '''
+  Crea un mensaje de goal de move_base a partir de un waypoint.
+  '''
   goal = MoveBaseGoal()
   goal.target_pose.header.frame_id = "map"
   goal.target_pose.header.stamp = rospy.Time.now()
@@ -120,7 +126,8 @@ def check_plan_load_file():
     return False
   
 def get_xy_based_on_lat_long(lat_origin,lon_origin,lat,lon):
-    # Define a local orgin, latitude and longitude in decimal degrees
+    '''
+    Convierte coordenadas geográficas (latitud, longitud) a coordenadas cartesianas (x, y) en metros.'''
     
     xg2, yg2 = gc.ll2xy(lat,lon,lat_origin,lon_origin)
     # utmy, utmx, utmzone = gc.LLtoUTM(lat,lon)

@@ -7,11 +7,14 @@ Panels:
         - /Global Options1
         - /TF scale 1001/Frames1
         - /Navigation1
+        - /Navigation1/Global planner1
+        - /Navigation1/dwa global plan1
         - /Waypoints1
         - /Waypoints1/planned1
         - /Waypoints1/completed1
         - /grid for changemap1/Offset1
         - /TF1/Frames1
+        - /MarkerArray1
         - /Path2
       Splitter Ratio: 0.5
     Tree Height: 566
@@ -76,7 +79,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        camara_link:
+        camara_delantera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -400,7 +403,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.05000000074505806
           Shaft Length: 0.20000000298023224
-          Topic: /move_base/PumaDwaLocalPlanner/local_plan
+          Topic: /move_base/PumaLocalPlanner/local_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -424,7 +427,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /move_base/PumaHybridAStarPlanner/global_plan
+          Topic: /move_base/PumaGlobalPlanner/global_plan_post
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -504,7 +507,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /move_base/PumaDwaLocalPlanner/global_plan
+          Topic: /move_base/PumaLocalPlanner/global_plan
           Unreliable: false
           Value: true
       Enabled: true
@@ -622,7 +625,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /move_base/PumaDwaLocalPlanner/potential_trajectories
+      Marker Topic: /move_base/PumaLocalPlanner/potential_trajectories
       Name: MarkerArray
       Namespaces:
         {}
@@ -741,4 +744,4 @@ Window Geometry:
     collapsed: false
   Width: 1440
   X: 0
-  Y: 94
+  Y: 100
