@@ -2,23 +2,22 @@ PumaDwaLocalPlanner:
   topic_odom: puma/localization/ekf_odometry
 
   max_velocity: 1.2
-  min_velocity: 0.5 # Tambien es la velocidad lineal de giro
+  min_velocity: 0.6 # Tambien es la velocidad lineal de giro
   max_steering_angle: 0.698 # 40 grados
-
   acceleration_x: 0.2
-  desacceleration_x: 0.6
-  distance_for_desacceleration: 4.0
+  desacceleration_x: 0.3
+  distance_for_desacceleration: 3.0
 
-  reverse_limit_distance: 3.0
+  reverse_limit_distance: 2.0
   time_simulation: 2.0
-  max_index_path_compare: 10 # Si coloca en cero, queda en blucle infinito de retroseso
+  max_index_path_compare: 10
 
-  xy_goal_tolerance: 0.5
-  steering_samples: 15
+  xy_goal_tolerance: 1.5
+  steering_samples: 12
 
   factor_cost_deviation_: 5.0
   factor_cost_distance_goal: 15.0
-  factor_cost_angle_to_plan: 10.0
+  factor_cost_angle_to_plan: 13.0
   factor_cost_obstacle: 5.0
   factor_cost_angle_between_local_path: 2.0
 

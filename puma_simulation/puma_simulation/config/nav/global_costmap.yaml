@@ -3,7 +3,7 @@ global_costmap:
   robot_base_frame: base_link
   update_frequency: 1.0
   publish_frequency: 1.0
-  static_map: false                # Desactiva el mapa estático para usar el mapa de RTAB-Map
+  # static_map: false                # Desactiva el mapa estático para usar el mapa de RTAB-Map
   rolling_window: true            # No usar rolling window en el costmap global (depende de tus necesidades)
   resolution: 0.05                 # Ajusta la resolución según tu precisión deseada
   transform_tolerance: 0.5

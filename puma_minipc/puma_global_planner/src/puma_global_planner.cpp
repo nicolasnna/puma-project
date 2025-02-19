@@ -51,28 +51,30 @@ namespace puma_global_planner
     nh.param("meters_subsamples", meters_subsamples_, 7.0);
     nh.param("step_size_dubins", step_size_dubins_, 0.3);
     nh.param("use_dubins", use_dubins_, true);
+    nh.param("detect_obstacles", detect_obstacles_, false);
   }
 
   void PumaGlobalPlanner::reconfigureCB(puma_global_planner::PumaGlobalPlannerConfig &config, uint32_t level)
-{
-  if (setup_ && config.restore_defaults)
   {
-    config = default_config_;
-    config.restore_defaults = false;
-    ROS_INFO("%s: restored default config", ros::this_node::getName().c_str());
-  }
-  if (!setup_)
-  {
-    default_config_ = config;
-    setup_ = true;
-  }
+    if (setup_ && config.restore_defaults)
+    {
+      config = default_config_;
+      config.restore_defaults = false;
+      ROS_INFO("%s: restored default config", ros::this_node::getName().c_str());
+    }
+    if (!setup_)
+    {
+      default_config_ = config;
+      setup_ = true;
+    }
 
-  resolution_ = config.resolution;
-  turning_radius_ = config.turning_radius; 
-  step_size_dubins_ = config.step_size_dubins;  
-  meters_subsamples_ = config.meters_subsamples;
-  use_dubins_ = config.use_dubins;
-}
+    resolution_ = config.resolution;
+    turning_radius_ = config.turning_radius; 
+    step_size_dubins_ = config.step_size_dubins;  
+    meters_subsamples_ = config.meters_subsamples;
+    use_dubins_ = config.use_dubins;
+    detect_obstacles_ = config.detect_obstacles;
+  }
 
   /* Generar plan */
   bool PumaGlobalPlanner::makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan)
@@ -137,6 +139,7 @@ namespace puma_global_planner
     // Devolver la trayectoria postprocesada si se usa dubins
     if (use_dubins_)
       return path_post;
+    ROS_INFO("Usando plan sin postprocesamiento");
     return path;
   }
 
@@ -155,7 +158,6 @@ namespace puma_global_planner
     }
     return path;
   }
-
 
   std::vector<std::shared_ptr<Node>> PumaGlobalPlanner::getDubinsCurvePath(std::vector<std::shared_ptr<Node>> &path) {
     std::vector<std::shared_ptr<Node>> path_postprocessing;
@@ -254,8 +256,11 @@ namespace puma_global_planner
           // Si el vecino ya está en closed, se salta.
           if (std::find(closed_set.begin(), closed_set.end(), neighbor) != closed_set.end())
             continue;
-          
-          
+
+          // Si el vecino es un obstáculo se salta
+          if (isCellObstacle(neighbor))
+            continue;
+
           if (open_set_hash.find(neighbor) == open_set_hash.end())
           {
             // Calcula el nuevo costo acumulado (g(n)) y la heurística (h(n))
@@ -296,6 +301,26 @@ namespace puma_global_planner
   bool PumaGlobalPlanner::nodeIsGoal(const Node &node, const Node &goal)
   {
     return goal.x >= node.x_start && goal.x <= node.x_end && goal.y >= node.y_start && goal.y <= node.y_end;
+  }
+
+  bool PumaGlobalPlanner::isCellObstacle(const Node &node) {
+    if (!detect_obstacles_)
+      return false; // Descartar detección de obstáculos
+  
+    /* Obtención de celda en costmap según nodo (x,y) */
+    double adjusted_x = node.x - costmap_->getOriginX();
+    double adjusted_y = node.y - costmap_->getOriginY();
+
+    int cell_x = static_cast<int>(adjusted_x / costmap_->getResolution());
+    int cell_y = static_cast<int>(adjusted_y / costmap_->getResolution());
+
+    /* Verifica si la celda esta dentro de los límites */
+    if (cell_x < 0 || cell_y < 0 || cell_x >= costmap_->getSizeInCellsX() || cell_y >= costmap_->getSizeInCellsY())
+      return false; // Suponer que no hay obstáculos
+    
+    /* Verifica si existe algo en la celda */
+    unsigned char cost = costmap_->getCost(cell_x, cell_y);
+    return cost >= 10U;
   }
 
 } // namespace puma_global_planner

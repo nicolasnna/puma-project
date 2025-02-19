@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Map server -->
+  <arg name="map_file" default="$(find puma_bringup)/map/blank_map.yaml"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
+  <!-- Static Tf between map and odom -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
+  
+  <!-- Navigation -->
+  <arg name="path" value="$(find puma_bringup)/config/new_nav"/>
+  <node name="move_base" pkg="move_base" type="move_base" output="screen" clear_params="true">
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="global_costmap"/>
+    <rosparam command="load" file="$(arg path)/costmap_common.yaml" ns="local_costmap"/>
+    <rosparam command="load" file="$(arg path)/global_costmap.yaml"/>
+    <rosparam command="load" file="$(arg path)/local_costmap.yaml"/>
+    <param name="base_global_planner" value="puma_global_planner/PumaGlobalPlanner"/>
+    <param name="base_local_planner" value="puma_dwa_local_planner/PumaDwaLocalPlanner" /> 
+    <rosparam command="load" file="$(arg path)/puma_global_planner.yaml"/>
+    <rosparam command="load" file="$(arg path)/puma_dwa_planner.yaml"/>
+    <remap from="/odom" to="/puma/odometry/filtered"/>
+    <!-- <param name="shutdown_costmaps" value="true"/> -->
+
+  </node>
+</launch>

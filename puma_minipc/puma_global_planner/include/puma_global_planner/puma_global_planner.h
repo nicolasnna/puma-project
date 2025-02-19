@@ -88,17 +88,17 @@ namespace puma_global_planner
     /* Generar plan */
     nav_msgs::Path generatePlanFromNodes(const std::vector<std::shared_ptr<Node>> &plan_nodes);
 
-    /* Comprobar si la celda del nodo abarca el destino */
+    /* Comprobar las celdas */
     bool nodeIsGoal(const Node &node, const Node &goal);
+    bool isCellObstacle(const Node &node);
 
     /* Parametros */
     double xy_goal_tolerance_;
     double resolution_;
     double turning_radius_;
     int interval_subsamples_;
-    double meters_subsamples_;
-    double step_size_dubins_;
-    bool use_dubins_;
+    double meters_subsamples_, step_size_dubins_;
+    bool use_dubins_, detect_obstacles_;
 
     /* Atributos */
     costmap_2d::Costmap2DROS *costmap_ros_;
