@@ -8,6 +8,7 @@ from puma_msgs.msg import StatusArduino
 from puma_state_machine.utils import create_and_publish_log, check_mode_control_navegacion, get_goal_from_waypoint, check_and_get_waypoints
 from std_srvs.srv import Empty as EmptySrv
 from puma_nav_manager.msg import WaypointsManagerAction, WaypointsManagerGoal
+from puma_state_machine.msg import StateMachineAction, StateMachineResult
 
 class RunPlan(smach.State):
   def __init__(self):
@@ -23,7 +24,10 @@ class RunPlan(smach.State):
     self.mode_selector_pub = rospy.Publisher('/puma/control/change_mode', String, queue_size=2)
   
   def start_subscriber(self):
-    ns_topic = rospy.get_param('~ns_topic', '')
+    ns_topic = rospy.get_param('~ns_topic', 'state_machine')
+    self._srv = actionlib.SimpleActionServer(ns_topic, StateMachineAction, self.execute_srv_cb, False)
+    self._srv.start()
+    
     self.stop_sub = rospy.Subscriber(ns_topic + '/plan_stop', Empty, self.stop_plan_callback)
     self.arduino_sub = rospy.Subscriber('/puma/arduino/status', StatusArduino, self.arduino_callback)
     self.move_base_status_sub = rospy.Subscriber('/move_base/status', GoalStatusArray, self.move_base_status_callback)
@@ -152,3 +156,15 @@ class RunPlan(smach.State):
       return 'plan_configuration'
     
     return 'success'
+  
+  def execute_srv_cb(self, goal):
+    result = StateMachineResult()
+    
+    result.success = True
+    if goal.action == 'stop':
+      self.stop_plan_callback(Empty())
+    else: 
+      result.success = False
+      result.message = "Acción no reconocida"
+    
+    self._srv.set_succeeded(result)

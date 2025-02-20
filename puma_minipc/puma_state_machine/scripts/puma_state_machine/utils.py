@@ -7,7 +7,7 @@ from puma_msgs.msg import Log, WaypointNav, Waypoint
 from std_msgs.msg import String
 from move_base_msgs.msg import MoveBaseGoal
 from nav_msgs.msg import Path
-import geonav_transform.geonav_conversions as gc
+from geonav_transform import geonav_conversions as gc
 
 def calculate_bearing_from_xy(x1, y1, x2, y2):
   """

@@ -1,0 +1,12 @@
+# Goal
+string action # "start", "stop", "add_web", "save_plan", "load_plan", "clear", "config_plan"
+puma_msgs/WaypointNav waypoint_nav
+std_msgs/String file_name
+puma_msgs/ConfigurationStateMachine configuration_plan
+---
+# Result
+bool success
+string message
+---
+# Feedback
+string message

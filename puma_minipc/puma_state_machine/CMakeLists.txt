@@ -20,6 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   dynamic_reconfigure
+  message_generation
+  geonav_transform
 )
 
 ## System dependencies are found with CMake's conventions
@@ -70,17 +72,19 @@ catkin_python_setup()
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  DIRECTORY action
+  FILES
+  StateMachine.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  actionlib_msgs
+  puma_msgs  # Or other packages containing msgs
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -114,7 +118,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES puma_waypoints
-#  CATKIN_DEPENDS rospy
+  CATKIN_DEPENDS rospy message_runtime
 #  DEPENDS system_lib
 )
 
@@ -169,7 +173,6 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/state_machine_node.py
   scripts/state_machine_v2_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

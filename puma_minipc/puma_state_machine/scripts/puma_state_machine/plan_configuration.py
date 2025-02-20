@@ -11,6 +11,7 @@ from puma_state_machine.utils import *
 from puma_nav_manager.msg import ImportExportPlanAction, ImportExportPlanGoal, WaypointsManagerAction, WaypointsManagerGoal
 import actionlib
 import tf
+from puma_state_machine.msg import StateMachineAction, StateMachineResult
 
 class PlanConfiguration(smach.State):
   def __init__(self):
@@ -28,8 +29,13 @@ class PlanConfiguration(smach.State):
     self.pose_array_publisher = rospy.Publisher(ns_topic + '/path_planned', PoseArray, queue_size=4)
 
   def start_subscriber(self):
+    ''' Servidores '''
+    ns_topic = rospy.get_param('~ns_topic', 'state_machine')
+    self._srv = actionlib.SimpleActionServer(ns_topic, StateMachineAction, self.execute_srv_cb, False)
+    self._srv.start()
+    
+    ''' Suscriptores '''
     add_pose_topic = rospy.get_param('~add_pose_topic', '/initialpose')
-    ns_topic = rospy.get_param('~ns_topic', '')
     self.clear_plan_sub = rospy.Subscriber(ns_topic + '/clear_plan', Empty, self.clear_plan_cb)
     self.start_plan_sub = rospy.Subscriber(ns_topic + '/start_plan', Empty, self.start_plan_cb)
     self.add_pose_rviz_sub = rospy.Subscriber(add_pose_topic, PoseWithCovarianceStamped, self.add_pose_rviz_cb)
@@ -45,9 +51,15 @@ class PlanConfiguration(smach.State):
     
   def end_subscriber(self):
     if self.clear_plan_sub is not None:
+      # self._srv.shutdown()
       self.clear_plan_sub.unregister()
       self.start_plan_sub.unregister()
       self.add_pose_rviz_sub.unregister()
+      self.add_waypoints_web_sub.unregister()
+      self.configuration_cmd_sub.unregister()
+      self.save_plan_sub.unregister()
+      self.load_plan_sub.unregister()
+      self.charge_mode_sub.unregister()
   
   def send_log(self, msg, level):
     create_and_publish_log(msg, level, 'plan_configuration')
@@ -249,3 +261,27 @@ class PlanConfiguration(smach.State):
     if self.configuration_info['repeat'] > 0:
       return 'run_plan_custom'
     return 'run_plan'
+  
+  
+  def execute_srv_cb(self, goal):
+    result = StateMachineResult()
+    
+    result.success = True
+    if goal.action == 'start':
+      self.start_plan_cb(Empty())
+    elif goal.action == 'clear':
+      self.clear_plan_cb(Empty())
+    elif goal.action == 'add_web':
+      self.add_from_waypoints_web_cb(goal.waypoint_nav)
+    elif goal.action == 'save_plan':
+      self.save_plan_cb(goal.file_name)
+    elif goal.action == 'load_plan':
+      self.load_plan_cb(goal.file_name)
+    elif goal.action == 'config_plan':
+      self.configuration_cmd_cb(goal.configuration_plan)
+    else:
+      result.success = False
+      result.message = "Acción no reconocida."
+    
+    self._srv.set_succeeded(result)
+  
