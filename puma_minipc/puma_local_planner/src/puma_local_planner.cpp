@@ -35,6 +35,7 @@ namespace puma_local_planner{
 
       initialized_ = true;
       reversing_mode_ = false;
+      forward_navigation_failed_ = backward_navigation_failed_ = false;
     }else{
       ROS_WARN("Este planificador ya ha sido inicializado, no se hará nada.");
     }
@@ -57,6 +58,8 @@ namespace puma_local_planner{
     nh.param<double>("time_step", time_step_, 0.1);
     nh.param<double>("xy_goal_tolerance", xy_goal_tolerance_, 0.5);
     nh.param<double>("factor_velocity", factor_velocity_, 1.0);
+    nh.param<double>("distance_reverse", distance_reverse_, 2.0);
+    nh.param<double>("time_simulation_reverse", time_simulation_reverse_, 2.0);
   }
 
   void PumaLocalPlanner::reconfigureCB(puma_local_planner::PumaLocalPlannerConfig &config, uint32_t level){
@@ -83,6 +86,9 @@ namespace puma_local_planner{
     steering_samples_ = config.steering_samples;
     velocity_samples_ = config.velocity_samples;
     xy_goal_tolerance_ = config.xy_goal_tolerance;
+    distance_reverse_ = config.distance_reverse;
+    time_simulation_reverse_ = config.time_simulation_reverse;
+    factor_velocity_ = config.factor_velocity;
   }
 
   /* Callback odometry */
@@ -181,6 +187,12 @@ namespace puma_local_planner{
     if (!initialized_)
       return false;
     
+    if (backward_navigation_failed_ && forward_navigation_failed_){
+      ROS_WARN_THROTTLE(10,"No se puede encontrar una ruta válida en ninguna dirección. Deteniendo el robot.");
+      cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
+      return false;
+    }
+
     /* Actualizar plan */
     updatePlan();
 
@@ -191,19 +203,45 @@ namespace puma_local_planner{
     }
 
     /* Comprobar si esta en modo reversa */
-    
+    if (reversing_mode_) {      
+      double distance_covered = std::hypot(puma_.x - init_reverse_.x, puma_.y - init_reverse_.y);
+      if (distance_covered > distance_reverse_) {
+        ROS_INFO("Se ha completado la maniobra de reversa. Reiniciando a modo normal");
+        reversing_mode_ = false;
+        forward_navigation_failed_ = false;
+        cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
+        return true;
+      }
 
+      std::vector<Position> best_path_reverse = simulateReversePaths();
+      
+      if (best_path_reverse.empty()) {
+        ROS_WARN("No se encontraron caminos validos en modo reversa.");
+        cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
+        backward_navigation_failed_ = true;
+        return false;
+      }
+      Position best_reverse = best_path_reverse.back();
+      cmd_vel.linear.x = best_reverse.vel_x;
+      cmd_vel.angular.z = -best_reverse.ang_z;
+      publishLocalPath(best_path_reverse);
+      return true;
+    }
+    
+    /* Modo normal */
     std::vector<Position> best_path = simulatePaths();    
     if (best_path.empty()){
       ROS_WARN("No se encontraron caminos validos.");
       cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
       forward_navigation_failed_ = reversing_mode_ = true;
+      init_reverse_ = puma_;
       return false;
     }
 
     Position best_position = best_path.back();
     cmd_vel.linear.x = best_position.vel_x;
     cmd_vel.angular.z = best_position.ang_z;
+    backward_navigation_failed_ = forward_navigation_failed_ = false;
 
     publishLocalPath(best_path);
     return true;
@@ -262,20 +300,37 @@ namespace puma_local_planner{
     double vel_reverse = -min_velocity_;
     double angle_steps = steering_rads_limit_ * 2 / steering_samples_;
     
-    for (int ia = 0; ia < steering_samples_; ia++) {
-      double angle = -steering_rads_limit_ + ia * angle_steps;
+    /* Crear path de referencia */
+    std::vector<Position> reference_path;
+    reference_path.push_back(puma_);
+    for (double t = 0; t < time_simulation_reverse_ ; t+=time_step_){
+      t = std::min(t, time_simulation_reverse_);
+      double factor = t / time_simulation_reverse_;
+      double x = puma_.x + vel_reverse * cos(puma_.yaw) * t;
+      double y = puma_.y + vel_reverse * sin(puma_.yaw) * t;
+
+      Position pos = Position(x, y, puma_.yaw, vel_reverse, 0);
+      reference_path.push_back(pos);
+    }
+    
+    /* Lambda para evaluar las trayectorias generadas */
+    auto processPath = [&](double angle) {
       std::vector<Position> path = generatePath(vel_reverse, angle);
-
       if (path.empty())
-        continue;
-
-      double cost = calculateCost(path);
-      if (cost < best_cost){
+        return;
+      double cost = calculateReverseCost(path, reference_path);
+      if (cost < best_cost) {
         best_cost = cost;
         best_path = path;
       }
       markers.markers.push_back(createPathMarker(path, marker_id++));
+    };
+
+    for (int ia = 0; ia < steering_samples_; ia++) {
+      double angle = -steering_rads_limit_ + ia * angle_steps;
+      processPath(angle);
     }
+    processPath(0);
 
     trajectory_pub_.publish(markers);
     return best_path;
@@ -301,7 +356,7 @@ namespace puma_local_planner{
     return path;
   }
 
-  double PumaLocalPlanner::calculateCost(std::vector<Position>& path) {
+  double PumaLocalPlanner::calculateCost(std::vector<Position> path) {
     double cost_acumulative = 0.0;
     
     size_t max_index = std::min(global_plan_.size(), size_t(max_index_path_compare_));
@@ -324,6 +379,21 @@ namespace puma_local_planner{
     }
 
     return cost_acumulative / (1 + factor_velocity_ * path.back().vel_x);
+  }
+
+  double PumaLocalPlanner::calculateReverseCost(std::vector<Position> path, std::vector<Position> reference) {
+    double cost_acumulative = 0.0;
+
+    size_t max_index = std::min(path.size(), reference.size());
+
+    for (size_t i = 0; i < max_index; i++){
+      double dx = reference[i].x - path[i].x;
+      double dy = reference[i].y - path[i].y;
+      double distance = sqrt(dx*dx + dy*dy);
+      cost_acumulative += distance;
+    }
+
+    return cost_acumulative;
   }
 
   bool PumaLocalPlanner::isValidPose(const Position& pos) {

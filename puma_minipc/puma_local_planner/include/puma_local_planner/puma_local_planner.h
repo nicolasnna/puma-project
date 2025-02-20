@@ -51,15 +51,16 @@ namespace puma_local_planner {
 
       /* Manejo del plan */
       void updatePlan();
-      std::vector<Position> simulatePaths();
       void publishLocalPath(std::vector<Position> path);
+      std::vector<Position> simulatePaths();
+      double calculateCost(std::vector<Position> path);
       std::vector<Position> simulateReversePaths();
+      double calculateReverseCost(std::vector<Position> path, std::vector<Position> reference);
 
       /* Utilidades */
       double calculateMaxAllowedVelocity();
       double normalizeAngle(const double angle);
       std::vector<Position> generatePath(double vel, double angle);
-      double calculateCost(std::vector<Position>& path);
       void getAdjustXYCostmap(double pos_x, double pos_y, int& cell_x, int& cell_y);
 
       /* Verificaciones */
@@ -85,8 +86,10 @@ namespace puma_local_planner {
       double max_acceleration_, max_deceleration_, distance_for_deceleration_;
       int steering_samples_, velocity_samples_;
       double time_simulation_, time_step_;
+      double time_simulation_reverse_;
       double xy_goal_tolerance_;
       double factor_velocity_;
+      double distance_reverse_;
 
       /* Atributos */
       bool setup_;
@@ -97,6 +100,7 @@ namespace puma_local_planner {
       bool forward_navigation_failed_;
       bool backward_navigation_failed_;
       Position puma_, goal_;
+      Position init_reverse_;
       std::vector<geometry_msgs::PoseStamped> global_plan_;
   };
 };

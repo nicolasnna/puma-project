@@ -10,6 +10,9 @@ PumaLocalPlanner:
   distance_for_deceleration: 4.0
   steering_rads_limit: 0.698
 
+  distance_reverse: 2.0
+  time_simulation_reverse: 2.0
+
   time_simulation: 3.0
   time_step: 0.2
   steering_samples: 18
