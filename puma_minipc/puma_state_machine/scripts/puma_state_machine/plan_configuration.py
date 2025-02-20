@@ -8,6 +8,8 @@ from std_msgs.msg import Empty, String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Path, Odometry
 from puma_state_machine.utils import *
+from puma_nav_manager.msg import ImportExportPlanAction, ImportExportPlanGoal, WaypointsManagerAction, WaypointsManagerGoal
+import actionlib
 import tf
 
 class PlanConfiguration(smach.State):
@@ -17,16 +19,11 @@ class PlanConfiguration(smach.State):
     self.publishers()
 
   def publishers(self):
-    # files manager
-    self.file_plan_clear_pub = rospy.Publisher('/puma/navigation/files/clear_plan', Empty, queue_size=2)
-    self.file_import_local_pub = rospy.Publisher('/puma/navigation/files/import_plan_local', String, queue_size=2)
-    self.file_export_local_pub = rospy.Publisher('/puma/navigation/files/export_plan_local', String, queue_size=2)
-    self.file_set_plan_pub = rospy.Publisher('/puma/navigation/files/set_plan', Path, queue_size=2)
-    # waypoints manager
-    self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=2)
-    self.waypoints_add_pub = rospy.Publisher('/puma/navigation/waypoints/add', Waypoint, queue_size=2)
-    self.waypoints_set_pub = rospy.Publisher('/puma/navigation/waypoints/set', WaypointNav, queue_size=2)
-    # rviz
+    ''' Servidores '''
+    self.client_files = actionlib.SimpleActionClient('/puma/navigation/files_manager', ImportExportPlanAction)
+    self.client_waypoints = actionlib.SimpleActionClient('/puma/navigation/waypoints_manager', WaypointsManagerAction)
+    
+    ''' Rviz '''
     ns_topic = rospy.get_param('~ns_topic', '')
     self.pose_array_publisher = rospy.Publisher(ns_topic + '/path_planned', PoseArray, queue_size=4)
 
@@ -56,60 +53,63 @@ class PlanConfiguration(smach.State):
     create_and_publish_log(msg, level, 'plan_configuration')
     
   def clear_plan_cb(self, msg):
-    self.file_plan_clear_pub.publish(Empty())
-    self.waypoints_clear_pub.publish(Empty())
-    # Comprobar si se ha limpiado el plan
     try: 
-      file_plan = rospy.wait_for_message('/puma/navigation/files/plan_selected', Path, timeout=5)
-      waypoint_plan = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
-      if len(file_plan.poses) == 0 and len(waypoint_plan.waypoints) == 0:
-        self.send_log("Plan y waypoints limpiados.", 0)
+      self.client_waypoints.wait_for_server(rospy.Duration(5))
+      action = WaypointsManagerGoal()
+      action.action = "clear"
+      self.client_waypoints.send_goal(action)
+      res = self.client_waypoints.wait_for_result(rospy.Duration(10))
+      if res: 
+        self.send_log("Waypoints limpiados correctamente.", 0)
       else:
-        self.send_log("No se ha limpiado correctamente los planes cargados.", 1)
+        self.send_log("No se ha podido limpiar correctamente los waypoints.", 1)
     except Exception as e:
       self.send_log(f"No se ha limpiado correctamente los planes cargados por el error: {e}.", 1)
   
   def start_plan_cb(self, msg):
     try:
-      file_plan = rospy.wait_for_message('/puma/navigation/files/plan_selected', Path, timeout=5)
-      waypoint_plan = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
-      if file_plan is not None and len(file_plan.poses) > 0:
-        self.send_log("Se ha detectado un plan cargado.", 0)
+      waypoint_plan = rospy.wait_for_message('/puma/navigation/waypoints_list', WaypointNav, timeout=5)
       if waypoint_plan is not None and len(waypoint_plan.waypoints) > 0:
-        self.send_log("Waypoints definidos correctamente.", 0)
+        self.send_log("Waypoints definidos correctamente. Entrando en el modo navegación.", 0)
         self.is_plan_ready = True
 
     except Exception as e:
-      self.send_log(f"No se ha cargado correctamente los planes por el error: {e}.", 1)
+      self.send_log(f"No se ha podido comprobar los waypoints  por el error: {e}.", 1)
   
   def save_plan_cb(self, msg):
     exist_waypoints, _ = check_and_get_waypoints(self.send_log)
-    
+    rospy.loginfo("-> Recibido el comando de guardar plan: %s", msg.data)
+
     if exist_waypoints:
       try:
-        plan_calculated = rospy.wait_for_message('/puma/navigation/plan/plan_info', Path, timeout=5)
-        self.file_plan_clear_pub.publish(Empty())
-        rospy.sleep(0.2)
-        if plan_calculated is not None and len(plan_calculated.poses) > 0:
-          self.file_set_plan_pub.publish(plan_calculated)
-          rospy.sleep(0.2)
-          if check_plan_load_file():
-            self.file_export_local_pub.publish(msg)
-        
+        self.client_files.wait_for_server(rospy.Duration(5))
+        action = ImportExportPlanGoal()
+        action.action = "export"
+        action.file_name = msg.data
+        self.client_files.send_goal(action)
+        res = self.client_files.wait_for_result(rospy.Duration(10))
+        if res:
+          self.send_log(f"Plan guardado con el nombre '{msg.data}' correctamente.", 0)
+        else: 
+          self.send_log(f"No se ha podido guardar el plan con el nombre '{msg.data}'.", 1)
       except Exception as e:
         self.send_log(f"No se ha podido revisar el ultimo plan empleado: {e}", 1)
+    else: 
+      self.send_log("No se han definido waypoints para guardar.", 1)
         
   def load_plan_cb(self, msg):
-    self.file_plan_clear_pub.publish(Empty())
-    rospy.sleep(0.2)
-    self.file_import_local_pub.publish(msg)
-    rospy.sleep(0.2)
     try:
-      plan_calculated = rospy.wait_for_message('/puma/navigation/plan/plan_info', Path, timeout=5)
-      if plan_calculated is not None and len(plan_calculated.poses) > 0:
-        self.send_log(f"Plan con el nombre '{msg.data}' cargado con exito", 0)
+      self.client_files.wait_for_server(rospy.Duration(5))
+      action = ImportExportPlanGoal()
+      action.action = "import"
+      action.file_name = msg.data
+      self.client_files.send_goal(action)
+      res = self.client_files.wait_for_result(rospy.Duration(10))
+      if res:
+        self.send_log(f"Plan con el nombre '{msg.data}' cargado correctamente.", 0)
       else:
-        self.send_log(f"No se ha cargado el plan {msg.data} correctamente.", 1)
+        self.send_log(f"No se ha podido cargar el plan con el nombre '{msg.data}'.", 1)
+        
     except Exception as e:
       self.send_log(f"No se ha podido comprobar el plan cargado: {e}.",1)
   
@@ -125,16 +125,19 @@ class PlanConfiguration(smach.State):
     waypoint.y = pose.pose.pose.position.y
     waypoint.yaw = euler[2] # yaw
     
-    self.waypoints_add_pub.publish(waypoint)
-    rospy.sleep(0.2)
     try:
-      waypoints_msgs = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
-      if len(waypoints_msgs.waypoints) > 0 and waypoints_msgs.waypoints[-1] == waypoint:
-        self.send_log("Waypoint añadido correctamente.", 0)
+      self.client_waypoints.wait_for_server(rospy.Duration(5))
+      action = WaypointsManagerGoal()
+      action.action = "add"
+      action.waypoint = waypoint
+      self.client_waypoints.send_goal(action)
+      res = self.client_waypoints.wait_for_result(rospy.Duration(10))
+      if res:
+        self.send_log(f"Waypoint ({round(waypoint.x,2), round(waypoint.y,2)}) añadido correctamente.", 0)
       else:
-        self.send_log("No se ha añadido correctamente el waypoint.", 1)
+        self.send_log(f"No se ha podido añadir el waypoint ({round(waypoint.x,2), round(waypoint.y,2)}).", 1)
     except Exception as e:
-      self.send_log(f"No se ha logrado revisar el estado de los waypoints {e}.", 1)
+      self.send_log(f"No se ha podido añadir el waypoint ({round(waypoint.x,2), round(waypoint.y,2)}) por el error: {e}.", 1)
     
   def add_from_waypoints_web_cb(self, msg):
     rospy.loginfo("-> Recibido arreglo de waypoints desde la web.")
@@ -165,13 +168,18 @@ class PlanConfiguration(smach.State):
         new_waypoint.longitude = waypoint.longitude
         new_waypoints.waypoints.append(new_waypoint)
         
-      self.waypoints_set_pub.publish(new_waypoints)
-      self.publish_waypoints_rviz(new_waypoints.waypoints)
-      rospy.sleep(0.2)
-      try: 
-        is_correct, _ = check_and_get_waypoints(self.send_log)
-        if is_correct:
+      try:      
+        self.client_waypoints.wait_for_server(rospy.Duration(5))
+        action = WaypointsManagerGoal()
+        action.action = "set"
+        action.waypoint_nav = new_waypoints
+        self.client_waypoints.send_goal(action)
+        res = self.client_waypoints.wait_for_result(rospy.Duration(10))
+        if res:
+          self.publish_waypoints_rviz(new_waypoints.waypoints)
           self.send_log("Waypoints ajustados a 2d y añadidos correctamente.", 0)
+        else:
+          self.send_log("No se han podido añadir los waypoints desde la web.", 1)
       except Exception as e:
         self.send_log(f"No se ha podido comprobar los waypoints añadidos: {e}.", 1)
     

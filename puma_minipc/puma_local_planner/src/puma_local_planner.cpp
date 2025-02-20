@@ -187,11 +187,11 @@ namespace puma_local_planner{
     if (!initialized_)
       return false;
     
-    if (backward_navigation_failed_ && forward_navigation_failed_){
-      ROS_WARN_THROTTLE(10,"No se puede encontrar una ruta válida en ninguna dirección. Deteniendo el robot.");
-      cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
-      return false;
-    }
+    // if (backward_navigation_failed_ && forward_navigation_failed_){
+    //   ROS_WARN_THROTTLE(10,"No se puede encontrar una ruta válida en ninguna dirección. Deteniendo el robot.");
+    //   cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
+    //   return false;
+    // }
 
     /* Actualizar plan */
     updatePlan();
@@ -219,6 +219,7 @@ namespace puma_local_planner{
         ROS_WARN("No se encontraron caminos validos en modo reversa.");
         cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
         backward_navigation_failed_ = true;
+        reversing_mode_ = false;
         return false;
       }
       Position best_reverse = best_path_reverse.back();

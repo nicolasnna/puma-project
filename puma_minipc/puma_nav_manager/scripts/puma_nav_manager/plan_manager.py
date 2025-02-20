@@ -12,11 +12,11 @@ class PlanManager:
     self.start_subscriber(ns)
     
   def init_publishers(self, ns):
-    self.plan_list_pub = rospy.Publisher(ns+'/plan_info', Path, queue_size=10)
+    self.plan_list_pub = rospy.Publisher(ns+'/plan_calculated', Path, queue_size=10)
     self.plan_remaining_pub = rospy.Publisher(ns+'/remaining', Path, queue_size=5)
     
   def start_subscriber(self, ns):
-    self.add_plan_sub = rospy.Subscriber(ns+'/add', Path, self.add_plan_callback)
+    self.add_plan_sub = rospy.Subscriber(ns+'/set_plan', Path, self.add_plan_callback)
     self.plan_update_sub = rospy.Subscriber(ns+'/update', Path, self.update_plan_callback)
     self.restart_plan_pub = rospy.Subscriber(ns+'/restart', Empty, self.restart_plan_callback)
     self.clean_plan_pub = rospy.Subscriber(ns+'/clean', Empty, self.clean_plan_callback)

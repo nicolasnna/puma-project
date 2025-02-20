@@ -1,0 +1,10 @@
+# Goal
+string file_name
+string action # "import", "export"
+---
+# Result
+bool success
+string message
+---
+# Feedback
+float32 progress

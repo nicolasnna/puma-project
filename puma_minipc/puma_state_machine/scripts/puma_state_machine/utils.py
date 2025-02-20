@@ -101,7 +101,7 @@ def get_goal_from_waypoint(waypoint: Waypoint):
 
 def check_and_get_waypoints(send_log) -> Tuple[bool, WaypointNav]:
   try:
-    waypoints_msg = rospy.wait_for_message('/puma/navigation/waypoints/waypoints_info', WaypointNav, timeout=5)
+    waypoints_msg = rospy.wait_for_message('/puma/navigation/waypoints_list', WaypointNav, timeout=5)
   except Exception as e:
     send_log(f"No se han cargado correctamente los waypoints por el error: {e}.", 1)
     return False, None

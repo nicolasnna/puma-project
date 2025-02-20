@@ -26,15 +26,16 @@ namespace puma_global_planner
       costmap_ros_ = costmap_ros;
       costmap_ = costmap_ros_->getCostmap();
       ros::NodeHandle private_nh("~/" + name);
-
+      
       loadRosParam(private_nh);
       
       dynamic_reconfigure::Server<puma_global_planner::PumaGlobalPlannerConfig> *dr_srv_ = new dynamic_reconfigure::Server<puma_global_planner::PumaGlobalPlannerConfig>(private_nh);
       dynamic_reconfigure::Server<puma_global_planner::PumaGlobalPlannerConfig>::CallbackType cb = boost::bind(&PumaGlobalPlanner::reconfigureCB, this, _1, _2);
       dr_srv_->setCallback(cb);
-
+      
       plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
       plan_post_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan_post", 1);
+      
       initialized_ = true;
     }
     else
@@ -89,7 +90,9 @@ namespace puma_global_planner
     Node start_node(start.pose.position.x, start.pose.position.y, tf::getYaw(start.pose.orientation), resolution_);
     Node goal_node(goal.pose.position.x, goal.pose.position.y, tf::getYaw(goal.pose.orientation), resolution_);
 
+    
     ROS_INFO("Buscando camino desde (%f, %f) hasta (%f, %f)", start_node.x, start_node.y, goal_node.x, goal_node.y);
+    
     try
     {
       auto t0 = std::chrono::high_resolution_clock::now();

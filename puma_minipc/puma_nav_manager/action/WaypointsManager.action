@@ -1,0 +1,11 @@
+# Goal
+string action # "add", "clear", "restart", "achieved", "set"
+puma_msgs/Waypoint waypoint 
+puma_msgs/WaypointNav waypoint_nav
+---
+# Result
+bool success
+string message
+---
+# Feedback
+float32 progress
