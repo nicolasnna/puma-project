@@ -190,11 +190,14 @@ namespace puma_local_planner{
       return false;
     }
 
+    /* Comprobar si esta en modo reversa */
+    
+
     std::vector<Position> best_path = simulatePaths();    
     if (best_path.empty()){
       ROS_WARN("No se encontraron caminos validos.");
-      cmd_vel.linear.x = 0.0;
-      cmd_vel.angular.z = 0.0;
+      cmd_vel.linear.x = cmd_vel.angular.z = 0.0;
+      forward_navigation_failed_ = reversing_mode_ = true;
       return false;
     }
 
@@ -220,24 +223,48 @@ namespace puma_local_planner{
     double angle_steps = steering_rads_limit_ * 2 / steering_samples_;
     double vel_steps = (max_allowed_velocity - min_velocity_) / velocity_samples_;
 
+    // Lambda que encapsula el procesamiento de cada trayectoria
+    auto processPath = [&](double vel, double angle) {
+      std::vector<Position> path = generatePath(vel, angle);
+      if (path.empty())
+        return;
+      double cost = calculateCost(path);
+      if (cost < best_cost) {
+        best_cost = cost;
+        best_path = path;
+      }
+      markers.markers.push_back(createPathMarker(path, marker_id++));
+    };
+
     for (int iv = 0; iv < velocity_samples_; iv++){
       double vel = min_velocity_ + iv * vel_steps;
+      // Iterar sobre diferentes ángulos
       for (int ia = 0; ia < steering_samples_; ia++) {
         double angle = -steering_rads_limit_ + ia * angle_steps;
-        std::vector<Position> path = generatePath(vel, angle);
-
-        if (path.empty())
-          continue;
-        
-        double cost = calculateCost(path);
-        if (cost < best_cost){
-          best_cost = cost;
-          best_path = path;
-        }
-        markers.markers.push_back(createPathMarker(path, marker_id++));
+        processPath(vel, angle);
       }
+      processPath(vel, 0);
+    }
 
-      std::vector<Position> path = generatePath(vel, 0);
+    trajectory_pub_.publish(markers);
+    return best_path;
+  }
+
+  std::vector<Position> PumaLocalPlanner::simulateReversePaths() {
+    std::vector<Position> best_path;
+    /* Marker */
+    double best_cost = std::numeric_limits<double>::max();
+    visualization_msgs::MarkerArray markers;
+    int marker_id = 0;
+    markers.markers.push_back(createDeleteAllMarker());
+
+    /* Parametros a simular */
+    double vel_reverse = -min_velocity_;
+    double angle_steps = steering_rads_limit_ * 2 / steering_samples_;
+    
+    for (int ia = 0; ia < steering_samples_; ia++) {
+      double angle = -steering_rads_limit_ + ia * angle_steps;
+      std::vector<Position> path = generatePath(vel_reverse, angle);
 
       if (path.empty())
         continue;

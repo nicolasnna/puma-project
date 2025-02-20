@@ -20,6 +20,9 @@
     <param name="base_local_planner" value="puma_local_planner/PumaLocalPlanner" /> 
     <rosparam command="load" file="$(arg path)/puma_local_planner.yaml"/> 
     <!-- <param name="shutdown_costmaps" value="true"/> -->
+    <param name="max_planning_retries" value="3"/>
+    <param name="recovery_behavior_enabled" value="false"/>
+    <param name="clearing_rotation_allowed" value="false"/>
   </node>
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find puma_simulation)/rviz/nav_dwa.rviz" />
 </launch>

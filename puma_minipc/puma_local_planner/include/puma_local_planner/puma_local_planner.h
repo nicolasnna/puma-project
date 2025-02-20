@@ -53,6 +53,7 @@ namespace puma_local_planner {
       void updatePlan();
       std::vector<Position> simulatePaths();
       void publishLocalPath(std::vector<Position> path);
+      std::vector<Position> simulateReversePaths();
 
       /* Utilidades */
       double calculateMaxAllowedVelocity();
@@ -93,6 +94,8 @@ namespace puma_local_planner {
       ros::Subscriber odometry_sub_;
       ros::Publisher path_global_pub_, path_local_pub_, trajectory_pub_;
       bool reversing_mode_;
+      bool forward_navigation_failed_;
+      bool backward_navigation_failed_;
       Position puma_, goal_;
       std::vector<geometry_msgs::PoseStamped> global_plan_;
   };
