@@ -1,0 +1,24 @@
+PumaLocalPlanner:
+  topic_odom: puma/localization/ekf_odometry
+
+  max_index_path_compare: 20
+  
+  max_velocity: 1.5
+  min_velocity: 0.5
+  max_acceleration: 0.5
+  max_deceleration: 0.5
+  distance_for_deceleration: 4.0
+  steering_rads_limit: 0.698
+
+  distance_reverse: 2.0
+  time_simulation_reverse: 2.0
+
+  time_simulation: 3.0
+  time_step: 0.2
+  steering_samples: 18
+  velocity_samples: 3
+  factor_velocity: 50.0
+
+  xy_goal_tolerance: 0.5
+
+

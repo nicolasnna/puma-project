@@ -16,7 +16,7 @@
   <!-- Localization -->
   <include file="$(arg path)/localization_bringup.launch"/>
   <!-- Navigation -->
-  <include file="$(arg path)/puma_navigation_bringup.launch"/>
+  <include file="$(arg path)/new_navigation_bringup.launch"/>
   <!-- Monitor temperature -->
   <include file="$(arg path)/minipc_monitor.launch"/>
   
