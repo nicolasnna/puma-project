@@ -8,7 +8,7 @@ raytrace_range: 12
 obstacle_layer:
   footprint_clearing_enabled: true
   observation_sources: camera_front_sensor camera_rear_sensor
-  {
+  camera_front_sensor: {
     sensor_frame: camera_front_depth_frame,
     data_type: PointCloud2,
     topic: /puma/sensors/camera_front/depth/color/points,

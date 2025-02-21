@@ -112,8 +112,8 @@ def subscriber(is_simulated: bool):
     rs_front_depth = rospy.Subscriber('/puma/sensors/camera_front/aligned_depth_to_color/image_raw/compressed', CompressedImage, rs_front_depth_cb)
     rs_rear_depth = rospy.Subscriber('/puma/sensors/camera_rear/aligned_depth_to_color/image_raw/compressed', CompressedImage, rs_rear_depth_cb)
   else:
-    rs_front_depth = rospy.Subscriber('/puma/sensors/camera_front/depth/image_raw/compressed', CompressedImage, rs_front_depth_cb)
-    rs_rear_depth = rospy.Subscriber('/puma/sensors/camera_rear/depth/image_raw/compressed', CompressedImage, rs_rear_depth_cb)
+    rs_front_depth = rospy.Subscriber('/puma/sensors/camera_front/depth/image_rect_raw/compressed', CompressedImage, rs_front_depth_cb)
+    rs_rear_depth = rospy.Subscriber('/puma/sensors/camera_rear/depth/image_rect_raw/compressed', CompressedImage, rs_rear_depth_cb)
   
 def end_subscriber():
   global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, is_run_statistics
