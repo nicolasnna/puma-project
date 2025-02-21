@@ -9,6 +9,7 @@ from puma_state_machine.utils import create_and_publish_log, check_mode_control_
 from std_srvs.srv import Empty as EmptySrv
 from puma_nav_manager.msg import WaypointsManagerAction, WaypointsManagerGoal
 from puma_state_machine.msg import StateMachineAction, StateMachineResult
+from puma_robot_status.msg import RobotStatisticsAction, RobotStatisticsGoal
 
 class RunPlan(smach.State):
   def __init__(self):
@@ -20,6 +21,7 @@ class RunPlan(smach.State):
   def publisher(self):
     ''' Waypoints '''
     self.client_waypoints = actionlib.SimpleActionClient('/puma/navigation/waypoints_manager', WaypointsManagerAction)
+    self.client_statistics = actionlib.SimpleActionClient('/puma/statistics', RobotStatisticsAction)
     ''' Modo de control '''
     self.mode_selector_pub = rospy.Publisher('/puma/control/change_mode', String, queue_size=2)
   
@@ -67,17 +69,47 @@ class RunPlan(smach.State):
       self.send_log("La navegación ha sido interrumpida por un error en el move_base. Volviendo al modo de selección de rutas.",2)
       
   def reset_progress_wp(self):
-    goal = WaypointsManagerGoal()
-    goal.action = 'reset'
-    self.client_waypoints.send_goal(goal)
-    self.client_waypoints.wait_for_result(rospy.Duration(5))
+    try:
+      self.client_waypoints.wait_for_server(rospy.Duration(5))
+      goal = WaypointsManagerGoal()
+      goal.action = 'reset'
+      self.client_waypoints.send_goal(goal)
+      self.client_waypoints.wait_for_result(rospy.Duration(5))
+    except Exception as e:
+      rospy.logerr(f"Error al reiniciar waypoints: {e}")
     
   def update_progress_wp(self, waypoint):
-    goal = WaypointsManagerGoal()
-    goal.action = 'update'
-    goal.waypoint = waypoint
-    self.client_waypoints.send_goal(goal)
-    self.client_waypoints.wait_for_result(rospy.Duration(5))
+    try:
+      self.client_waypoints.wait_for_server(rospy.Duration(5))
+      goal = WaypointsManagerGoal()
+      goal.action = 'update'
+      goal.waypoint = waypoint
+      self.client_waypoints.send_goal(goal)
+      self.client_waypoints.wait_for_result(rospy.Duration(5))
+    except Exception as e:
+      rospy.logerr(f"Error al actualizar waypoints: {e}")
+    
+  def start_statistics(self):
+    try: 
+      self.client_statistics.wait_for_server(rospy.Duration(5))
+      goal = RobotStatisticsGoal()
+      goal.action = 'start'
+      goal.type = 'navigation'
+      self.client_statistics.send_goal(goal)
+      self.client_statistics.wait_for_result(rospy.Duration(5))
+    except Exception as e:
+      rospy.logerr(f"Error al iniciar estadísticas: {e}")
+      
+  def stop_statistics(self):
+    try: 
+      self.client_statistics.wait_for_server(rospy.Duration(5))
+      goal = RobotStatisticsGoal()
+      goal.action = 'stop'
+      goal.type = 'navigation'
+      self.client_statistics.send_goal(goal)
+      self.client_statistics.wait_for_result(rospy.Duration(5))
+    except Exception as e:
+      rospy.logerr(f"Error al detener estadísticas: {e}")
   
   def execute(self, ud):
     rospy.loginfo('----- Estado ejecución de plan -----')
@@ -85,11 +117,10 @@ class RunPlan(smach.State):
     ''' Variables '''
     self.is_aborted = False
     self.status_move_base = 0
-    ''' Definir modo navegacion en el control puma '''
+
     self.mode_selector_pub.publish(String(data='navegacion'))
     rospy.sleep(0.3)
     
-    ''' Comprobar si se ha cambiado al modo de navegación '''
     if not check_mode_control_navegacion('navegacion', self.send_log):
       self.send_log("No se ha podido cambiar al modo de navegación. Volviendo a configuración de planes.", 1)
       return 'plan_configuration'
@@ -113,6 +144,9 @@ class RunPlan(smach.State):
     if not exist_waypoints:
       return 'plan_configuration'
 
+    ''' Iniciar estadísticas '''
+    self.start_statistics()
+
     ''' Ejecutar plan en move_base '''
     try:
       for waypoint in waypoints_msg.waypoints:
@@ -120,7 +154,7 @@ class RunPlan(smach.State):
           service_clear_costmaps()
         except rospy.ServiceException as e:
           rospy.logerr(f"Error al limpiar los costmaps: {e}")
-        rospy.sleep(0.1)
+        rospy.sleep(0.2)
         
         goal = get_goal_from_waypoint(waypoint)
         is_complete = False
@@ -149,13 +183,13 @@ class RunPlan(smach.State):
       self.send_log(f"No se ha podido efectuar el plan por el error: {e}. Volviendo a configuración de planes", 1)
       self.is_aborted = True
     
+    ''' Detener estadísticas '''
+    self.stop_statistics()
+    
     self.mode_selector_pub.publish(String(data='idle'))
     self.end_subscriber()
-    ''' Comprobar si se ha completado el plan '''
-    if self.is_aborted:
-      return 'plan_configuration'
-    
-    return 'success'
+
+    return 'success' if not self.is_aborted else 'plan_configuration'
   
   def execute_srv_cb(self, goal):
     result = StateMachineResult()

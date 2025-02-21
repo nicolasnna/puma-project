@@ -50,7 +50,7 @@ class RunPlanCustom(RunPlan):
             service_clear_costmaps()
           except rospy.ServiceException as e:
             rospy.logerr(f"Error al limpiar los costmaps: {e}")
-          rospy.sleep(0.1)
+          rospy.sleep(0.2)
           
           goal = get_goal_from_waypoint(waypoint)
           is_complete = False

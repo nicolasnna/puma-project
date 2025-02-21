@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
   message_generation
   geonav_transform
+  puma_robot_status
 )
 
 ## System dependencies are found with CMake's conventions
