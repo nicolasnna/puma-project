@@ -37,9 +37,18 @@ const int SWITCH_BRAKE_REAR_ON = 38;
 bool enableBrake = false;
 bool isSendedLogBrake = false;
 unsigned long initTimeBrakeCmd = 0;
-#define LIMIT_TIME_BRAKE 3000
-#define PWM_FRONT_BRAKE 100
-#define PWM_REAR_BRAKE 100
+#define LIMIT_TIME_BRAKE 1000
+#define LIMIT_TIME_BRAKE_OFF 1500
+#define PWM_FRONT_BRAKE 90
+#define PWM_REAR_BRAKE 90
+bool complete_rear_brake = false;
+bool complete_front_brake = false;
+unsigned long last_time_front = 0;
+unsigned long last_time_rear = 0;
+#define EXTRA_TIME_OFF_REAR 300
+#define EXTRA_TIME_ON_REAR 300
+#define EXTRA_TIME_OFF_FRONT 300
+#define EXTRA_TIME_ON_FRONT 300
 
 /* Variables direccion */
 const int SENSOR_DIRECTION_PIN = A3;
@@ -117,11 +126,11 @@ void setup() {
   /* Configuracion de pines */
   configPinMode();
   attachInterrupt(digitalPinToInterrupt(TACHOMETER_PIN), countPulse, RISING); 
-  // /* Config i2c */
-  // Wire.begin();
-  // Wire.setClock(400000);
-  // /* Configuracion IMU y Mag */
-  // configImuMag();
+  /* Config i2c */
+  Wire.begin();
+  Wire.setClock(400000);
+  /* Configuracion IMU y Mag */
+  configImuMag();
 }
 
 void loop() {
@@ -134,7 +143,7 @@ void loop() {
     brakeController();
     /* Publicadores */
     publishTachometer();
-    // publishImuMag();
+    publishImuMag();
     publishMsgStatus();
     publishSecurityLog();
     publishModeLog();
@@ -153,7 +162,7 @@ void configRos() {
   nh.subscribe(mode_sub);
   nh.advertise(arduinoStatusPub);
   nh.advertise(tacometerStatusPub);
-  // nh.advertise(imuRawPub);
+  nh.advertise(imuRawPub);
   nh.advertise(compassRawPub);
   nh.advertise(logInfoPub);
   /* Escribir tópicos en el mensaje de estado */
@@ -187,22 +196,26 @@ void configPinMode() {
   pinMode(TACHOMETER_PIN, INPUT_PULLUP); 
 }
 
-// void configImuMag() {
-//   imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
-//   imu.Begin();
-//   imu.ConfigSrd(19);
-//   imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G);
-//   imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS);
-//   imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ);
-//   compass.init();
-//   compass.setSmoothing(10, true);
-//   compass.setCalibrationOffsets(177.00, 155.00, -70.00);
-//   compass.setCalibrationScales(0.72, 0.72, 4.83);
-//   imu_msg.header.frame_id = compass_msg.header.frame_id = "gps_link";
-// }
+void configImuMag() {
+  imu.Config(&Wire, bfs::Mpu6500::I2C_ADDR_PRIM);
+  imu.Begin();
+  imu.ConfigSrd(19);
+  imu.ConfigAccelRange(bfs::Mpu6500::ACCEL_RANGE_4G);
+  imu.ConfigGyroRange(bfs::Mpu6500::GYRO_RANGE_500DPS);
+  imu.ConfigDlpfBandwidth(bfs::Mpu6500::DLPF_BANDWIDTH_20HZ);
+  compass.init();
+  compass.setSmoothing(10, true);
+  compass.setCalibrationOffsets(177.00, 155.00, -70.00);
+  compass.setCalibrationScales(0.72, 0.72, 4.83);
+  imu_msg.header.frame_id = compass_msg.header.frame_id = "camera_front";
+}
 
 void readSecurityAndControlMode() {
   int readSecurity = digitalRead(SECURITY_PIN);
+  if (enableSecurity != readSecurity) {
+    complete_front_brake = false;
+    complete_rear_brake = false;
+  }
   initTimeBrakeCmd = readSecurity == 1 && !enableSecurity ? 0 : initTimeBrakeCmd;
   enableSecurity = readSecurity == 1;
   /* Revisar deteccion de modo */
@@ -308,29 +321,90 @@ void brakeController(){
   /* Dar prioridad a la señal de seguridad */
   /* Activar frenos con la señal normal o al no detectar un modo de control*/
   if (enableSecurity || enableBrake || !isRunMode) {
-    digitalWrite(DIR_FRONT_PIN, HIGH); digitalWrite(DIR_REAR_PIN, HIGH);
+    digitalWrite(DIR_FRONT_PIN, HIGH); digitalWrite(DIR_REAR_PIN, LOW);
     initTimeBrakeCmd = initTimeBrakeCmd == 0 ? millis() : initTimeBrakeCmd;
 
     /* Revisar si ha pasado el tiempo limite de funcionamiento */
     if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
       passLimitTimeBrake(true);
     } else {
-      analogWrite(STEP_FRONT_PIN, readFrontOn == 1 ? 0 : PWM_FRONT_BRAKE); 
-      analogWrite(STEP_REAR_PIN, readRearOn == 1 ? 0 : PWM_REAR_BRAKE);
+      // analogWrite(STEP_FRONT_PIN, readFrontOn == 1 ? 0 : PWM_FRONT_BRAKE); 
+
+      /* Freno delantero */
+      if (!complete_front_brake) {
+        if (!readFrontOn) 
+          analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+        else {
+          if (last_time_front == 0)
+            last_time_front = millis();
+
+          if (millis() - last_time_front >= EXTRA_TIME_ON_FRONT){
+            analogWrite(STEP_FRONT_PIN, 0);
+            complete_front_brake = true;
+            last_time_front = 0;
+          }
+        }
+      }
+
+      /* Freno trasero */
+      if (!complete_rear_brake) {
+        if (!readRearOn) 
+          analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
+        else {
+          if (last_time_rear == 0)
+            last_time_rear = millis();
+
+          if (millis() - last_time_rear >= EXTRA_TIME_ON_REAR){
+            analogWrite(STEP_REAR_PIN, 0);
+            complete_rear_brake = true;
+            last_time_rear = 0;
+          }
+        }
+      }
     }
   } else {
-    digitalWrite(DIR_FRONT_PIN, HIGH); digitalWrite(DIR_REAR_PIN, LOW);
+    digitalWrite(DIR_FRONT_PIN, LOW); digitalWrite(DIR_REAR_PIN, HIGH);
     initTimeBrakeCmd = initTimeBrakeCmd == 0 ? millis() : initTimeBrakeCmd;
-
     /* Revisar si ha pasado el tiempo limite de funcionamiento */
-    if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
+    if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE_OFF){
       passLimitTimeBrake(false);
     } else {
-      analogWrite(STEP_FRONT_PIN, readFrontOff == 1 ? 0 : PWM_FRONT_BRAKE); 
-      analogWrite(STEP_REAR_PIN, readRearOff == 1 ? 0 : PWM_REAR_BRAKE);
+
+      /* Freno delantero */
+      if (!complete_front_brake) {
+        if (!readFrontOff) 
+          analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+        else {
+          if (last_time_front == 0)
+            last_time_front = millis();
+
+          if (millis() - last_time_front >= EXTRA_TIME_OFF_FRONT){
+            analogWrite(STEP_FRONT_PIN, 0);
+            complete_front_brake = true;
+            last_time_front = 0;
+          }
+        }
+      }
+
+      /* Freno trasero */
+      if (!complete_rear_brake) {
+        if (!readRearOff) 
+          analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
+        else {
+          if (last_time_rear == 0)
+            last_time_rear = millis();
+
+          if (millis() - last_time_rear >= EXTRA_TIME_OFF_REAR){
+            analogWrite(STEP_REAR_PIN, 0);
+            complete_rear_brake = true;
+            last_time_rear = 0;
+          }
+        }
+      }
     }
   }
 }
+
 
 void passLimitTimeBrake(bool cmdIsActivate) {
   analogWrite(STEP_FRONT_PIN, 0);
@@ -483,6 +557,8 @@ void brakeCallback( const std_msgs::Bool& data_received ) {
   if (activateBrakeRos != enableBrake) {
     initTimeBrakeCmd = 0;
     isSendedLogBrake = false;
+    complete_rear_brake = false;
+    complete_front_brake = false;
   }
   enableBrake = activateBrakeRos;
 }

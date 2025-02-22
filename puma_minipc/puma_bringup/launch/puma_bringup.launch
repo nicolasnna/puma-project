@@ -25,6 +25,7 @@
   <include file="$(find puma_state_machine)/launch/state_machine_v2.launch"/>
 
   <include file="$(arg path)/imu_filter_realsense.launch"/>
-
+  <!-- Estado de bateria y obtención de estadísticas -->
+  <include file="$(find puma_robot_status)/launch/robot_statistics.launch"/>
 
 </launch>

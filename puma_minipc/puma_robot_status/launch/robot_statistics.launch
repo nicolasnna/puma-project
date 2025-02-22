@@ -4,7 +4,7 @@
   <node name="robot_statistics" pkg="puma_robot_status" type="robot_statistics_node.py" output="screen" respawn="true" respawn_delay="5">
     <param name="upload_db" value="false"/> 
     <!-- <param name="backend_url" value="http://smartbot.la/test2api"/> -->
-    <param name="is_simulated" value="true"/>
+    <param name="is_simulated" value="false"/>
   </node>
 
   <node name="battery_status_puma" pkg="puma_robot_status" type="battery_status_node.py" output="screen" respawn="true" respawn_delay="5"/>
