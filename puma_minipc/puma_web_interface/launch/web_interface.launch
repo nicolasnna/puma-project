@@ -11,7 +11,7 @@
   <node name="get_web_to_ros" pkg="puma_web_interface" type="get_data_backend.py" output="screen" respawn="true" respawn_delay="4">
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
-  <node name="get_teleop_backend" pkg="puma_web_interface" type="get_teleop_backend.py" output="screen" respawn="true" respawn_delay="4">
+  <node name="manage_teleoperation_backend" pkg="puma_web_interface" type="manage_teleoperation_backend.py" output="screen" respawn="true" respawn_delay="4">
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
 

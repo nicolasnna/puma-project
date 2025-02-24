@@ -4,8 +4,8 @@
   <!-- load params -->
   <rosparam command="load" file="$(find puma_bringup)/config/localization_params.yaml"/>
   <!-- Charge model -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model_3d)/urdf/puma_model_3d.urdf.xacro'"/>
-    <!-- <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model_5deg)/urdf/puma_model_5deg.urdf.xacro'"/> -->
+  <!-- <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model_3d)/urdf/puma_model_3d.urdf.xacro'"/> -->
+  <param name="robot_description" command="$(find xacro)/xacro '$(find puma_model_dualcam)/urdf/puma_model_dualcam.urdf.xacro'"/>
 
   <!-- TF states -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
@@ -18,5 +18,8 @@
   <node name="puma_ekf_odom" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
     <remap from="odometry/filtered" to="puma/localization/ekf_odometry"/>
   </node>
+
+  <!-- Static Tf between map and odom -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/> -->
   
 </launch>

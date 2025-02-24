@@ -18,7 +18,7 @@ def check_teleop_cmd():
     if response.status_code == 200:
       return response.json()
   except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"Error al actualizar datos: {e}")
+    rospy.logwarn(f"manage_teleoperation_backend -> Error al actualizar datos: {e}")
 
 
 def check_and_use_teleop_cmd():
@@ -75,4 +75,4 @@ if __name__ == "__main__":
         rate.sleep()
       
   except Exception as e:
-    rospy.logwarn(f"Error: {e}")
+    rospy.logwarn(f"manage_teleoperation_backend -> Error: {e}")

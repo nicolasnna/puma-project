@@ -25,19 +25,19 @@ if __name__ == '__main__':
     },
     {
       'node_name': 'filter_imu_realsense_front',
-      'launch_file': f"{path}/launch/core/imu_filter_realsense.launch",
+      'launch_file': f"{path}/launch/localization/imu_filter_realsense.launch",
     },
     {
       'node_name': 'odom_visual_front',
-      'launch_file': f"{path}/launch/core/visual_odometry.launch",
+      'launch_file': f"{path}/launch/localization/visual_odometry.launch",
     },
     {
       'node_name': 'puma_localization',
-      'launch_file': f"{path}/launch/core/localization_bringup.launch",
+      'launch_file': f"{path}/launch/localization/localization_bringup.launch",
     },
     {
       'node_name': 'puma_navigation',
-      'launch_file': f"{path}/launch/core/puma_navigation_bringup.launch",
+      'launch_file': f"{path}/launch/navigation/puma_navigation_bringup.launch",
     },
     {
       'node_name': 'web_interface',
