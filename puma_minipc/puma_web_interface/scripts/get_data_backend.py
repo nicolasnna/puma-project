@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 import rospy
 import requests
-from datetime import datetime
 from puma_web_interface.translate_command import translate_command
-from puma_web_interface.utils import get_token
+from puma_web_interface.utils import *
 import json
-
+from datetime import datetime
 
 def get_remain_command_robot():
   global headers, BACKEND_URL
@@ -32,27 +31,33 @@ def update_complete_command(body):
 def check_and_send_remain_commands():
   global completed_commands, intial_configuration
   res = get_remain_command_robot()
+  if not intial_configuration:
+    intial_configuration = True
+    return  # update_complete_command(cmd)
   if res:
     try:
       res_cmd = res.json()
-      # rospy.loginfo(f"Respuesta del servidor: {res_cmd}")  #  Imprime la respuesta
-
+      
       if isinstance(res_cmd, list) and res_cmd:  # Si es una lista y no está vacía
         for cmd in res_cmd:
           if cmd not in completed_commands:
-            if not intial_configuration:
-              pass  # update_complete_command(cmd)
-            else:
-              # time = datetime.fromisoformat(cmd['updated_at'])
-              # diff_time = datetime.now() - time
-              # rospy.loginfo(f"comando {cmd}")
-              
-              if translate_command[cmd['type']](cmd['cmd']):
-                rospy.loginfo(f"Comando {cmd['type']} enviado")
-              else:
-                rospy.logwarn(f"Error al enviar comando {cmd['type']}")
+            time = datetime.fromisoformat(cmd['updated_at'])
+            if time.tzinfo is None:
+              time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
+            diff_time = time_chile_now() - time
+            rospy.loginfo(f"comando {cmd} enviado hace {diff_time} sgs")
+            rospy.loginfo(f"Tiempo actual {time_chile_now()}")
+            
+            if diff_time.total_seconds() < 5*60:
+              try:
+                if translate_command[cmd['type']](cmd['cmd']):
+                  rospy.loginfo(f"Comando {cmd['type']} enviado")
+                else:
+                  rospy.logwarn(f"Error al enviar comando {cmd['type']}")
+              except Exception as e:
+                rospy.logwarn(f"Error al enviar comando {cmd['type']}: {e}")
               completed_commands.append(cmd)
-            intial_configuration = True
+
               
     except ValueError:
       rospy.logwarn("get_data_backebd -> Error: Response content is not valid JSON")
