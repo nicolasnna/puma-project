@@ -6,9 +6,32 @@ from typing import Tuple
 from puma_msgs.msg import Log, WaypointNav, Waypoint
 from std_msgs.msg import String
 from move_base_msgs.msg import MoveBaseGoal
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, Odometry
 from geonav_transform import geonav_conversions as gc
+from sensor_msgs.msg import NavSatFix
 
+def get_xy_robot():
+  odom_topic = rospy.get_param("~odom_topic",'/puma/localization/ekf_odometry')
+  try: 
+    odom_robot = rospy.wait_for_message(odom_topic, Odometry, timeout=5)
+    pos_x = odom_robot.pose.pose.position.x
+    pos_y = odom_robot.pose.pose.position.y
+    return pos_x, pos_y
+  except Exception as e:
+    rospy.logerr(f"No se ha podido obtener la posición actual del robot: {e}")
+    return None, None
+  
+def get_lat_lon_robot():
+    gps_topic = rospy.get_param("~gps_topic",'/puma/sensors/gps/fix')
+    try:
+      gps_robot = rospy.wait_for_message(gps_topic, NavSatFix, timeout=5)
+      lat = gps_robot.latitude
+      lon = gps_robot.longitude
+      return lat, lon
+    except Exception as e:
+      rospy.logerr(f"No se ha podido obtener la posición global actual del robot: {e}")
+      return None, None
+    
 def calculate_bearing_from_xy(x1, y1, x2, y2):
   """
   Calcular el bearing entre dos puntos en coordenadas (x, y).

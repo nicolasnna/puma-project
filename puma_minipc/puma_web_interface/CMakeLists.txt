@@ -9,6 +9,9 @@ project(puma_web_interface)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  actionlib_msgs
+  actionlib
+  puma_state_machine
 )
 
 ## System dependencies are found with CMake's conventions

@@ -5,10 +5,10 @@ from move_base_msgs.msg import MoveBaseAction
 from actionlib_msgs.msg import GoalStatusArray
 from std_msgs.msg import Empty, String
 from puma_msgs.msg import StatusArduino
-from puma_state_machine.utils import create_and_publish_log, check_mode_control_navegacion, get_goal_from_waypoint, check_and_get_waypoints
+from puma_state_machine.utils import *
 from std_srvs.srv import Empty as EmptySrv
 from puma_nav_manager.msg import WaypointsManagerAction, WaypointsManagerGoal
-from puma_state_machine.msg import StateMachineAction, StateMachineResult
+from puma_state_machine.msg import StateMachineAction, StateMachineResult, StateMachineGoal
 from puma_robot_status.msg import RobotStatisticsAction, RobotStatisticsGoal
 
 class RunPlan(smach.State):
@@ -17,6 +17,9 @@ class RunPlan(smach.State):
     
     self.limit_time_status_mb = 0.5
     self.publisher()
+    ns_topic = rospy.get_param('~ns_topic', 'state_machine')
+    self._srv = actionlib.SimpleActionServer(ns_topic + "/run_plan", StateMachineAction, self.execute_srv_cb, False)
+    self._srv.start()
     
   def publisher(self):
     ''' Waypoints '''
@@ -27,8 +30,6 @@ class RunPlan(smach.State):
   
   def start_subscriber(self):
     ns_topic = rospy.get_param('~ns_topic', 'state_machine')
-    self._srv = actionlib.SimpleActionServer(ns_topic, StateMachineAction, self.execute_srv_cb, False)
-    self._srv.start()
     
     self.stop_sub = rospy.Subscriber(ns_topic + '/plan_stop', Empty, self.stop_plan_callback)
     self.arduino_sub = rospy.Subscriber('/puma/arduino/status', StatusArduino, self.arduino_callback)
@@ -111,6 +112,27 @@ class RunPlan(smach.State):
     except Exception as e:
       rospy.logerr(f"Error al detener estadísticas: {e}")
   
+  def adjust_goal(self, goal, waypoint):
+    ''' Ajustar goal con respecto a la nueva posicion del robot '''
+    if waypoint.latitude == 0 and waypoint.longitude == 0:
+      return goal
+    try:
+      x, y = get_xy_robot()
+      lat, lon = get_lat_lon_robot()
+      x2, y2 = get_xy_based_on_lat_long(lat, lon, waypoint.latitude, waypoint.longitude)
+      prev_x = waypoint.x
+      prev_y = waypoint.y
+      
+      goal.target_pose.pose.position.x = x + x2
+      goal.target_pose.pose.position.y = y + y2
+      
+      self.send_log(f"El destino ha sido ajustado de ({round(prev_x,3)}, {round(prev_y,3)}) a ({round(x+x2,3)}, {round(y+y2,3)}).", 0)
+      return goal
+    
+    except Exception as e:
+      self.send_log(f"Error al ajustar destino, siguiendo con el destino original. Error: {e}",1)
+      return goal
+  
   def execute(self, ud):
     rospy.loginfo('----- Estado ejecución de plan -----')
     self.send_log("Iniciando en el estado de ejecución de plan de navegación.", 0)
@@ -155,8 +177,9 @@ class RunPlan(smach.State):
         except rospy.ServiceException as e:
           rospy.logerr(f"Error al limpiar los costmaps: {e}")
         rospy.sleep(0.2)
+        goal_estimated = get_goal_from_waypoint(waypoint)
+        goal = self.adjust_goal(goal_estimated, waypoint)
         
-        goal = get_goal_from_waypoint(waypoint)
         is_complete = False
         self.send_log("Ejecutando el plan de navegación...", 0)
         self.client.send_goal(goal)
@@ -195,7 +218,7 @@ class RunPlan(smach.State):
     result = StateMachineResult()
     
     result.success = True
-    if goal.action == 'stop':
+    if goal.action == StateMachineGoal.STOP_PLAN:
       self.stop_plan_callback(Empty())
     else: 
       result.success = False

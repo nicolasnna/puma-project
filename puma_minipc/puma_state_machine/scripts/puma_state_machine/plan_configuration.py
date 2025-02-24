@@ -11,13 +11,16 @@ from puma_state_machine.utils import *
 from puma_nav_manager.msg import ImportExportPlanAction, ImportExportPlanGoal, WaypointsManagerAction, WaypointsManagerGoal
 import actionlib
 import tf
-from puma_state_machine.msg import StateMachineAction, StateMachineResult
+from puma_state_machine.msg import StateMachineAction, StateMachineResult, StateMachineGoal
 
 class PlanConfiguration(smach.State):
   def __init__(self):
     smach.State.__init__(self, outcomes=['run_plan', 'run_plan_custom', 'run_parking_station_charge'], input_keys=[], output_keys=['plan_configuration_info'])
     self.configuration_info = {'name_plan': '', 'repeat': 0, 'minutes_between_repeats': 0}
     self.publishers()
+    ns_topic = rospy.get_param('~ns_topic', 'state_machine')
+    self._srv = actionlib.SimpleActionServer(ns_topic + '/plan_configuration', StateMachineAction, self.execute_srv_cb, auto_start=False)
+    self._srv.start()
 
   def publishers(self):
     ''' Servidores '''
@@ -31,8 +34,6 @@ class PlanConfiguration(smach.State):
   def start_subscriber(self):
     ''' Servidores '''
     ns_topic = rospy.get_param('~ns_topic', 'state_machine')
-    self._srv = actionlib.SimpleActionServer(ns_topic, StateMachineAction, self.execute_srv_cb, False)
-    self._srv.start()
     
     ''' Suscriptores '''
     add_pose_topic = rospy.get_param('~add_pose_topic', '/initialpose')
@@ -73,6 +74,7 @@ class PlanConfiguration(smach.State):
       res = self.client_waypoints.wait_for_result(rospy.Duration(10))
       if res: 
         self.send_log("Waypoints limpiados correctamente.", 0)
+        self.configuration_info = {'name_plan': '', 'repeat': 0, 'minutes_between_repeats': 0}
       else:
         self.send_log("No se ha podido limpiar correctamente los waypoints.", 1)
     except Exception as e:
@@ -156,18 +158,16 @@ class PlanConfiguration(smach.State):
     waypoints = msg.waypoints
     if len(waypoints) > 0:
       try:
-        gps_topic = rospy.get_param("~gps_topic",'/puma/sensors/gps/fix')
-        odom_topic = rospy.get_param("~odom_topic",'/puma/localization/ekf_odometry')
-        gps_robot = rospy.wait_for_message(gps_topic, NavSatFix, timeout=5)
-        odom_robot = rospy.wait_for_message(odom_topic, Odometry, timeout=5)
+        pos_x, pos_y = get_xy_robot()
+        latitude_rbt, longitude_rbt = get_lat_lon_robot()
       except Exception as e:
         self.send_log(f"No se ha podido obtener la posición actual del robot: {e}.", 1)
         return
+  
+      if pos_x is None or pos_y is None or latitude_rbt is None or longitude_rbt is None:
+        self.send_log("No se ha podido obtener la posición actual del robot. No se puede continuar con la estimación de global -> local.", 1)
+        return
       
-      pos_x = odom_robot.pose.pose.position.x
-      pos_y = odom_robot.pose.pose.position.y
-      latitude_rbt = gps_robot.latitude
-      longitude_rbt = gps_robot.longitude
       new_waypoints = WaypointNav()
       
       for waypoint in waypoints:
@@ -198,20 +198,15 @@ class PlanConfiguration(smach.State):
   def configuration_cmd_cb(self, msg):
     rospy.loginfo("-> Recibido el comando de configuración: %s", msg.plan_to_load)
     if msg.plan_to_load != '':
-      if msg.load_plan_from == 0:
-        self.file_import_local_pub.publish(String(msg.plan_to_load))
-      rospy.sleep(0.2)
       try:
-        current_plan_loader = rospy.wait_for_message('/puma/navigation/files/plan_selected', Path, timeout=5)
-        if current_plan_loader is not None and len(current_plan_loader.poses) > 0:
-          self.configuration_info = {
-            'name_plan': msg.plan_to_load,
-            'repeat': msg.nro_repeats,
-            'minutes_between_repeats': msg.minutes_between_repeats,
-          }  
-          self.send_log(f"Plan con el nombre '{msg.plan_to_load}' cargado con exito", 0)
-        else:
-          self.send_log(f"No se ha cargado el plan correctamente.", 1)
+        self.load_plan_cb(String(msg.plan_to_load))
+        repeats = 1 if msg.nro_repeats < 1 else msg.nro_repeats
+        self.configuration_info = {
+          'name_plan': msg.plan_to_load,
+          'repeat': repeats,
+          'minutes_between_repeats': msg.minutes_between_repeats,
+        }  
+        self.send_log(f"Plan con el nombre '{msg.plan_to_load}' cargado y configuración para el plan custom ha sido cargado con exito", 0)
       except Exception as e:
         self.send_log(f"No se ha podido comprobar el plan cargado: {e}.",1)
         
@@ -258,30 +253,38 @@ class PlanConfiguration(smach.State):
       return 'run_parking_station_charge'
     
     userdata.plan_configuration_info = self.configuration_info
-    if self.configuration_info['repeat'] > 0:
+    if self.configuration_info['name_plan'] != '':
       return 'run_plan_custom'
     return 'run_plan'
   
   
   def execute_srv_cb(self, goal):
     result = StateMachineResult()
-    
-    result.success = True
-    if goal.action == 'start':
-      self.start_plan_cb(Empty())
-    elif goal.action == 'clear':
-      self.clear_plan_cb(Empty())
-    elif goal.action == 'add_web':
-      self.add_from_waypoints_web_cb(goal.waypoint_nav)
-    elif goal.action == 'save_plan':
-      self.save_plan_cb(goal.file_name)
-    elif goal.action == 'load_plan':
-      self.load_plan_cb(goal.file_name)
-    elif goal.action == 'config_plan':
-      self.configuration_cmd_cb(goal.configuration_plan)
-    else:
+    try:
+      rospy.loginfo("-> Recibido el comando de configuración: %s", goal.action)
+      result.success = True
+      
+      if goal.action == StateMachineGoal.START_PLAN:
+        self.start_plan_cb(Empty())
+      elif goal.action == StateMachineGoal.CLEAR_PLAN:
+        self.clear_plan_cb(Empty())
+      elif goal.action == StateMachineGoal.ADD_WEB:
+        self.add_from_waypoints_web_cb(goal.waypoint_nav)
+      elif goal.action == StateMachineGoal.SAVE_PLAN:
+        self.save_plan_cb(goal.file_name)
+      elif goal.action == StateMachineGoal.LOAD_PLAN:
+        self.load_plan_cb(goal.file_name)
+      elif goal.action == StateMachineGoal.CONFIG_PLAN:
+        self.configuration_cmd_cb(goal.configuration_plan)
+      else:
+        rospy.loginfo("-> Acción no reconocida.")
+        result.success = False
+        result.message = "Acción no reconocida."
+      
+      self._srv.set_succeeded(result)
+    except Exception as e:
       result.success = False
-      result.message = "Acción no reconocida."
-    
-    self._srv.set_succeeded(result)
+      result.message = f"Error: {e}"
+      rospy.logerr(f"Error: {e}")
+      self._srv.set_aborted(result)
   

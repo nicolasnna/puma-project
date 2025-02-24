@@ -42,6 +42,17 @@ puma_ekf_odom:
   odom2_differential: false
   odom2_relative: false
 
+  odom3: puma/localization/gps_odometry
+  odom3_config: [true,  true,  false,
+                false, false, false,
+                false, false, false,
+                false, false, false,
+                false, false, false]
+  odom3_queue_size: 10
+  odom3_nodelay: true
+  odom3_differential: false
+  odom3_relative: false
+
   # pose0: puma/sensors/gps/enu
   # pose0_config: [true,  true,  true,
   #                false, false, false,

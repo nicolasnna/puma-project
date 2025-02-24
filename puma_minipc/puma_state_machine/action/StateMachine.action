@@ -1,4 +1,11 @@
 # Goal
+string START_PLAN = "start"
+string STOP_PLAN = "stop"
+string ADD_WEB = "add_web"
+string SAVE_PLAN = "save_plan"
+string LOAD_PLAN = "load_plan"
+string CLEAR_PLAN = "clear"
+string CONFIG_PLAN = "config_plan"
 string action # "start", "stop", "add_web", "save_plan", "load_plan", "clear", "config_plan"
 puma_msgs/WaypointNav waypoint_nav
 std_msgs/String file_name

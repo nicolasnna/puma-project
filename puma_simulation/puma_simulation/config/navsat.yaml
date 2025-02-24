@@ -1,0 +1,61 @@
+puma_ekf_map:
+  frequency: 30
+  sensor_timeout: 0.1
+  two_d_mode: true
+  transform_time_offset: 0.0
+  transform_timeout: 0.0
+  print_diagnostics: true
+  debug: false
+  publish_tf: true
+
+  map_frame: map
+  odom_frame: odom
+  base_link_frame: base_link
+  world_frame: map
+
+  odom0: puma/localization/odometry_wheel
+  odom0_config: [false, false, false,
+                false, false, false,
+                true,  true,  true,
+                false, false, true,
+                false, false, false]
+  odom0_queue_size: 10
+  odom0_nodelay: true
+  odom0_differential: false
+  odom0_relative: false
+
+  odom1: puma/localization/gps_odometry
+  odom1_config: [true,  true,  false,
+                false, false, false,
+                false, false, false,
+                false, false, false,
+                false, false, false]
+  odom1_queue_size: 10
+  odom1_nodelay: true
+  odom1_differential: false
+  odom1_relative: false
+
+  imu0: puma/sensors/camera_front/imu/filtered
+  imu0_config: [false, false, false,
+                true,  true,  false,
+                false, false, false,
+                true,  true,  true,
+                true,  true,  true]
+  imu0_nodelay: true
+  imu0_differential: false
+  imu0_relative: false
+  imu0_queue_size: 10
+  imu0_remove_gravitational_acceleration: true
+
+  use_control: false
+
+navsat_transform:
+  frequency: 30
+  delay: 3.0
+  magnetic_declination_radians: 0.004869   # For lat/long 55.944831, -3.186998
+  yaw_offset: 1.570796327  # IMU reads 0 facing magnetic north, not east
+  zero_altitude: false
+  broadcast_utm_transform: true
+  publish_filtered_gps: true
+  use_odometry_yaw: true
+  wait_for_datum: false

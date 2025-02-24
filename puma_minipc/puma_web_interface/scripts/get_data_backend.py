@@ -14,9 +14,9 @@ def get_remain_command_robot():
     if response.status_code == 200:
       return response
     else:
-      rospy.logwarn(f"Error al obtener datos: {response.status_code} - {response.text}")
+      rospy.logwarn(f"get_data_backebd -> Error al obtener datos: {response.status_code} - {response.text}")
   except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"Error al obtener datos: {e}")
+    rospy.logwarn(f"get_data_backebd -> Error al obtener datos: {e}")
     
 def update_complete_command(body):
   global headers, BACKEND_URL
@@ -25,9 +25,9 @@ def update_complete_command(body):
     if response.status_code == 200:
       return response
     else:
-      rospy.logwarn(f"Error al actualizar datos: {response.status_code} - {response.text}")
+      rospy.logwarn(f"get_data_backebd -> Error al actualizar datos: {response.status_code} - {response.text}")
   except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"Error al actualizar datos: {e}")
+    rospy.logwarn(f"get_data_backebd -> Error al actualizar datos: {e}")
     
 def check_and_send_remain_commands():
   global completed_commands, intial_configuration
@@ -47,12 +47,15 @@ def check_and_send_remain_commands():
               # diff_time = datetime.now() - time
               # rospy.loginfo(f"comando {cmd}")
               
-              translate_command[cmd['type']](cmd['cmd'])
+              if translate_command[cmd['type']](cmd['cmd']):
+                rospy.loginfo(f"Comando {cmd['type']} enviado")
+              else:
+                rospy.logwarn(f"Error al enviar comando {cmd['type']}")
               completed_commands.append(cmd)
             intial_configuration = True
               
     except ValueError:
-      rospy.logwarn("Error: Response content is not valid JSON")
+      rospy.logwarn("get_data_backebd -> Error: Response content is not valid JSON")
       
 if __name__ == "__main__":
     rospy.init_node("get_data_backend")
@@ -65,10 +68,10 @@ if __name__ == "__main__":
       intial_configuration = False
       completed_commands = []
       token = get_token(BACKEND_URL)
-      # while not token:
-      #   rospy.loginfo("Token no encontrado, esperando 3 segundos")
-      #   rospy.sleep(3)
-      #   token = get_token(BACKEND_URL)
+      while not token:
+        rospy.loginfo("Token no encontrado, esperando 3 segundos")
+        rospy.sleep(3)
+        token = get_token(BACKEND_URL)
     
       if token:
         bearer_token = f"Bearer {str(token)}"
@@ -83,4 +86,4 @@ if __name__ == "__main__":
         rospy.logwarn("No se pudo obtener el token de autenticación")
       
     except Exception as e:
-      rospy.logwarn(f"Error: {e}")
+      rospy.logwarn(f"get_data_backebd -> Error: {e}")

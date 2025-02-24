@@ -3,7 +3,7 @@ PumaLocalPlanner:
 
   max_index_path_compare: 20
   
-  max_velocity: 1.5
+  max_velocity: 2.2
   min_velocity: 0.5
   max_acceleration: 0.5
   max_deceleration: 0.5

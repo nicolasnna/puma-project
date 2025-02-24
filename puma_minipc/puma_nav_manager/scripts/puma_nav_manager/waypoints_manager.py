@@ -93,22 +93,29 @@ class WaypointManager:
     return result
     
   def execute_srv_cb(self, goal):
-    if goal.action == 'add':
-      result = self.execute_add(goal.waypoint)
-    elif goal.action == 'clear':
-      result = self.execute_clear()
-    elif goal.action == 'restart':
-      result = self.execute_restart()
-    elif goal.action == 'achieved':
-      result = self.execute_achieved(goal.waypoint)
-    elif goal.action == 'set':
-      result = self.execute_set(goal.waypoints)
-    else:
-      result = WaypointsManagerResult()
+    result = WaypointsManagerResult()
+    try:
+      if goal.action == 'add':
+        result = self.execute_add(goal.waypoint)
+      elif goal.action == 'clear':
+        result = self.execute_clear()
+      elif goal.action == 'restart':
+        result = self.execute_restart()
+      elif goal.action == 'achieved':
+        result = self.execute_achieved(goal.waypoint)
+      elif goal.action == 'set':
+        result = self.execute_set(goal.waypoint_nav)
+      else:
+        result = WaypointsManagerResult()
+        result.success = False
+        result.message = 'Acción no válida'
+      
+      self._srv.set_succeeded(result)
+    except Exception as e:
+      rospy.logwarn(f'Error al ejecutar acción: {e}')
       result.success = False
-      result.message = 'Acción no válida'
-    
-    self._srv.set_succeeded(result)
+      result.message = 'Error al ejecutar acción'
+      self._srv.set_aborted(result)
     
   def publish_status(self):
     self._publish_waypoints(self.waypoints_list_pub, self._waypoints)

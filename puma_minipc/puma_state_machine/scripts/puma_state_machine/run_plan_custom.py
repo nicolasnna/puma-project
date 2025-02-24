@@ -7,8 +7,20 @@ from puma_state_machine.utils import (check_and_get_waypoints,
 from std_msgs.msg import String
 from std_srvs.srv import Empty as EmptySrv
 from .run_plan import RunPlan
+import smach
+from puma_state_machine.msg import StateMachineAction
 
 class RunPlanCustom(RunPlan):
+  def __init__(self):
+    smach.State.__init__(self, outcomes=['success', 'plan_configuration'], input_keys=['plan_configuration_info'])
+    
+    self.limit_time_status_mb = 0.5
+    self.publisher()
+    ns_topic = rospy.get_param('~ns_topic', 'state_machine')
+    self._srv = actionlib.SimpleActionServer(ns_topic + "/run_plan_custom", StateMachineAction, self.execute_srv_cb, False)
+    self._srv.start()
+
+  
   def execute(self, ud):
     rospy.loginfo('----- Estado ejecución de plan personalizado -----')
     self.send_log("Iniciando en el estado de ejecución de plan de navegación.", 0)
