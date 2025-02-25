@@ -1,0 +1,45 @@
+# Archivo de configuración para ublox_gps (F9P, Rover)
+device: "/dev/ttyACM0"        # Ajusta según tu puerto serial
+raw_data: false
+
+# uart1:
+#   baudrate: 38400
+  
+load:
+  load: 0
+  mask: 0
+  device: 0
+
+save:
+  save: 0
+  mask: 0
+  device: 0
+
+uart1:
+  baudrate: 115200           # Puedes probar 230400 si tu enlace lo soporta
+  in: "UBX,NMEA,RTCM"
+  out: "UBX,NMEA,RTCM"
+
+frame_id: "gps_link"
+
+enable_ppp: false          # Deshabilitado si no usas PPP
+
+# Habilitar las constelaciones que desees; en este ejemplo, GPS y Galileo
+gnss:
+  gps: true
+  glonass: false
+  beidou: false
+  qzss: false
+  galileo: true
+
+nmea:
+  set: false               # Si prefieres trabajar en UBX, deshabilita NMEA
+
+# Configuración del modelo dinámico y modo de fijación
+dynamic_model: "automotive"  # Modelo para vehículos en movimiento
+fix_mode: "3d"              # Modo de fijación 3D
+dr_limit: 0                 # Sin límite de uso de dead reckoning
+
+# Modo RTK diferencial: para que, una vez fijas las ambigüedades, opere en RTK FIXED.
+# (El valor '2' aquí representa, según la documentación, RTK_FIXED; verifica si es necesario otro valor)
+dgnss_mode: 2

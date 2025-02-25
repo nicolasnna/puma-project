@@ -1,6 +1,16 @@
 device: /dev/ttyACM0
 frame_id: gps_link
 uart1:
-  baudrate: 38400
+  baudrate: 115200
 config_on_startup: false
-dynamic_model: automotive
+dynamic_model: "automotive"
+
+enable_ppp: false  
+fix_mode: "3d"
+
+gnss:
+  gps: true
+  glonass: false
+  beidou: false
+  qzss: false
+  galileo: true

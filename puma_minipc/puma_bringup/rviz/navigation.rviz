@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /TF1
         - /TF1/Frames1
         - /AerialMapDisplay1
         - /Navigation1
@@ -74,7 +75,7 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        camara_link:
+        camara_delantera_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -253,22 +254,173 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Filter (blacklist): ""
       Filter (whitelist): ""
       Frame Timeout: 15
       Frames:
         All Enabled: false
+        base_component_link:
+          Value: false
+        base_link:
+          Value: true
+        camara_delantera_link:
+          Value: false
+        camara_trasera_link:
+          Value: false
+        camera_front_accel_frame:
+          Value: false
+        camera_front_accel_optical_frame:
+          Value: false
+        camera_front_bottom_screw_frame:
+          Value: false
+        camera_front_color_frame:
+          Value: false
+        camera_front_color_optical_frame:
+          Value: false
+        camera_front_depth_frame:
+          Value: false
+        camera_front_depth_optical_frame:
+          Value: false
+        camera_front_gyro_frame:
+          Value: false
+        camera_front_gyro_optical_frame:
+          Value: false
+        camera_front_imu_optical_frame:
+          Value: false
+        camera_front_infra1_frame:
+          Value: false
+        camera_front_infra1_optical_frame:
+          Value: false
+        camera_front_infra2_frame:
+          Value: false
+        camera_front_infra2_optical_frame:
+          Value: false
+        camera_front_link:
+          Value: false
+        camera_rear_accel_frame:
+          Value: false
+        camera_rear_accel_optical_frame:
+          Value: false
+        camera_rear_bottom_screw_frame:
+          Value: false
+        camera_rear_color_frame:
+          Value: false
+        camera_rear_color_optical_frame:
+          Value: false
+        camera_rear_depth_frame:
+          Value: false
+        camera_rear_depth_optical_frame:
+          Value: false
+        camera_rear_gyro_frame:
+          Value: false
+        camera_rear_gyro_optical_frame:
+          Value: false
+        camera_rear_imu_optical_frame:
+          Value: false
+        camera_rear_infra1_frame:
+          Value: false
+        camera_rear_infra1_optical_frame:
+          Value: false
+        camera_rear_infra2_frame:
+          Value: false
+        camera_rear_infra2_optical_frame:
+          Value: false
+        camera_rear_link:
+          Value: false
+        dir_left_link:
+          Value: false
+        dir_right_link:
+          Value: false
+        gps_link:
+          Value: false
+        imu_link:
+          Value: false
+        map:
+          Value: true
+        odom:
+          Value: true
+        wheel_left_back_link:
+          Value: false
+        wheel_left_front_link:
+          Value: false
+        wheel_right_back_link:
+          Value: false
+        wheel_right_front_link:
+          Value: false
       Marker Alpha: 1
-      Marker Scale: 100
+      Marker Scale: 20
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        {}
+        map:
+          odom:
+            base_link:
+              base_component_link:
+                {}
+              camara_delantera_link:
+                camera_front_bottom_screw_frame:
+                  camera_front_link:
+                    camera_front_accel_frame:
+                      camera_front_accel_optical_frame:
+                        {}
+                    camera_front_color_frame:
+                      camera_front_color_optical_frame:
+                        {}
+                    camera_front_depth_frame:
+                      camera_front_depth_optical_frame:
+                        {}
+                    camera_front_gyro_frame:
+                      camera_front_gyro_optical_frame:
+                        {}
+                      camera_front_imu_optical_frame:
+                        {}
+                    camera_front_infra1_frame:
+                      camera_front_infra1_optical_frame:
+                        {}
+                    camera_front_infra2_frame:
+                      camera_front_infra2_optical_frame:
+                        {}
+              camara_trasera_link:
+                camera_rear_bottom_screw_frame:
+                  camera_rear_link:
+                    camera_rear_accel_frame:
+                      camera_rear_accel_optical_frame:
+                        {}
+                    camera_rear_color_frame:
+                      camera_rear_color_optical_frame:
+                        {}
+                    camera_rear_depth_frame:
+                      camera_rear_depth_optical_frame:
+                        {}
+                    camera_rear_gyro_frame:
+                      camera_rear_gyro_optical_frame:
+                        camera_rear_imu_optical_frame:
+                          {}
+                    camera_rear_infra1_frame:
+                      camera_rear_infra1_optical_frame:
+                        {}
+                    camera_rear_infra2_frame:
+                      camera_rear_infra2_optical_frame:
+                        {}
+              dir_left_link:
+                wheel_left_front_link:
+                  {}
+              dir_right_link:
+                wheel_right_front_link:
+                  {}
+              gps_link:
+                {}
+              imu_link:
+                {}
+              wheel_left_back_link:
+                {}
+              wheel_right_back_link:
+                {}
       Update Interval: 0
-      Value: false
+      Value: true
     - Angle Tolerance: 0.10000000149011612
       Class: rviz/Odometry
       Covariance:
@@ -336,15 +488,15 @@ Visualization Manager:
       Blocks: 3
       Class: rviz_plugins/AerialMapDisplay
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Map Frame: map
       Map transform type: NavSatFix Messages and Map Frame
       Name: AerialMapDisplay
       Object URI: https://tile.openstreetmap.org/{z}/{x}/{y}.png
-      Topic: /puma/sensors/gps/fix
+      Topic: /puma/sensors/gps/filtered
       UTM Frame: utm
       UTM Zone: -1
-      Value: false
+      Value: true
       XY Reference: <NavSatFix Message>
       Z Offset: 0
       Z Reference: <NavSatFix Message>
@@ -582,7 +734,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 98.74456024169922
+      Distance: 50.45897674560547
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -598,9 +750,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.9747968912124634
+      Pitch: 0.9597969055175781
       Target Frame: <Fixed Frame>
-      Yaw: 3.6282265186309814
+      Yaw: 4.90822172164917
     Saved: ~
 Window Geometry:
   Displays:
