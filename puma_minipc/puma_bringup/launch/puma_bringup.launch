@@ -24,6 +24,6 @@
 
   <!-- Localization -->
   <include file="$(find puma_bringup)/launch/localization/localization_bringup.launch"/>
-  <include file="$(find puma_bringup)/launch/localization/gps_localization.launch"/>
+  <!-- <include file="$(find puma_bringup)/launch/localization/gps_localization.launch"/> -->
 
 </launch>

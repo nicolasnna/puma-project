@@ -88,8 +88,7 @@ namespace puma_local_planner {
       double time_simulation_, time_step_;
       double time_simulation_reverse_;
       double xy_goal_tolerance_;
-      double factor_velocity_;
-      double distance_reverse_;
+      double factor_velocity_, distance_reverse_;
 
       /* Atributos */
       bool setup_;

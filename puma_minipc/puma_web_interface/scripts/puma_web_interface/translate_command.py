@@ -119,6 +119,7 @@ def add_waypoints_fn(waypoints):
 def change_angle_degree_fn(cmd):
   rospy.loginfo(f"Detectado comando para cambiar orientación {cmd}")
   set_orientation_localization_pub.publish(Float64(cmd["angle"]))
+  return True
   
 def change_mode_fn(cmd):
   rospy.loginfo(f"Detectado comando para cambiar modo {cmd}")
