@@ -41,12 +41,12 @@ def check_and_send_remain_commands():
       if isinstance(res_cmd, list) and res_cmd:  # Si es una lista y no está vacía
         for cmd in res_cmd:
           if cmd not in completed_commands:
-            time = datetime.fromisoformat(cmd['updated_at'])
-            if time.tzinfo is None:
-              time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
-            diff_time = time_chile_now() - time
-            rospy.loginfo(f"comando {cmd} enviado hace {diff_time} sgs")
-            rospy.loginfo(f"Tiempo actual {time_chile_now()}")
+            # time = datetime.fromisoformat(cmd['updated_at'])
+            # if time.tzinfo is None:
+            #   time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
+            # diff_time = time_chile_now() - time
+            # rospy.loginfo(f"comando {cmd} enviado hace {diff_time} sgs")
+            # rospy.loginfo(f"Tiempo actual {time_chile_now()}")
             
             # if diff_time.total_seconds() < 5*60:
             try:
