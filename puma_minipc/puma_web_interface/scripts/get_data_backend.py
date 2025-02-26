@@ -48,15 +48,15 @@ def check_and_send_remain_commands():
             rospy.loginfo(f"comando {cmd} enviado hace {diff_time} sgs")
             rospy.loginfo(f"Tiempo actual {time_chile_now()}")
             
-            if diff_time.total_seconds() < 5*60:
-              try:
-                if translate_command[cmd['type']](cmd['cmd']):
-                  rospy.loginfo(f"Comando {cmd['type']} enviado")
-                else:
-                  rospy.logwarn(f"Error al enviar comando {cmd['type']}")
-              except Exception as e:
-                rospy.logwarn(f"Error al enviar comando {cmd['type']}: {e}")
-              completed_commands.append(cmd)
+            # if diff_time.total_seconds() < 5*60:
+            try:
+              if translate_command[cmd['type']](cmd['cmd']):
+                rospy.loginfo(f"Comando {cmd['type']} enviado")
+              else:
+                rospy.logwarn(f"Error al enviar comando {cmd['type']}")
+            except Exception as e:
+              rospy.logwarn(f"Error al enviar comando {cmd['type']}: {e}")
+            completed_commands.append(cmd)
 
               
     except ValueError:
