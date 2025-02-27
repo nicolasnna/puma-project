@@ -4,16 +4,17 @@
   <rosparam command="load" file="$(find puma_simulation)/config/navsat.yaml" />
   <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" clear_params="true">
     <remap from="imu/data" to="puma/sensors/camera_front/imu/filtered"/>
-    <!-- <remap from="odometry/filtered" to="puma/localization/ekf_odometry"/> -->
+    <remap from="odometry/filtered" to="puma/localization/filtered_map"/>
     <!-- <remap from="odometry/filtered" to="puma/localization/odometry_wheel"/> -->
     <remap from="gps/fix" to="puma/sensors/gps/fix"/>
     <remap from="gps/filtered" to="puma/sensors/gps/filtered"/>
     <remap from="odometry/gps" to="puma/localization/gps_odometry"/>
   </node>
 
-  <!-- <node name="puma_ekf_map" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
+  <node name="puma_ekf_map" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
     <remap from="odometry/filtered" to="puma/localization/filtered_map"/>
-  </node> -->
+    <remap from="set_pose" to="puma_ekf_map/set_pose"/>
+  </node> 
   
 
 </launch>

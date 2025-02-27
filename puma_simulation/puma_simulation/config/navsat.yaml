@@ -34,6 +34,8 @@ puma_ekf_map:
   odom1_nodelay: true
   odom1_differential: false
   odom1_relative: false
+  odom1_pose_rejection_threshold: 5.0
+
 
   imu0: puma/sensors/camera_front/imu/filtered
   imu0_config: [false, false, false,
@@ -57,5 +59,5 @@ navsat_transform:
   zero_altitude: false
   broadcast_utm_transform: true
   publish_filtered_gps: true
-  use_odometry_yaw: true
+  use_odometry_yaw: false
   wait_for_datum: false

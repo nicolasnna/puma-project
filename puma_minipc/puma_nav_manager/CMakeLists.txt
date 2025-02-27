@@ -25,6 +25,7 @@ add_action_files(
   FILES
   ImportExportPlan.action
   WaypointsManager.action
+  LocalizationManager.action
 )
 
 ## Generate added messages and services with any dependencies listed here

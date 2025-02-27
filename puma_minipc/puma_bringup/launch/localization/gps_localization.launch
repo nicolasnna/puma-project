@@ -11,6 +11,7 @@
 
   <node name="puma_ekf_map" pkg="robot_localization" type="ekf_localization_node" clear_params="true">
     <remap from="odometry/filtered" to="puma/localization/filtered_map"/>
+    <remap from="set_pose" to="puma_ekf_map/set_pose"/>
   </node>
 
 </launch>

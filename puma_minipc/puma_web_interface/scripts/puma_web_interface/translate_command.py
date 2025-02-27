@@ -3,6 +3,7 @@ from std_msgs.msg import Empty, String, Float64
 from puma_msgs.msg import ConfigurationStateMachine, WaypointNav, Waypoint
 from puma_state_machine.msg import StateMachineAction, StateMachineGoal
 from smach_msgs.msg import SmachContainerStatus
+from puma_nav_manager.msg import LocalizationManagerAction, LocalizationManagerGoal
 import actionlib
 
 # ------ Publishers ------
@@ -18,7 +19,8 @@ change_mode_pub = rospy.Publisher("/puma/control/change_mode", String, queue_siz
 # ------ Client action ------
 client_sm_plan_config = actionlib.SimpleActionClient('/puma/state_machine/plan_configuration', StateMachineAction)
 client_sm_run_plan = actionlib.SimpleActionClient('/puma/state_machine/run_plan', StateMachineAction)
-clien_sm_run_plan_custom = actionlib.SimpleActionClient('/puma/state_machine/run_plan_custom', StateMachineAction)
+client_sm_run_plan_custom = actionlib.SimpleActionClient('/puma/state_machine/run_plan_custom', StateMachineAction)
+client_localization_manager = actionlib.SimpleActionClient('/puma/localization/manager', LocalizationManagerAction)
 
 def action_state_machine(client,goal):
   try:
@@ -55,7 +57,7 @@ def stop_plan_fn(cmd):
   if state == "RUN_PLAN":
     return action_state_machine(client_sm_run_plan, goal)
   elif state == "RUN_PLAN_CUSTOM":
-    return action_state_machine(clien_sm_run_plan_custom, goal)
+    return action_state_machine(client_sm_run_plan_custom, goal)
   return False
   
 def clear_plan_fn(cmd):
@@ -118,8 +120,18 @@ def add_waypoints_fn(waypoints):
   
 def change_angle_degree_fn(cmd):
   rospy.loginfo(f"Detectado comando para cambiar orientación {cmd}")
-  set_orientation_localization_pub.publish(Float64(cmd["angle"]))
-  return True
+  try:
+    client_localization_manager.wait_for_server(rospy.Duration(5))
+    goal = LocalizationManagerGoal()
+    goal.action = LocalizationManagerGoal.ACTION_CHANGE_ANGLE
+    goal.angle_deg = Float64(cmd["angle"])
+    client_localization_manager.send_goal(goal)
+    if client_localization_manager.wait_for_result(rospy.Duration(5)):
+      return True
+    return False
+  except Exception as e:
+    rospy.logwarn(f"Error al conectar con el servidor: {e}")
+    return False
   
 def change_mode_fn(cmd):
   rospy.loginfo(f"Detectado comando para cambiar modo {cmd}")
