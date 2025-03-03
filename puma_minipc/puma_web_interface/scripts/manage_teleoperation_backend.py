@@ -31,7 +31,7 @@ def check_and_use_teleop_cmd():
       else:
         if latest_command != res:
           msg_teleop = WebTeleop()
-          msg_teleop.accel_value = min(int(res['accel_value']), 26)
+          msg_teleop.accel_value = min(int(res['accel_value']), 24)
           msg_teleop.angle_degree = float(res['angle_degree'])
           msg_teleop.brake = bool(res['brake'])
           msg_teleop.reverse = bool(res['reverse'])
