@@ -166,6 +166,7 @@ catkin_install_python(PROGRAMS
   scripts/post_data_backend.py
   scripts/get_data_backend.py
   scripts/manage_teleoperation_backend.py
+  scripts/send_robot_status_backend.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

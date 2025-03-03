@@ -2,10 +2,10 @@
 import rospy
 import requests
 from datetime import datetime
-# try:
-#   from zoneinfo import ZoneInfo
-# except ImportError:
-#   from backports.zoneinfo import ZoneInfo
+try:
+  from zoneinfo import ZoneInfo
+except ImportError:
+  from backports.zoneinfo import ZoneInfo
 
 def get_token(BACKEND_URL):
   headers = { 'Content-Type': 'application/x-www-form-urlencoded'}
@@ -19,5 +19,5 @@ def get_token(BACKEND_URL):
   except requests.exceptions.RequestException as e:
     rospy.logwarn(f"Error al obtener token: {e}")
     
-# def time_chile_now():
-#   return datetime.now(ZoneInfo("Chile/Continental"))
+def time_chile_now():
+  return datetime.now(ZoneInfo("Chile/Continental"))

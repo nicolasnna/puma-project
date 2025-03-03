@@ -17,10 +17,10 @@ def get_remain_command_robot():
   except requests.exceptions.RequestException as e:
     rospy.logwarn(f"get_data_backebd -> Error al obtener datos: {e}")
     
-def update_complete_command(body):
+def update_complete_command(id):
   global headers, BACKEND_URL
   try:
-    response = requests.post(BACKEND_URL+f"/db/command_robot/complete", headers=headers, data=json.dumps(body),timeout=5)
+    response = requests.put(BACKEND_URL+f"/robot/command_robot/{id}", headers=headers,timeout=5)
     if response.status_code == 200:
       return response
     else:
@@ -31,36 +31,55 @@ def update_complete_command(body):
 def check_and_send_remain_commands():
   global completed_commands, intial_configuration
   res = get_remain_command_robot()
+  ''' Primera lectura marca como completado todos los comandos anteriores del encendido '''
   if not intial_configuration:
     intial_configuration = True
+    try: 
+      clear_completed_commands_db()
+      rospy.loginfo("Comandos de sesiones anteriores limpiados de la base de datos")
+    except Exception as e:
+      rospy.logwarn(f"Error al marcar comandos anteriores como completados: {e}")
     return  # update_complete_command(cmd)
+  ''' Uso normal de los comandos'''
   if res:
     try:
       res_cmd = res.json()
-      
       if isinstance(res_cmd, list) and res_cmd:  # Si es una lista y no está vacía
         for cmd in res_cmd:
-          if cmd not in completed_commands:
-            # time = datetime.fromisoformat(cmd['updated_at'])
-            # if time.tzinfo is None:
-            #   time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
-            # diff_time = time_chile_now() - time
-            # rospy.loginfo(f"comando {cmd} enviado hace {diff_time} sgs")
-            # rospy.loginfo(f"Tiempo actual {time_chile_now()}")
-            
-            # if diff_time.total_seconds() < 5*60:
+          # if cmd not in completed_commands:
+          ''' Comprobar si el comando fue enviado hace menos de 5 minutos '''
+          time = datetime.fromisoformat(cmd['updated_at'])
+          if time.tzinfo is None:
+            time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
+          diff_time = time_chile_now() - time
+          rospy.loginfo(f"comando {cmd} enviado hace {diff_time} sgs")
+          rospy.loginfo(f"Tiempo actual {time_chile_now()}")
+          
+          if diff_time.total_seconds() < 5*60:
             try:
               if translate_command[cmd['type']](cmd['cmd']):
                 rospy.loginfo(f"Comando {cmd['type']} enviado")
+                update_complete_command(cmd['id'])
               else:
                 rospy.logwarn(f"Error al enviar comando {cmd['type']}")
             except Exception as e:
               rospy.logwarn(f"Error al enviar comando {cmd['type']}: {e}")
-            completed_commands.append(cmd)
+              # completed_commands.append(cmd)
 
               
     except ValueError:
       rospy.logwarn("get_data_backebd -> Error: Response content is not valid JSON")
+      
+def clear_completed_commands_db():
+  global headers, BACKEND_URL
+  try:
+    response = requests.delete(BACKEND_URL+"/robot/command_robot/complete", headers=headers, timeout=5)
+    if response.status_code == 200:
+      return response
+    else:
+      rospy.logwarn(f"get_data_backend -> Error al limpiar datos: {response.status_code} - {response.text}")
+  except requests.exceptions.RequestException as e:
+    rospy.logwarn(f"get_data_backend -> Error al limpiar datos: {e}")
       
 if __name__ == "__main__":
     rospy.init_node("get_data_backend")

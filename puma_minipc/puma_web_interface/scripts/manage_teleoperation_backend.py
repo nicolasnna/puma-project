@@ -5,7 +5,6 @@ from datetime import datetime
 from puma_web_interface.utils import get_token
 from std_msgs.msg import String
 from puma_msgs.msg import WebTeleop
-import json
 
 def get_control_mode(msg):
   global current_mode

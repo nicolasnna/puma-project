@@ -11,6 +11,8 @@ from puma_web_interface.utils import get_token
 import base64
 from datetime import datetime
 
+
+
 def callback_camera(data: CompressedImage):
   global times, headers, BACKEND_URL
   time_now = rospy.Time.now().to_sec()
