@@ -162,8 +162,6 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/filter_topics_node.py
-  scripts/logger_manager_node.py
-  scripts/post_data_backend.py
   scripts/get_data_backend.py
   scripts/manage_teleoperation_backend.py
   scripts/send_robot_status_backend.py

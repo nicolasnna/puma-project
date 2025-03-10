@@ -17,11 +17,13 @@ add_action_files(
   DIRECTORY action
   FILES
   RobotStatistics.action
+  LoggerManager.action
 )
 
 generate_messages(
   DEPENDENCIES
   actionlib_msgs
+  puma_msgs
 )
 
 catkin_package(
@@ -55,6 +57,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/battery_status_node.py
   scripts/robot_statistics_node.py
+  scripts/logger_manager_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -4,6 +4,7 @@ from puma_fake_driver.wheel_controller import WheelController
 from puma_fake_driver.direction_controller import DirectionController
 from puma_fake_driver.arduino_controller import ArduinoController
 from puma_fake_driver.tachometer_controller import TachometerController
+from std_msgs.msg import Float32
 
 if __name__ == "__main__":
   try:
@@ -14,6 +15,10 @@ if __name__ == "__main__":
     arduino_controlller = ArduinoController()
     tachometer_controller = TachometerController()
     
+    battery_pub = rospy.Publisher('/puma/sensors/battery/raw_72v', Float32, queue_size=10)
+    
+    battery_msg = Float32()
+    battery_msg.data = 70.0
     rate = rospy.Rate(30)
       
     while not rospy.is_shutdown():
@@ -33,15 +38,7 @@ if __name__ == "__main__":
       arduino_controlller.send_msg()
       tachometer_controller.publish_tachometer()
       
-      # --- Debug angular velocity --- #
-      # vel_linear = wheel_controller.current_velocity
-      # angle = direction_controller.current_angle
-      # if angle != 0:
-      #   radius = 1.15/ math.tan(angle)
-      #   vel_angular = vel_linear / radius
-      # else: 
-      #   vel_angular = 0.0
-      # rospy.loginfo("Velocidad angular actual: %s", vel_angular)
+      battery_pub.publish(battery_msg)
       
       rate.sleep()
       

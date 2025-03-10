@@ -7,10 +7,9 @@
   <!-- camera -->
   <include file="$(find puma_bringup)/launch/camera_bringup.launch"/>
 
-  <arg name="path" value="$(find puma_bringup)/launch/core"/>
-
   <!-- Navigation -->
   <include file="$(find puma_bringup)/launch/navigation/new_navigation_bringup.launch"/>
+  
   <!-- Monitor temperature -->
   <include file="$(find puma_bringup)/launch/core/minipc_monitor.launch"/>
   
@@ -18,11 +17,13 @@
 
   <include file="$(find puma_state_machine)/launch/state_machine_v2.launch"/>
 
-  <include file="$(find puma_bringup)/launch/localization/imu_filter_realsense.launch"/>
   <!-- Estado de bateria y obtención de estadísticas -->
   <include file="$(find puma_robot_status)/launch/robot_statistics.launch"/>
+  <!-- Logger -->
+  <include file="$(find puma_robot_status)/launch/logger.launch"/>
 
   <!-- Localization -->
+  <include file="$(find puma_bringup)/launch/localization/imu_filter_realsense.launch"/>
   <include file="$(find puma_bringup)/launch/localization/localization_bringup.launch"/>
   <!-- <include file="$(find puma_bringup)/launch/localization/gps_localization.launch"/> -->
 

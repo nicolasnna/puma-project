@@ -1,0 +1,11 @@
+# Goal
+string GET_LOG_AND_CLEAN = "get_log_and_clean"
+string action
+---
+# Result
+bool success
+string message
+puma_msgs/LogArray log_array
+---
+# Feedback
+float32 progress

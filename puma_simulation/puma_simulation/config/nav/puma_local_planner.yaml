@@ -17,7 +17,7 @@ PumaLocalPlanner:
   time_step: 0.2
   steering_samples: 18
   velocity_samples: 3
-  factor_velocity: 20.0
+  factor_velocity: 5.0
 
   xy_goal_tolerance: 1.5
 

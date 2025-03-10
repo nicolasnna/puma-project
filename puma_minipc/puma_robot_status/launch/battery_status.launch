@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="battery_status_puma" pkg="puma_robot_status" type="battery_status_node.py" output="screen" respawn="true" respawn_delay="5"/>
+
+</launch>

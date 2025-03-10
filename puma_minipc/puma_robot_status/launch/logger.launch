@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="logger_puma" pkg="puma_robot_status" type="logger_manager_node.py"/>
+
+</launch>

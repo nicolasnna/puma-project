@@ -16,10 +16,16 @@
   <!-- Incluir odometría -->
   <include file="$(find puma_odometry)/launch/puma_odometry.launch"/>
 
-  
+  <include file="$(find puma_robot_status)/launch/battery_status.launch"/>
 
-  <node name="logger_puma" pkg="puma_web_interface" type="logger_manager_node.py" output="screen"/>
-  <node name="filter_msg_web" pkg="puma_web_interface" type="filter_topics_node.py" output="screen"/>
+  <!-- Logger -->
+  <node name="logger_puma" pkg="puma_robot_status" type="logger_manager_node.py">
+    <param name="is_simulation" value="true"/>
+  </node>
+
+
+  <!-- <node name="logger_puma" pkg="puma_web_interface" type="logger_manager_node.py" output="screen"/>
+  <node name="filter_msg_web" pkg="puma_web_interface" type="filter_topics_node.py" output="screen"/> -->
 
 
 </launch>

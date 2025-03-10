@@ -2,8 +2,8 @@
 import rospy
 import requests
 import json
-from sensor_msgs.msg import CompressedImage, NavSatFix
-from puma_msgs.msg import StatusArduino
+from sensor_msgs.msg import CompressedImage, NavSatFix, BatteryState
+from puma_msgs.msg import StatusArduino, WaypointNav, Waypoint
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from smach_msgs.msg import SmachContainerStatus
@@ -42,7 +42,6 @@ def mode_control_cb(data: String):
   data_to_send = {"mode": data.data}
   control_mode = { "data": data_to_send }
     
-    
 def odometry_cb(data: Odometry):
   global odometry
   data_to_send = {
@@ -63,6 +62,34 @@ def state_machine_cb(data: SmachContainerStatus):
   data_to_send = {"active_state": data.active_states[0]}
   state_machine = { "data": data_to_send }
     
+def battery_cb(data: BatteryState):
+  global battery
+  battery = {"data": {"voltage": data.voltage, "percentage": data.percentage}}
+  
+def waypoint_to_dict(waypoint: Waypoint):
+  return {
+    "x": waypoint.x,
+    "y": waypoint.y,
+    "yaw": waypoint.yaw,
+    "latitude": waypoint.latitude,
+    "longitude": waypoint.longitude,
+  }
+  
+def wp_completed_cb(data: WaypointNav):
+  global wp_completed
+  waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
+  wp_completed = {"data": {"waypoints": waypoints}}
+
+def wp_remained_cb(data: WaypointNav):
+  global wp_remained
+  waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
+  wp_remained = {"data": {"waypoints": waypoints}}
+
+def wp_list_cb(data: WaypointNav):
+  global wp_list
+  waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
+  wp_list = {"data": {"waypoints": waypoints}}
+    
 def setting_up():
   rospy.Subscriber("/puma/sensors/camera_front/color/image_raw/compressed", CompressedImage, realsense_front_cb)
   rospy.Subscriber("/puma/sensors/camera_rear/color/image_raw/compressed", CompressedImage, realsense_rear_cb)
@@ -71,9 +98,14 @@ def setting_up():
   rospy.Subscriber("/puma/control/current_mode", String, mode_control_cb)
   rospy.Subscriber("/puma/localization/ekf_odometry", Odometry, odometry_cb)
   rospy.Subscriber("/puma/smach/container_status", SmachContainerStatus, state_machine_cb)
+  rospy.Subscriber("/puma/sensors/battery/status", BatteryState, battery_cb)
+  rospy.Subscriber("/puma/navigation/waypoints_completed", WaypointNav, wp_completed_cb )
+  rospy.Subscriber("/puma/navigation/waypoints_remained", WaypointNav, wp_remained_cb)
+  rospy.Subscriber("/puma/navigation/waypoints_list", WaypointNav, wp_list_cb)
+  
   
 def get_msg_to_send():
-  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine
+  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list
   
   data = {}
   
@@ -91,6 +123,14 @@ def get_msg_to_send():
     data["odometry"] = odometry
   if state_machine:
     data["state_machine"] = state_machine
+  if battery:
+    data["battery"] = battery
+  if wp_completed:
+    data["waypoint_completed"] = wp_completed
+  if wp_remained:
+    data["waypoint_remained"] = wp_remained
+  if wp_list:
+    data["waypoint_list"] = wp_list
   
   return {"data": data}
 
@@ -111,9 +151,12 @@ if __name__ == "__main__":
   rospy.loginfo("Empezando send_robot_status_backend node")
   global BACKEND_URL, headers
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
-  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine
-  realsense_front = realsense_rear = None
-  gps = arduino_status = control_mode = odometry = state_machine = None
+  # Creación de variables globales
+  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list
+  # Inicialización de variables
+  realsense_front = realsense_rear = None 
+  gps = arduino_status = control_mode = odometry = state_machine = battery = None
+  wp_completed = wp_remained = wp_list = None
   
   rospy.loginfo("Obteniendo token")
   token = get_token(BACKEND_URL)

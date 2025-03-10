@@ -129,7 +129,7 @@ def end_subscriber():
   except Exception as e:
     rospy.logerr(f'Error al detener los subscriptores: {e}')
   is_run_statistics = False
-
+  
 def save_statistics():
   global type_statistics, statistics
   data_export = {"type": type_statistics, "data": statistics}
