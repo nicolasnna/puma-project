@@ -83,31 +83,29 @@ def clear_completed_commands_db():
       
 if __name__ == "__main__":
     rospy.init_node("get_data_backend")
-    rospy.loginfo("Node get_data_backend started")
+    rospy.loginfo(f"Node {rospy.get_name()} started")
     global BACKEND_URL
     BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
     rospy.loginfo("Backend: "+BACKEND_URL)
-    try:
-      global headers, completed_commands, intial_configuration
-      intial_configuration = False
-      completed_commands = []
+    global headers, completed_commands, intial_configuration
+    intial_configuration = False
+    completed_commands = []
+  
+    try: 
       token = get_token(BACKEND_URL)
-      while not token:
-        rospy.loginfo("Token no encontrado, esperando 3 segundos")
-        rospy.sleep(3)
-        token = get_token(BACKEND_URL)
-    
-      if token:
-        bearer_token = f"Bearer {str(token)}"
-        headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
-      
-        rate = rospy.Rate(1)
-        
-        while not rospy.is_shutdown():
-          check_and_send_remain_commands()
-          rate.sleep()
-      else:
-        rospy.logwarn("No se pudo obtener el token de autenticación")
-      
     except Exception as e:
-      rospy.logwarn(f"get_data_backebd -> Error: {e}")
+      rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
+      
+    while not token:
+      rospy.loginfo("Token no encontrado, esperando 3 segundos")
+      rospy.sleep(3)
+      token = get_token(BACKEND_URL)
+  
+    bearer_token = f"Bearer {str(token)}"
+    headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
+  
+    rate = rospy.Rate(1)
+    
+    while not rospy.is_shutdown():
+      check_and_send_remain_commands()
+      rate.sleep()

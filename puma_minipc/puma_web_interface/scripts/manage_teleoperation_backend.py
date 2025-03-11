@@ -46,32 +46,28 @@ def check_and_use_teleop_cmd():
 
 if __name__ == "__main__":
   rospy.init_node("get_teleop_backend")
-  rospy.loginfo("Node get_teleop_backend started")
+  rospy.loginfo(f"Empezando {rospy.get_name()} node")
   global headers, BACKEND_URL, current_mode, latest_command, initial_configuration
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
   initial_configuration = True
   current_mode = ''
   rospy.Subscriber("puma/control/current_mode", String, get_control_mode)
   teleop_pub = rospy.Publisher("puma/web/teleop", WebTeleop, queue_size=3)
-  
-  try: 
+
+  token = get_token(BACKEND_URL)
+  while not token:
+    rospy.loginfo(f"{rospy.get_name()} - Token no encontrado, esperando 3 segundos")
+    rospy.sleep(3)
     token = get_token(BACKEND_URL)
-    while not token:
-      rospy.loginfo("Token no encontrado, esperando 3 segundos")
-      rospy.sleep(3)
-      token = get_token(BACKEND_URL)
-    
-    if token:
-      bearer_token = f"Bearer {str(token)}"
-      headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
-    
-      rate = rospy.Rate(20)
-      while not rospy.is_shutdown():
-        if current_mode == "web":
-          check_and_use_teleop_cmd()
-        else:
-          initial_configuration = True
-        rate.sleep()
+  
+  bearer_token = f"Bearer {str(token)}"
+  headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
+
+  rate = rospy.Rate(10)
+  while not rospy.is_shutdown():
+    if current_mode == "web":
+      check_and_use_teleop_cmd()
+    else:
+      initial_configuration = True
+    rate.sleep()
       
-  except Exception as e:
-    rospy.logwarn(f"manage_teleoperation_backend -> Error: {e}")

@@ -4,13 +4,36 @@
 
   <arg name="backend_url" default="http://smartbot.la/test2api"/>
 
-  <node name="send_robot_status_backend" pkg="puma_web_interface" type="send_robot_status_backend.py" output="screen">
+  <node 
+    name="send_robot_status_backend" 
+    pkg="puma_web_interface" 
+    type="send_robot_status_backend.py" 
+    output="screen"
+    respawn="true"
+    respawn_delay="4"
+  >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
-  <node name="get_web_to_ros" pkg="puma_web_interface" type="get_data_backend.py" output="screen" respawn="true" respawn_delay="4">
+
+  <node 
+    name="get_web_command_to_ros" 
+    pkg="puma_web_interface" 
+    type="get_command_backend.py" 
+    output="screen" 
+    respawn="true" 
+    respawn_delay="4"
+  >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
-  <node name="manage_teleoperation_backend" pkg="puma_web_interface" type="manage_teleoperation_backend.py" output="screen" respawn="true" respawn_delay="4">
+
+  <node 
+    name="manage_teleoperation_backend" 
+    pkg="puma_web_interface" 
+    type="manage_teleoperation_backend.py" 
+    output="screen" 
+    respawn="true" 
+    respawn_delay="4"
+  >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
 

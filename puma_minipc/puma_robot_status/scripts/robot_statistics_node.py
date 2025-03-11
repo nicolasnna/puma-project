@@ -10,6 +10,7 @@ import json
 import rospkg
 import requests
 from datetime import datetime
+from pathlib import Path
 
 def execute_cb(goal: RobotStatisticsGoal):
   global run_statistics, server, type_statistics
@@ -134,7 +135,7 @@ def save_statistics():
   global type_statistics, statistics
   data_export = {"type": type_statistics, "data": statistics}
   json_data = json.dumps(data_export)
-  dir_local = rospkg.RosPack().get_path('puma_robot_status') + '/statistics'
+  dir_local = rospkg.RosPack().get_path('puma_robot_status') + '/tmp/statistics'
   statistics_manager()
   
   try:
@@ -199,6 +200,10 @@ def main():
   server = actionlib.SimpleActionServer('/puma/statistics', RobotStatisticsAction, execute_cb=execute_cb, auto_start=False)
   server.start()
   rospy.loginfo("Iniciando servidor para el manejo de estadísticas")
+  # Crear directorio para guardar los archivos
+  project_root = Path(__file__).resolve().parent.parent  # Sube a puma_robot_status
+  tmp_dir = project_root / "tmp" / "statistics"
+  tmp_dir.mkdir(parents=True, exist_ok=True)
   
   while not rospy.is_shutdown():
     statistics_manager()

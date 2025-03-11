@@ -148,7 +148,7 @@ def run_send():
 
 if __name__ == "__main__":
   rospy.init_node("send_robot_status_backend")
-  rospy.loginfo("Empezando send_robot_status_backend node")
+  rospy.loginfo(f"Empezando {rospy.get_name()} node")
   global BACKEND_URL, headers
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
   # Creación de variables globales
@@ -159,9 +159,12 @@ if __name__ == "__main__":
   wp_completed = wp_remained = wp_list = None
   
   rospy.loginfo("Obteniendo token")
-  token = get_token(BACKEND_URL)
+  try: 
+    token = get_token(BACKEND_URL)
+  except Exception as e:
+    rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
   while not token:
-    rospy.loginfo("Token no encontrado, esperando 3 segundos")
+    rospy.loginfo(f"{rospy.get_name()} - Token no encontrado, esperando 3 segundos")
     rospy.sleep(3)
     token = get_token(BACKEND_URL)
   

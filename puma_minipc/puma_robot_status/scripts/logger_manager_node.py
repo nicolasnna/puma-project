@@ -5,11 +5,17 @@ from std_msgs.msg import Empty
 from datetime import datetime
 from puma_robot_status.msg import LoggerManagerAction, LoggerManagerGoal, LoggerManagerResult
 from actionlib import SimpleActionServer
+from pathlib import Path
 
 class writeToFile:
   def __init__(self):
     is_simulated = rospy.get_param('~is_simulation', False)
-    directory = rospkg.RosPack().get_path('puma_robot_status') + '/logs/'
+    
+    project_root = Path(__file__).resolve().parent.parent  # Sube a puma_robot_status
+    tmp_dir = project_root / "tmp" / "logs" / "simulation"
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+        
+    directory = rospkg.RosPack().get_path('puma_robot_status') + '/tmp/logs/'
     if is_simulated:
       self.filename = directory + "simulation/" + "log simulation -" + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.txt'
     else:
