@@ -37,5 +37,16 @@
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
 
+  <node 
+    name="update_logs_backend" 
+    pkg="puma_web_interface" 
+    type="update_logs_backend.py" 
+    output="screen" 
+    respawn="true" 
+    respawn_delay="4"
+  >
+    <param name="backend_url" value="$(arg backend_url)"/>
+  </node>
+
 
 </launch>

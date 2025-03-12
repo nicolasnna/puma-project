@@ -4,13 +4,30 @@ import actionlib
 from puma_robot_status.msg import RobotStatisticsAction, RobotStatisticsResult, RobotStatisticsGoal
 from sensor_msgs.msg import BatteryState, NavSatFix, CompressedImage
 from nav_msgs.msg import Odometry
-from puma_msgs.msg import StatusArduino
+from puma_msgs.msg import StatusArduino, WaypointNav, Waypoint
+from std_msgs.msg import String
 import base64
 import json
 import rospkg
 import requests
 from datetime import datetime
 from pathlib import Path
+try:
+  from zoneinfo import ZoneInfo
+except ImportError:
+  from backports.zoneinfo import ZoneInfo
+  
+def time_chile_now():
+  return datetime.now(ZoneInfo("Chile/Continental")).strftime("%Y-%m-%d %H:%M:%S")
+
+def waypoint_to_dict(waypoint: Waypoint):
+  return {
+    "x": waypoint.x,
+    "y": waypoint.y,
+    "yaw": waypoint.yaw,
+    "latitude": waypoint.latitude,
+    "longitude": waypoint.longitude,
+  }
 
 def execute_cb(goal: RobotStatisticsGoal):
   global run_statistics, server, type_statistics
@@ -56,7 +73,11 @@ def statistics_manager():
       "rear_color": rear_color,
       "front_depth": front_depth,
       "rear_depth": rear_depth,
-      "time": datetime.now().isoformat()
+      "wp_completed": wp_completed,
+      "wp_remained": wp_remained,
+      "wp_list": wp_list,
+      "control_mode": control_mode,
+      "time": time_chile_now()
     })
   else:
     statistics = []
@@ -99,14 +120,38 @@ def rs_rear_depth_cb(msg: CompressedImage):
   global rear_depth
   rear_depth = base64.b64encode(msg.data).decode('utf-8')
   
+def wp_completed_cb(msg: WaypointNav):
+  global wp_completed
+  wp_completed = [waypoint_to_dict(wp) for wp in msg.waypoints]
+
+def wp_remained_cb(msg: WaypointNav):
+  global wp_remained
+  wp_remained = [waypoint_to_dict(wp) for wp in msg.waypoints]
+
+def wp_list_cb(msg: WaypointNav):
+  global wp_list
+  wp_list = [waypoint_to_dict(wp) for wp in msg.waypoints]
+  
+def mode_control_cb(msg: String):
+  global control_mode
+  control_mode = msg.data
+  
 def subscriber(is_simulated: bool):
-  global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, distance, last_time_odom
+  global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, wp_complete_sub, wp_remained_sub, wp_list_sub, control_mode_sub
   init_values()
   
   battery_sub = rospy.Subscriber('/puma/sensors/battery/status', BatteryState, battery_cb)
   gps_sub = rospy.Subscriber('/puma/sensors/gps/fix', NavSatFix, gps_cb)
   odom = rospy.Subscriber('/puma/localization/ekf_odometry', Odometry, odom_cb)
   status_arduino = rospy.Subscriber('/puma/arduino/status', StatusArduino, arduino_cb)
+  
+  ''' Navegación '''
+  wp_complete_sub = rospy.Subscriber("/puma/navigation/waypoints_completed", WaypointNav, wp_completed_cb )
+  wp_remained_sub = rospy.Subscriber("/puma/navigation/waypoints_remained", WaypointNav, wp_remained_cb)
+  wp_list_sub = rospy.Subscriber("/puma/navigation/waypoints_list", WaypointNav, wp_list_cb)
+  control_mode_sub = rospy.Subscriber("/puma/control/current_mode", String, mode_control_cb)
+  
+  ''' Cámaras '''
   rs_front_color = rospy.Subscriber('/puma/sensors/camera_front/color/image_raw/compressed', CompressedImage, rs_front_color_cb)
   rs_rear_color = rospy.Subscriber('/puma/sensors/camera_rear/color/image_raw/compressed', CompressedImage, rs_rear_color_cb)
   if is_simulated:
@@ -117,7 +162,7 @@ def subscriber(is_simulated: bool):
     rs_rear_depth = rospy.Subscriber('/puma/sensors/camera_rear/depth/image_rect_raw/compressed', CompressedImage, rs_rear_depth_cb)
   
 def end_subscriber():
-  global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, is_run_statistics
+  global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, is_run_statistics, wp_complete_sub, wp_remained_sub, wp_list_sub, control_mode_sub, start_at, end_at
   try:
     battery_sub.unregister()
     gps_sub.unregister()
@@ -127,19 +172,26 @@ def end_subscriber():
     rs_rear_color.unregister()
     rs_front_depth.unregister()
     rs_rear_depth.unregister()
+    wp_complete_sub.unregister()
+    wp_remained_sub.unregister()
+    wp_list_sub.unregister()
+    control_mode_sub.unregister()
   except Exception as e:
     rospy.logerr(f'Error al detener los subscriptores: {e}')
   is_run_statistics = False
+  start_at = end_at = None
   
 def save_statistics():
-  global type_statistics, statistics
-  data_export = {"type": type_statistics, "data": statistics}
-  json_data = json.dumps(data_export)
+  global type_statistics, statistics, end_at
   dir_local = rospkg.RosPack().get_path('puma_robot_status') + '/tmp/statistics'
   statistics_manager()
+  name_file = f'{type_statistics} - {str(time_chile_now())}'
+  end_at = time_chile_now()
+  data_export = {"type": type_statistics, "data": statistics, "start_at": start_at, "end_at": end_at, "name": name_file}
+  json_data = json.dumps(data_export)
   
   try:
-    file_path = f'{dir_local}/{type_statistics} - {datetime.now().isoformat()}.json'
+    file_path = f'{dir_local}/{name_file}.json'
     with open(file_path, 'w') as file:
       json.dump(data_export, file, indent=2, sort_keys=True)
     rospy.loginfo(f'Estadísticas guardadas en {file_path}')
@@ -162,7 +214,7 @@ def save_statistics():
         return False
       return True
     except rospy.ServiceException as e:
-      rospy.logerr(f'Error al subir las estadísticas a la base de datos: {e}')
+      rospy.logerr(f'Error al subir las estadísticas a la base de datos')
       return False
   return True
 
@@ -179,7 +231,7 @@ def get_token(BACKEND_URL):
     rospy.logwarn(f"Error al obtener token: {e}")
     
 def init_values():
-  global battery, gps, angle, vel_x, distance, front_color, rear_color, front_depth, rear_depth, last_time_odom
+  global battery, gps, angle, vel_x, distance, front_color, rear_color, front_depth, rear_depth, last_time_odom, wp_completed, wp_remained, wp_list, control_mode, start_at
   battery = None
   gps = None
   angle = None
@@ -190,12 +242,18 @@ def init_values():
   front_depth = None
   rear_depth = None
   last_time_odom = None
+  wp_completed = None
+  wp_remained = None
+  wp_list = None
+  control_mode = None
+  start_at = time_chile_now()
     
 def main():
   rospy.init_node('robot_statistics_node')
-  global server, statistics, run_statistics 
+  global server, statistics, run_statistics, start_at, end_at
   statistics = []
   run_statistics = False
+  start_at = end_at = None
   init_values()
   server = actionlib.SimpleActionServer('/puma/statistics', RobotStatisticsAction, execute_cb=execute_cb, auto_start=False)
   server.start()
