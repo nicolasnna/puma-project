@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="magnetometer_corrected" pkg="puma_imu" type="magnetometer_corrected.py"  output="log" respawn="false" respawn_delay="0">
+    <rosparam command="load" file="$(find puma_imu)/config/magnetometer_calibration.yaml"/>
+  </node>
+
+</launch>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="calib_imu" pkg="imu_calib" type="do_calib"  output="screen" respawn="false" respawn_delay="0">
+    <remap from="imu" to="/imu"/>
+    <param name="calib_file" value="imu_calib.yaml"/>
+    <param name="measurements" value="10"/>
+    
+  </node>
+
+</launch>

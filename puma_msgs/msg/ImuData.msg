@@ -1,0 +1,13 @@
+float32 angle_x 
+float32 angle_y
+float32 angle_z
+float32 gyro_x_deg
+float32 gyro_y_deg
+float32 gyro_z_deg
+float32 acc_x_g
+float32 acc_y_g
+float32 acc_z_g
+float32 mag_x_uT
+float32 mag_y_uT
+float32 mag_z_uT
+float32 temp_C

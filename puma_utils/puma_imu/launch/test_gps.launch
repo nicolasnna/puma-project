@@ -1,0 +1,25 @@
+<launch>
+  <!-- Definir fixed frame (para RViz y TF) -->
+  <param name="/use_sim_time" value="false"/>
+  <arg name="fixed_frame" default="map"/>
+
+  <!-- Publicar transformación estática entre map e imu_link (ajusta los valores XYZ si hay offset físico) -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_imu" 
+        args="0 0 0 0 0 0 $(arg fixed_frame) imu_link"/>
+
+  <!-- Nodo para publicar posición GPS estática -->
+  <node name="static_gps_publisher" pkg="rostopic" type="rostopic" 
+        args="pub -r 1 /gps sensor_msgs/NavSatFix '
+        {
+          header: {
+            stamp: now,
+            frame_id: &quot;imu_link&quot;
+          },
+          latitude: -33.421788076543535, 
+          longitude: -70.58188553713778,
+          altitude: 0.0,
+          position_covariance: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+          position_covariance_type: 0
+        }'"
+        output="screen"/>
+</launch>

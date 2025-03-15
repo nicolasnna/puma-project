@@ -210,7 +210,7 @@ def save_statistics():
     try:
       res = requests.post(backend_url+'/database/statistics', headers=headers, data=json_data, timeout=5)
       if res.status_code != 200:
-        rospy.logwarn(f'Error al subir las estadísticas a la base de datos: {res.status_code} - {res.text}')
+        rospy.logwarn(f'Error al subir las estadísticas a la base de datos: {res.status_code} ')
         return False
       return True
     except rospy.ServiceException as e:

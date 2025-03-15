@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="imu_calibrated" pkg="imu_calib" type="apply_calib"  output="screen" respawn="true" respawn_delay="4">
+    <remap from="raw" to="/imu"/>
+    <remap from="corrected" to="/imu/corrected"/>
+    <param name="calib_file" value="$(find puma_imu)/config/imu_calib.yaml"/>
+  </node>
+
+</launch>
