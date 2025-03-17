@@ -9,7 +9,7 @@
   
   <node name="imu_filter" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen">
     <remap from="/imu/mag" to="/mag"/>
-    <remap from="/imu/data_raw" to="/imu"/>
+    <remap from="/imu/data_raw" to="/puma/sensors/icm20948/imu"/>
     <remap from="/imu/data" to="/imu/filtered"/>
 x    <param name="publish_tf" value="true"/>
     <!-- <param name="orientation_stddev" value="0.05" /> -->
@@ -21,7 +21,7 @@ x    <param name="publish_tf" value="true"/>
     <param name="use_mag" type="bool" value="true"/>
     <remap from="/imu/mag" to="/mag/corrected"/>
     <param name="world_frame" type="string" value="enu" />
-    <remap from="/imu/data_raw" to="/imu"/>
+    <remap from="/imu/data_raw" to="/puma/sensors/icm20948/imu"/>
     <remap from="/imu/data" to="/imu_with_correct_mag/filtered"/>
     <param name="publish_tf" value="false"/>
   </node>
@@ -30,7 +30,7 @@ x    <param name="publish_tf" value="true"/>
     <param name="use_mag" type="bool" value="false"/>
     <remap from="/imu/mag" to="/mag/corrected"/>
     <param name="world_frame" type="string" value="enu" />
-    <remap from="/imu/data_raw" to="/imu"/>
+    <remap from="/imu/data_raw" to="/puma/sensors/icm20948/imu"/>
     <remap from="/imu/data" to="/imu_without_mag/filtered"/>
     <param name="publish_tf" value="false"/>
   </node>

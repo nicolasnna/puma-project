@@ -6,6 +6,9 @@
   <!-- Publicar transformación estática entre map e imu_link (ajusta los valores XYZ si hay offset físico) -->
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_imu" 
         args="0 0 0 0 0 0 $(arg fixed_frame) imu_link"/>
+    
+  <arg name="map_file" default="$(find puma_simulation)/maps/blank_map.yaml"/>
+  <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/>
 
   <!-- Nodo para publicar posición GPS estática -->
   <node name="static_gps_publisher" pkg="rostopic" type="rostopic" 

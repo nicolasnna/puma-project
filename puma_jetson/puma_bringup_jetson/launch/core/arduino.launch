@@ -4,7 +4,7 @@
   <!-- Arduino -->
   <node name="arduino_mega" pkg="rosserial_python" type="serial_node.py" output="screen" clear_params="true">
     <param name="port"                  value="/dev/ttyUSB0"/>
-    <param name="baud"                  value="250000" />
+    <param name="baud"                  value="500000" />
   </node>
 
 </launch>

@@ -162,6 +162,7 @@ catkin_install_python(PROGRAMS
   scripts/jetson_icm20948.py
   scripts/calibrate_magnetometer.py
   scripts/magnetometer_corrected.py
+  scripts/translate_icm20948_arduino.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
