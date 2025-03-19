@@ -7,14 +7,13 @@
     <param name="calib_file" value="$(find puma_bringup_jetson)/config/imu_calib.yaml"/>
   </node> -->
   
-  <node name="imu_filter" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen">
+  <!-- <node name="imu_filter" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen">
     <remap from="/imu/mag" to="/mag"/>
     <remap from="/imu/data_raw" to="/puma/sensors/icm20948/imu"/>
     <remap from="/imu/data" to="/imu/filtered"/>
-x    <param name="publish_tf" value="true"/>
-    <!-- <param name="orientation_stddev" value="0.05" /> -->
-    <param name="use_mag" value="true" /> <!-- Habilitar magnetómetro -->
-    <param name="world_frame" value="enu" /> <!-- Asegurar marco ENU -->
+    <param name="publish_tf" value="true"/>
+    <param name="use_mag" value="true" /> 
+    <param name="world_frame" value="enu" /> 
   </node>
 
   <node name="imu_filter_corrected_mag" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen">
@@ -33,6 +32,15 @@ x    <param name="publish_tf" value="true"/>
     <remap from="/imu/data_raw" to="/puma/sensors/icm20948/imu"/>
     <remap from="/imu/data" to="/imu_without_mag/filtered"/>
     <param name="publish_tf" value="false"/>
+  </node> -->
+
+  <node name="imu_filter" pkg="imu_filter_madgwick" type="imu_filter_node" output="screen">
+    <remap from="/imu/mag" to="/mag"/>
+    <remap from="/imu/data_raw" to="/puma/sensors/camera_front/imu"/>
+    <remap from="/imu/data" to="/imu/filtered"/>
+    <param name="publish_tf" value="true"/>
+    <param name="use_mag" value="false" /> <!-- Habilitar magnetómetro -->
+    <param name="world_frame" value="enu" /> <!-- Asegurar marco ENU -->
   </node>
 
 </launch>
