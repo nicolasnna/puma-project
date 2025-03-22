@@ -297,7 +297,11 @@ void directionController(){
 
     /* Comprobar si se ha llegado a la direccion deseada */
     bool is_in_range_goal = (positionGoal + TOLERANCE_SENSOR > sensorPositionValue ) && (positionGoal - TOLERANCE_SENSOR < sensorPositionValue );
-    if (is_in_range_goal){
+    bool is_in_range_max = (positionGoal + TOLERANCE_SENSOR > LIMIT_DIR_ANALOG_MAX ) && (positionGoal - TOLERANCE_SENSOR < LIMIT_DIR_ANALOG_MAX );
+    bool is_in_range_min = (positionGoal + TOLERANCE_SENSOR > LIMIT_DIR_ANALOG_MIN ) && (positionGoal - TOLERANCE_SENSOR < LIMIT_DIR_ANALOG_MIN );
+    bool is_in_max = (positionGoal > angleCurrent && is_in_range_max);
+    bool is_in_min = (positionGoal < angleCurrent && is_in_range_min);
+    if (is_in_range_goal || is_in_max || is_in_min){
       analogWrite(RIGHT_DIRECTION_PIN,0);
       analogWrite(LEFT_DIRECTION_PIN,0);
       return;

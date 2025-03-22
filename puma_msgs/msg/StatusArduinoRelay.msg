@@ -1,0 +1,4 @@
+bool lights_front
+bool jetson_supply
+bool charge_connection
+bool security_lights

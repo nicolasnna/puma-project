@@ -61,6 +61,7 @@ add_message_files(
   Log.msg
   LogArray.msg
   StatusArduino.msg
+  StatusArduinoRelay.msg
   StatusTachometer.msg
   Waypoint.msg
   WaypointNav.msg
