@@ -19,6 +19,7 @@
 
   <!-- Estado de bateria y obtención de estadísticas -->
   <include file="$(find puma_robot_status)/launch/robot_statistics.launch"/>
+  <include file="$(find puma_robot_status)/launch/battery_status.launch"/>
   <!-- Logger -->
   <include file="$(find puma_robot_status)/launch/logger.launch"/>
 

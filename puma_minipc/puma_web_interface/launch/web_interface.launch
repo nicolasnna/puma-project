@@ -2,7 +2,7 @@
 <launch>
 
 
-  <arg name="backend_url" default="http://smartbot.la/test2api"/>
+  <arg name="backend_url" default="http://smartbot.la/pumabot"/>
 
   <node 
     name="send_robot_status_backend" 

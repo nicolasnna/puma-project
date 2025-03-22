@@ -3,8 +3,8 @@
 
   <node name="robot_statistics" pkg="puma_robot_status" type="robot_statistics_node.py" output="screen" respawn="true" respawn_delay="5">
     <param name="upload_db" value="true"/> 
-    <param name="backend_url" value="http://smartbot.la/pumabot"/>
-    <param name="is_simulated" value="false"/>
+    <!-- <param name="backend_url" value="http://smartbot.la/test2api"/> -->
+    <param name="is_simulated" value="true"/>
   </node>
 
 </launch>
