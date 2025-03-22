@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import rospy 
 from sensor_msgs.msg import Imu, MagneticField
 from puma_msgs.msg import ImuData
