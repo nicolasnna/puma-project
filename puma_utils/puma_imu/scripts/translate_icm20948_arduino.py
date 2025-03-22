@@ -29,8 +29,8 @@ def main():
   rospy.Subscriber('puma/sensors/icm20948/raw', ImuData, raw_icm20948_callback)
   global imu_pub, mag_pub
   imu_pub = rospy.Publisher('puma/sensors/icm20948/imu', Imu, queue_size=10)
-  # mag_pub = rospy.Publisher('puma/sensors/icm20948/mag', MagneticField, queue_size=10)
-  mag_pub = rospy.Publisher('/mag', MagneticField, queue_size=10)
+  mag_pub = rospy.Publisher('puma/sensors/icm20948/mag', MagneticField, queue_size=10)
+  #mag_pub = rospy.Publisher('/mag', MagneticField, queue_size=10)
 
   rospy.spin()
   
