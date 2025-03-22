@@ -48,5 +48,10 @@ else
     echo " -X no se ha encontrado supervisor_manager_launcher.py"
 fi
 
+if [ -f "../puma_utils/puma_imu/scripts/translate_icm20948_arduino.py" ]; then
+    chmod +x ../puma_utils/puma_imu/scripts/translate_icm20948_arduino.py && echo " -> translate_icm20948_arduino listo !!!"
+else
+    echo " -X no se ha encontrado translate_icm20948_arduino.py"
+fi
 
 echo "Cambio de permisos a ejecutables terminado"
