@@ -20,7 +20,7 @@
   <!-- Controller -->
   <include file="$(find puma_bringup_jetson)/launch/core/controller.launch"/>
   <!-- IMU -->
-  <!-- <include file="$(find puma_bringup_jetson)/launch/imu_bringup.launch"/> -->
+  <include file="$(find puma_bringup_jetson)/launch/imu_bringup.launch"/>
   
 
 </launch>
