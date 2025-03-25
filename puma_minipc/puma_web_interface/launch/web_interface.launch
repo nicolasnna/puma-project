@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <launch>
 
-
   <arg name="backend_url" default="http://smartbot.la/pumabot"/>
 
   <node 
