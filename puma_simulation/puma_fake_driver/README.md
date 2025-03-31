@@ -18,4 +18,11 @@ Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/e
 - [std_msgs](http://wiki.ros.org/std_msgs)
 - puma_msgs
 
-##
+## Scripts
+
+El paquete contiene 4 controladores:
+
+- **`arduino_controller`**: Simula la publicación del estado del Arduino Mega.
+- **`direction_controller`**: Simula el comportamiento del control de dirección del robot.
+- **`tachometer_controller`**: Simula el comportamiento del tacómetro para el cálculo de la odometría.
+- **`wheel_controller`**: Simula el comportamiento del acelerador según la PWM entregada. Además de considerar la reversa.

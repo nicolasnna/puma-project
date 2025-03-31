@@ -16,7 +16,6 @@ class DirectionController():
     
     # Subscriber
     rospy.Subscriber('puma/control/direction', DirectionCmd, self.dir_callback)
-    rospy.Subscriber('puma/control/reverse', Bool, self.reverse_callback)
     
     # Variable
     self.value_offset = rospy.get_param('direction_value_offset', 0.0)
@@ -39,15 +38,6 @@ class DirectionController():
     self.current_angle = 0.0
     self.angle_goal = 0
     self.tolerance = 0.05
-    
-    self.is_reverse = False
-
-
-  def reverse_callback(self, reverse_data):
-    '''
-    Callback from reverse node
-    '''
-    self.is_reverse = reverse_data.data
     
   def direction_to_angle(self):
     '''
