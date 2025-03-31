@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Paquete ROS noetic para el procesado de la detección de tags. El nodo de este paquete trabaja de intermediario entre la detección del tag (con **`apriltag_ros`**) y el manejo de estados del robot (en **`puma_waypoints`**).
+Paquete ROS noetic para el procesado de la detección de tags. El nodo de este paquete trabaja de intermediario entre la detección del tag (con **`apriltag_ros`**) y el manejo de estados del robot (en **`puma_state_machine`**).
 
 ## Instalación
 
@@ -32,7 +32,7 @@ También se tiene dos archivos launch **`apriltag_detection.launch`** y **`tag_d
 
 ## Launch
 
-- **apriltag_detection.launch:** Lanzador para iniciar el detector de april tags. Este lanzador carga las configuraciones de **`settings.yaml`** y **`tags.yaml`**. Ademas tiene parametros y remap del nodo:
+- **apriltag_detection.launch:** Lanzador para iniciar el detector de april tags. Este lanzador carga las configuraciones de **`settings.yaml`** y **`tags.yaml`**. Además tiene parametros y remap del nodo:
 
   - **`remap`**
 
@@ -65,7 +65,7 @@ También se tiene dos archivos launch **`apriltag_detection.launch`** y **`tag_d
 
   - **`standalone_tags`** (Array-Object)
 
-    - { id: 0, size: 0.1, name: tag_0 }
+    - {id: 0, size: 0.1, name: tag_0}
 
       Se necesita fijar tanto el `id` como el `size` en metros del tag físico, para obtener una correcta estimación de posición.
 

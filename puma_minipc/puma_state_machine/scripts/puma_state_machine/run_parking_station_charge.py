@@ -19,9 +19,6 @@ class RunParkingStationCharge(smach.State):
     enable_topic = rospy.get_param('~enable_topic', "/puma/tag_detector/enable")
     self.enable_pub = rospy.Publisher(enable_topic, Bool, queue_size=3)
     self.cmdvel_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=3)
-    self.file_plan_clear_pub = rospy.Publisher('/puma/navigation/files/clear_plan', Empty, queue_size=2)
-    self.waypoints_clear_pub = rospy.Publisher('/puma/navigation/waypoints/clear', Empty, queue_size=2)
-    self.waypoints_set_pub = rospy.Publisher('/puma/navigation/waypoints/set', WaypointNav, queue_size=2)
     ''' Modo de control '''
     self.mode_selector_pub = rospy.Publisher('/puma/control/change_mode', String, queue_size=2)
   
@@ -114,25 +111,21 @@ class RunParkingStationCharge(smach.State):
         time.sleep(0.5)
       
       if not self.stop:
-        self.file_plan_clear_pub.publish(Empty())
-        self.waypoints_clear_pub.publish(Empty())
-        rospy.sleep(0.5)
         ''' Procesando deteccion '''
         id_tag = detections[0].id[0]
         rospy.loginfo("-> Crear subscriptor del tag")
         tag_sub = rospy.Subscriber('/puma/tag_detector/pose2camera/tag_'+str(id_tag),PoseStamped, self.callback_dis2camera)
         goal_tag = rospy.wait_for_message('/puma/tag_detector/goal/tag_'+str(id_tag), MoveBaseGoal)
         ''' Enviar como waypoints'''
-        waypoints = WaypointNav()
-        Waypoint1 = Waypoint()
-        Waypoint1.x = goal_tag.target_pose.pose.position.x
-        Waypoint1.y = goal_tag.target_pose.pose.position.y
-        quaternion = (goal_tag.target_pose.pose.orientation.x, goal_tag.target_pose.pose.orientation.y, goal_tag.target_pose.pose.orientation.z, goal_tag.target_pose.pose.orientation.w)
-        euler = tf.transformations.euler_from_quaternion(quaternion)
-        Waypoint1.yaw = euler[2]
-        waypoints.waypoints.append(Waypoint1)
-        self.waypoints_set_pub.publish(waypoints)
-        rospy.sleep(0.5)
+        # waypoints = WaypointNav()
+        # Waypoint1 = Waypoint()
+        # Waypoint1.x = goal_tag.target_pose.pose.position.x
+        # Waypoint1.y = goal_tag.target_pose.pose.position.y
+        # quaternion = (goal_tag.target_pose.pose.orientation.x, goal_tag.target_pose.pose.orientation.y, goal_tag.target_pose.pose.orientation.z, goal_tag.target_pose.pose.orientation.w)
+        # euler = tf.transformations.euler_from_quaternion(quaternion)
+        # Waypoint1.yaw = euler[2]
+        # waypoints.waypoints.append(Waypoint1)
+        
         self.mode_selector_pub.publish(String(data='navegacion'))
         rospy.sleep(0.3)
     

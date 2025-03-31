@@ -8,7 +8,7 @@ Paquete ROS noetic el control de navegación del robot PUMA mediante waypoints. 
 
 Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/en/latest/):
 
-    catkin build puma_waypoints
+    catkin build puma_state_machine
 
 ### Dependencias
 
@@ -26,11 +26,11 @@ Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/e
 
 El nodo se ejecuta mediante _roslaunch_:
 
-    roslaunch puma_waypoints waypoints.launch
+    roslaunch puma_state_machine state_machine_v2.launch
 
 ## Launch
 
-- **waypoints.launch:** Lanzador del control de waypoints con los parámetros indicados en **`config/waypoints_params.yaml`**.
+- **state_machine_v2.launch:** Lanzador del control de waypoints con los parámetros indicados en **`config/state_machine_params.yaml`**.
 
 ## Parámetros
 
@@ -46,7 +46,7 @@ El nodo se ejecuta mediante _roslaunch_:
 
     Tópico de los datos del GPS del robot.
 
-  - **`~odometry_topic`** (String, default: "/puma/odometry/filtered")
+  - **`~odometry_topic`** (String, default: "/puma/localization/ekf_odometry")
 
     Tópico de los datos de la odometría del robot.
 
@@ -94,17 +94,17 @@ El nodo se ejecuta mediante _roslaunch_:
 
   - **`~max_vel`** (Float, default: 0.4)
 
-    Máxima velocidad lineal a alcanzar por el robot. En m/s.
+    Máxima velocidad lineal a alcanzar por el robot en el modo carga. En m/s.
 
-## puma_waypoints
+## puma_state_machine
 
-Se encarga del control de la navegación del robot mediante waypoints. Este nodo funciona mediante una maquina de estados, donde en cada uno se tiene funcionese interacciones diferentes, que se detallan a continuación:
+Se encarga del control de la navegación del robot mediante waypoints. Este nodo funciona mediante una máquina de estados, donde en cada uno se tiene funciones e interacciones diferentes, que se detallan a continuación:
 
-### 1. GET_PATH
+### 1. PLAN_CONFIGURATION
 
 Estado inicial del robot, se encarga de recibir los waypoints donde tiene que llegar el robot durante la navegación. Puede recibir estas ubicaciones mediante `nav 2d goal` de rviz o en un arreglo de puntos GPS.
 
-De este estado se puede transicionar al estado **`FOLLOW_PATH`** o **`CHARGE_MODE`**.
+De este estado se puede transicionar al estado **`RUN_PLAN`** o **`RUN_PARKING_STATION_CHARGE`**.
 
 #### Publicador
 
@@ -112,14 +112,13 @@ De este estado se puede transicionar al estado **`FOLLOW_PATH`** o **`CHARGE_MOD
 
   Indica las posiciones de destino de la navegación.
 
-- **`<ns_topic>/path_completed`** (geometry_msgs/PoseArray)
+- **`/puma/navigation/files_manager`** (puma_nav_manager/ImportExportPlanAction)
 
-  Indica las posiciones de destino compeltadas.
+  Conecta con el servidor de acción **`files_manager`** para la carga y guardado de los planes.
 
-- **`<ns_topic>/gps_nav_info`** (puma_waypoints_msgs/GoalGpsNavInfo)
+- **`/puma/navigation/waypoints_manager`** (puma_nav_manager/WaypointsManagerAction)
 
-  Indica la información de la navegación en terminos de latitud, longitud y yaw.
-
+  Conecta con el servidor de acción **`waypoints_manager`** para la carga y guardado de los waypoints.
 
 #### Suscriptor
 
@@ -151,7 +150,7 @@ De este estado se puede transicionar al estado **`FOLLOW_PATH`** o **`CHARGE_MOD
 
   Obtiene ubicación GPS actual para el cálculo de destinos mediante GPS.
 
-- **`/puma/odometry/filtered`** (nav_msgs/Odometry)
+- **`/puma/localization/ekf_odometry`** (nav_msgs/Odometry)
 
   Obtiene posición local actual para el cálculo de destinos mediante GPS.
 
@@ -159,60 +158,51 @@ De este estado se puede transicionar al estado **`FOLLOW_PATH`** o **`CHARGE_MOD
 
   Obtiene una posición de destino en 2D mediante la función de rviz.
 
+- **`<ns_topic>/plan_configuration`** (puma_state_machine/PlanConfiguration)
 
-### 2. FOLLOW_PATH
+  Server action para la configuración del plan de navegación. Igual al uso de tópicos pero con feedback.
+
+### 2. RUN_PLAN
 
 Estado del robot en el que se realiza la navegación en los waypoints anteriormente indicados.
 
-Si se completa correctamente, se pasa al estado **`COMPLETE_PATH`** y en caso de abortar se pasa al estado **`GET_PATH`**.
+Si se realiza tanto con exito o con fallos, vuelve al estado **`PLAN_CONFIGURATION`**.
 
 #### Publicador
 
-- **`<ns_topic>/path_planned`** (geometry_msgs/PoseArray)
+- **`/puma/navigation/waypoints_manager`** (puma_nav_manager/WaypointsManagerAction)
 
-  Publica un arreglo de posiciones de los destinos planeados.
+  Conecta con el servidor de acción **`waypoints_manager`** para la carga y guardado de los waypoints.
 
-- **`<ns_topic>/path_completed`** (geometry_msgs/PoseArray)
+- **`/puma/statistics`** (puma_robot_status/RobotStatisticsAction)
 
-  Publica un arreglo de posiciones de los destinos completados.
+  Conecta con el action server **`robot_statistics`** para la grabación de datos del robot.
 
-- **`/puma/mode_selector`** (std_msgs/String)
+- **`/puma/control/change_mode`** (std_msgs/String)
 
-  Publica el comando para habilitar el nodo **`puma_controller`**.
-
-- **`<ns_topic>/gps_nav_info`** (puma_waypoints_msgs/GoalGpsNavInfo)
-
-  Indica la información de la navegación en terminos de latitud, longitud y yaw.
-
+  Comando para cambiar el modo de control del robot.
 
 #### Subscriptor
 
 - **`<ns_topic>/plan_stop`** (std_msgs/Empty)
 
-  Comando para detener la navegación, volviendo al estado **`GET_PATH`**.
+  Comando para detener la navegación, volviendo al estado **`PLAN_CONFIGURATION`**.
 
+- **`/puma/arduino/status`** (puma_msgs/StatusArduino)
 
-### 3. COMPLETE_PATH
+  Obtiene el estado del arduino Mega, para revisar si fue activado la señal de parada de emergencia.
 
-Estado del robot ejecutado cuando se completa la navegación del estado **`FOLLOW_PATH`**. Desde este estado, se puede pasar a **`GET_PATH`**, **`FOLLOW_PATH`** y **`CHARGE_MODE`**.
+- **`/move_base/status`** (actionlib_msgs/GoalStatusArray)
 
-#### Suscriptor
+  Revisa si se sigue ejecutando el stack de navegación.
 
-- **`<ns_topic>/plan_ready`** (std_msgs/Empty)
+### 3. RUN_PLAN_CUSTOM
 
-  Comando para volver a ejecutar la navegación.
+Igual que el estado `RUN_PLAN`, pero emplea más ajustes para la navegación entre waypoints como por ejemplo la repetición, tiempo entre recorridos, etc.
 
-- **`<ns_topic>/plan_reset`** (std_msgs/Empty)
+### 4. RUN_PARKING_STATION_CHARGE
 
-  Comando para volver al estado de selección de rutas.
-
-- **`<ns_topic>/run_charge_mode`** (std_msgs/Empty)
-
-  Comando para cambiar al estado **`CHARGE_MODE`**.
-
-### 4. CHARGE_MODE
-
-Estado del robot para desplazarce hasta la base de carga y quedarse estacionado. Para el desplazamiento es necesario que el apriltag este visible para la cámara del robot. Una vez finalizado, cambia al estado **`GET_PATH`**.
+Estado del robot para desplazarce hasta la base de carga y quedarse estacionado. Para el desplazamiento es necesario que el apriltag esté visible para la cámara del robot. Una vez finalizado, cambia al estado **`PLAN_CONFIGURATION`**.
 
 #### Publicador
 
@@ -227,6 +217,10 @@ Estado del robot para desplazarce hasta la base de carga y quedarse estacionado.
 - **`/move_base/cancel`** (actionlib_msgs/GoalID)
 
   Comando para cancelar la navegación con **`move_base`**.
+
+- **`/puma/control/change_mode`** (std_msgs/String)
+
+  Comando para cambiar el modo de control del robot.
 
 #### Suscriptor
 
