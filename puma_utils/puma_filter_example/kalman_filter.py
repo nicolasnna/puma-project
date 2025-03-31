@@ -11,7 +11,7 @@ import math
 
 class FiltroKalmanData:
     """
-    Filtro de Kalman orientado a las mediciones RSSI en una posición estática.
+    Filtro de Kalman orientado a las mediciones unidimensionales
     """
     """
     P: Matriz de covarianza del error de la estimación
