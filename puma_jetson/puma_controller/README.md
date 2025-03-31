@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Paquete ROS noetic para el control de velocidades del robot PUMA. En este paquete se encuentra un convertidor de velocidades lineales y angulares a ackermann (velocidad lineal y angulo de las ruedas), un control de velocidad entre velocidad lineal y valores pwm para el acelerador y por último, un nodo para publicar velocidades en el tópico **`cmd_vel`** para pruebas.
+Paquete ROS noetic para el control de movimiento del robot Puma. Este control considera que el tópico `cmd_vel` entrega la velocidad linear y dirección de las ruedas. Adicionalmente puede trabajar con un tópico de entrada del tipo `ackermann_msgs/AckermannDriveStamped`. Por último, un nodo para publicar velocidades en el tópico **`cmd_vel`** para pruebas.
 
 ## Instalación
 
@@ -27,17 +27,22 @@ Los nodos pueden ejecutarse de manera individual:
 
 Se tiene un único launch para ejecutar tanto **`convert_ackermann_node.py`** como **`puma_controller`**, y con subida de parámetros de **`puma_controller.yaml`**:
 
-    roslaunch puma_controller puma_velocity.launch
+    roslaunch puma_controller puma_controller.launch
 
 ## Launch
 
-- **puma_velocity.launch:** Lanzador de los nodos **`puma_controller`** y **`convert_ackermann`** para el control del robot puma a partir de velocidades lineales y angulares. Tambien se realiza la carga del archivo **`config/puma_controller.yaml`**.
+- **puma_velocity.launch:** Lanzador de los nodos **`puma_controller`** y **`convert_ackermann`** para el control del robot puma a partir de velocidades lineales y angulares. También se realiza la carga del archivo **`config/puma_controller.yaml`**.
 
 ## Nodos
 
 ### puma_controller
 
-Se encarga del control del robot según los valores obtenidos en **`ackermann_msgs`**, variando el valor del acelerador, la reversa, dirección, y frenos. Adicionalmente se tiene un selector de modos para deshabilitarlo en caso de pasar a un control manual.
+Se encarga del control del robot variando el valor del acelerador, la reversa, dirección, y frenos, según el modo empleado. Para ello revisa periódicamente el modo actual del robot con `puma_mode_control`. Se tiene 4 modos válidos para emplear el control:
+
+- `idle`: Modo en espera. Publica aceleración mínima, dirección desactivada, reversa desactivada, freno activado y deshabilita el acelerador.
+- `joystick`: Modo manual con joystick. Usa los datos entregados por `puma_joy` para controlar el robot.
+- `navegacion`: Modo navegación. Usa lo recibido por `cmd_vel` o en ackermann si se configura, para el control.
+- `web`: Modo control por web app. Usa lo recibido desde la app web por medio de una base de datos, para el control del robot. Más información en el paquete `puma_web_interface`.
 
 #### Suscriptores
 
@@ -49,7 +54,7 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
  Considera la velocidad angular Z como ángulo para el giro de ruedas. Se utiliza los valores recibidos por este tópico para el control por PID sin utilizar el convertidor ackermann.
 
-- **`/puma/odometry/filtered`** (nav_msgs/Odometry)
+- **`/puma/localization/ekf_odometry`** (nav_msgs/Odometry)
 
   Recibe el estado de localización actual del robot.
 
@@ -59,7 +64,15 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
 - **`/puma/web/teleop`** (puma_msgs/WebTeleop)
 
-  Obtiene el comando para teleoperar el robot por medio de la web cuando esta en modo 'web'.
+  Obtiene el comando para teleoperar el robot por medio de la web cuando está en modo 'web'.
+
+- **`/puma/arduino/status`** (puma_msgs/StatusArduino)
+
+  Recibe el estado del arduino Mega, comprueba si se ha activado la señal de seguridad.
+
+- **`/move_base/status`** (actionlib_msgs/GoalStatusArray)
+
+  Revisa el estado de `move_base`, en caso de no detectar su funcionamiento en un tiempo determinado, deshabilita el control en el modo `navegacion`.
 
 #### Publicadores
 
@@ -83,6 +96,9 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
   Envía el ángulo en radianes de la dirección objetivo de las ruedas delanteras.
 
+- **`/puma/logs/add_log`** (puma_msgs/Log)
+
+  Envía logs respecto al control.
 
 #### Parámetros
 
@@ -98,7 +114,7 @@ Se encarga del control del robot según los valores obtenidos en **`ackermann_ms
 
   - **`~connect_to_ackermann_converter`** (Bool, default: false)
 
-    Habilita la conexión con nodo de conversion a ackermann para definir el angulo a usar en el robot. En caso de False, se usa la velocidad angular z de Cmd_Vel para definir el ángulo.
+    Habilita la conexión con nodo de conversion a ackermann para definir el angulo a usar en el robot. En caso de False, se usa la velocidad angular Z de Cmd_Vel para definir el ángulo.
 
   - **`~kp`** (Float, default: 0.3)
   
@@ -120,7 +136,7 @@ Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a veloci
 
 - **`/cmd_vel`** (geometry_msgs/Twist)
 
-  Recibe los comandos de velocidades objetivo.
+  Recibe los comandos de velocidades objetivos.
 
 - **`/puma/arduino/status`** (puma_arduino_msgs/StatusArduino)
 
@@ -134,7 +150,7 @@ Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a veloci
 
 - **`/puma/control/ackermann`** (ackermann_msgs/AckermannDriveStamped)
 
-  Comandos de velocidad transformadas para un sistema ackermann.
+  Comandos de velocidad transformada para un sistema ackermann.
 
 #### Parámetros
 
