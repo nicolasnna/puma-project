@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Plugin de planificador local para move_base en ROS Noetic. Este planificador esta basado en el algoritmo DWA con modificaciones, pensadas para el robot PUMA.
+Plugin de planificador local para move_base en ROS Noetic. Este planificador esta basado en el algoritmo DWA con modificaciones, pensadas para el robot PUMA. Considera uso de waypoints para ser utilizado.
 
 ## Compilación
 
@@ -23,7 +23,7 @@ Se realiza compilación por [catkin_tools](https://catkin-tools.readthedocs.io/e
 
 ## Incorporar en move_base
 
-Para usarlo como planificador global es necesario definir el parámetro **base_local_planner**:
+Para usarlo como planificador local es necesario definir el parámetro **base_local_planner**:
 
     <param name="base_local_planner" value="puma_dwa_local_planner/PumaDwaLocalPlanner" /> 
 
@@ -53,7 +53,7 @@ Este planificador tiene los siguientes publicadores y suscriptores:
 
 - **`/<odom>`** (nav_msgs/Odometry)
 
-  Se suscribe al topico de odometria  definido en los parámetros del planificador. Los datos recibidos se usa para el control de distancia de retroceso y velocidad a emplear.
+  Se suscribe al topico de odometria definido en los parámetros del planificador. Los datos recibidos se usa para el control de distancia de retroceso y velocidad a emplear.
 
 ### Parámetros
 

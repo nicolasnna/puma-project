@@ -2,7 +2,7 @@
 
 ## Resumen
 
-Plugin de planificador global para move_base en ROS Noetic. Este planificador esta basado en el algoritmo Astar Hybrid, que busca la ruta más corta tomando encuenta la busqueda por celdas considerando (x, y, theta).
+Plugin de planificador global para move_base en ROS Noetic. Este planificador está basado en el algoritmo Astar Hybrid, que busca la ruta más corta tomando en cuenta la busqueda por celdas considerando (x, y, theta). Considera el uso de waypoints para ser utilizado.
 
 ## Compilación
 

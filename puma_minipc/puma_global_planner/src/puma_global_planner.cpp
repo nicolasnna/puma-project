@@ -34,7 +34,7 @@ namespace puma_global_planner
       dr_srv_->setCallback(cb);
       
       plan_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan", 1);
-      plan_post_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan_post", 1);
+      plan_post_pub_ = private_nh.advertise<nav_msgs::Path>("global_plan_dubin", 1);
       
       initialized_ = true;
     }
