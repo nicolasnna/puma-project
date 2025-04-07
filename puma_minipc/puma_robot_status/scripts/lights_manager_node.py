@@ -45,6 +45,7 @@ def rutine_security_lights():
     return False
   rospy.sleep(0.2)
   ''' Proceso 2 - prender rele '''
+  msg = Bool()
   msg.data = True
   security_pub.publish(msg)
   rospy.sleep(0.4)
