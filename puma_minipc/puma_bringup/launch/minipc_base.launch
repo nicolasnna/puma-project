@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Arduino -->
+  <include file="$(find puma_bringup)/launch/core/arduino.launch"/>
+  <!-- Monitor temperature -->
+  <include file="$(find puma_bringup)/launch/core/minipc_monitor.launch"/>
+
+</launch>

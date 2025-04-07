@@ -1,27 +1,15 @@
 <?xml version="1.0"?>
 <launch>
   
-  <!-- Arduino -->
-  <include file="$(find puma_bringup)/launch/core/arduino.launch"/>
-
   <!-- camera -->
   <include file="$(find puma_bringup)/launch/camera_bringup.launch"/>
 
   <!-- Navigation -->
   <include file="$(find puma_bringup)/launch/navigation/new_navigation_bringup.launch"/>
   
-  <!-- Monitor temperature -->
-  <include file="$(find puma_bringup)/launch/core/minipc_monitor.launch"/>
-  
   <include file="$(find puma_bringup)/launch/core/nav_manager.launch"/>
 
   <include file="$(find puma_state_machine)/launch/state_machine_v2.launch"/>
-
-  <!-- Estado de bateria y obtención de estadísticas -->
-  <include file="$(find puma_robot_status)/launch/robot_statistics.launch"/>
-  <include file="$(find puma_robot_status)/launch/battery_status.launch"/>
-  <!-- Logger -->
-  <include file="$(find puma_robot_status)/launch/logger.launch"/>
 
   <!-- Localization -->
   <include file="$(find puma_bringup)/launch/localization/imu_filter_realsense.launch"/>

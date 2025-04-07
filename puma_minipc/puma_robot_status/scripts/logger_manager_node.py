@@ -39,9 +39,12 @@ class LogManager:
     # Añade un log con la fecha actual
     log.date_text = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     self.logs_data.logs.append(log)
-    text = f"{log.date_text} - {log.level} - {log.node} - {log.content}"
-    self.writeToFile.write(text)
-
+    text = f"{log.date_text} ; {log.level} ; {log.node} ; {log.content}"
+    try:
+      self.writeToFile.write(text)
+    except Exception as e:
+      rospy.logwarn(f"Error al escribir el log en el archivo: {e}")
+  
   def clean_logs(self, _):
     # Limpia los logs
     self.logs_data = LogArray()

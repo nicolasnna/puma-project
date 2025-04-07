@@ -1,0 +1,16 @@
+[Unit]
+Description=Inicializando utilidades para estado del robot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Environment="ROS_MASTER_URI=http://10.42.0.100:11311"
+Environment="ROS_IP=10.42.0.100"
+ExecStart=/usr/local/bin/puma-robot-status.sh
+Restart=always
+RestartSec=10
+StartLimitInterval=60
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target

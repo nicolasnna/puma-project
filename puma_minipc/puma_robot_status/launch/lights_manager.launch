@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node name="lights_manager" pkg="puma_robot_status" type="lights_manager_node.py"  output="log" respawn="true" respawn_delay="4">
+  <node name="lights_manager" pkg="puma_robot_status" type="lights_manager_node.py" output="log" respawn="true" respawn_delay="4">
     
   </node>
 

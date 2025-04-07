@@ -118,5 +118,9 @@ def main():
   front_pub = rospy.Publisher(LIGHT_FRONT, Bool, queue_size=10)
   server = actionlib.SimpleActionServer('/puma/control/lights', LightsManagerAction, execute_cb=execute_srv, auto_start=False)
   server.start()
+  send_log_message("Nodo de control de luces iniciado.", 0)
   
   rospy.spin()
+  
+if __name__ == "__main__":
+  main()

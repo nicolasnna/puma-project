@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <include file="$(find puma_robot_status)/launch/battery_status.launch"/>
+  <include file="$(find puma_robot_status)/launch/lights_manager.launch"/>
+  <include file="$(find puma_robot_status)/launch/robot_statistics.launch"/>  
+  <include file="$(find puma_robot_status)/launch/logger.launch"/>
+  <include file="$(find puma_robot_status)/launch/reboot_ptz.launch"/>
+
+</launch>
