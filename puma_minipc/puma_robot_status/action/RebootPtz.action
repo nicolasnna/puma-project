@@ -1,0 +1,10 @@
+# Goal
+string REBOOT = "reboot"
+string action
+---
+# Result
+bool success
+string message
+--- 
+# Feedback
+float32 progress

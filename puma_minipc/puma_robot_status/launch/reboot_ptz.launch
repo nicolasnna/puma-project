@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="reboot_ptz" pkg="puma_robot_status" type="reboot_ptz_node.py" output="log" respawn="true" respawn_delay="5">
+    <param name="ip_ptz" value="10.42.0.103"/>
+    <param name="user_ptz" value="admin"/>
+    <param name="password_ptz" value="smartbot2023"/>
+  </node>
+
+</launch>
