@@ -20,7 +20,8 @@ def get_logs(client):
     goal.action = LoggerManagerGoal.GET_LOG_AND_CLEAN
     client.send_goal(goal)
     client.wait_for_result(rospy.Duration(3))
-    return client.get_result().log_array
+    result = client.get_result()
+    return result.log_array.logs
   except Exception as e:
     rospy.logwarn(f"Error al conectar con el servidor: {e}")
     return []
@@ -53,8 +54,8 @@ def main():
   
   while not rospy.is_shutdown():
     logs_msgs = get_logs(client_log)
-    if isinstance(logs_msgs.logs, list) and len(logs_msgs.logs) > 0:
-      logArray = [convert_log_to_dict(log) for log in logs_msgs.logs]
+    if isinstance(logs_msgs, list) and len(logs_msgs) > 0:
+      logArray = [convert_log_to_dict(log) for log in logs_msgs]
       send_logs_to_backend({"logs":logArray}, headers, BACKEND_URL)
     rospy.sleep(5)
 

@@ -3,7 +3,7 @@ import rospy
 import requests
 from puma_web_interface.translate_command import translate_command
 from puma_web_interface.utils import *
-import json
+import time
 from datetime import datetime
 
 def get_remain_command_robot():
@@ -15,7 +15,7 @@ def get_remain_command_robot():
     else:
       rospy.logwarn(f"get_data_backebd -> Error al obtener datos: {response.status_code} - {response.text}")
   except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"get_data_backebd -> Error al obtener datos: {e}")
+    rospy.logwarn(f"get_data_backend -> Error al obtener datos: {e}")
     
 def update_complete_command(id):
   global headers, BACKEND_URL
@@ -24,9 +24,9 @@ def update_complete_command(id):
     if response.status_code == 200:
       return response
     else:
-      rospy.logwarn(f"get_data_backebd -> Error al actualizar datos: {response.status_code} - {response.text}")
+      rospy.logwarn(f"get_data_backend -> Error al actualizar datos: {response.status_code} - {response.text}")
   except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"get_data_backebd -> Error al actualizar datos: {e}")
+    rospy.logwarn(f"get_data_backend -> Error al actualizar datos: {e}")
     
 def check_and_send_remain_commands():
   global completed_commands, intial_configuration
@@ -44,10 +44,12 @@ def check_and_send_remain_commands():
   if res:
     try:
       res_cmd = res.json()
-      if isinstance(res_cmd, list) and res_cmd:  # Si es una lista y no está vacía
+      rospy.loginfo(res_cmd)
+      if isinstance(res_cmd, list) and len(res_cmd)>0:  # Si es una lista y no está vacía
         for cmd in res_cmd:
           # if cmd not in completed_commands:
           ''' Comprobar si el comando fue enviado hace menos de 5 minutos '''
+          rospy.loginfo(cmd)
           time = datetime.fromisoformat(cmd['updated_at'])
           if time.tzinfo is None:
             time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
@@ -68,7 +70,7 @@ def check_and_send_remain_commands():
 
               
     except ValueError:
-      rospy.logwarn("get_data_backebd -> Error: Response content is not valid JSON")
+      rospy.logwarn("get_data_backend -> Error: Response content is not valid JSON")
       
 def clear_completed_commands_db():
   global headers, BACKEND_URL
@@ -90,22 +92,19 @@ if __name__ == "__main__":
     global headers, completed_commands, intial_configuration
     intial_configuration = False
     completed_commands = []
-  
-    try: 
-      token = get_token(BACKEND_URL)
-    except Exception as e:
-      rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
-      
+    token = None
+    
     while not token:
-      rospy.loginfo("Token no encontrado, esperando 3 segundos")
-      rospy.sleep(3)
-      token = get_token(BACKEND_URL)
+      rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
+      time.sleep(3)
+      try: 
+        token = get_token(BACKEND_URL)
+      except Exception as e:
+        rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
   
     bearer_token = f"Bearer {str(token)}"
     headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
   
-    rate = rospy.Rate(1)
-    
     while not rospy.is_shutdown():
       check_and_send_remain_commands()
-      rate.sleep()
+      time.sleep(3)

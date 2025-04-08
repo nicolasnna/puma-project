@@ -3,7 +3,7 @@ import rospy
 import requests
 import json
 from sensor_msgs.msg import CompressedImage, NavSatFix, BatteryState
-from puma_msgs.msg import StatusArduino, WaypointNav, Waypoint
+from puma_msgs.msg import StatusArduino, WaypointNav, Waypoint, StatusArduinoRelay
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from smach_msgs.msg import SmachContainerStatus
@@ -89,6 +89,14 @@ def wp_list_cb(data: WaypointNav):
   global wp_list
   waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
   wp_list = {"data": {"waypoints": waypoints}}
+
+def arduino_relay_cb(data: StatusArduinoRelay):
+  global arduino_relay
+  data_to_send = {
+    "charge_connection": data.charge_connection,
+    "front_lights": data.lights_front
+  }
+  arduino_relay = {"data": data_to_send}
     
 def setting_up():
   rospy.Subscriber("/puma/sensors/camera_front/color/image_raw/compressed", CompressedImage, realsense_front_cb)
@@ -102,10 +110,10 @@ def setting_up():
   rospy.Subscriber("/puma/navigation/waypoints_completed", WaypointNav, wp_completed_cb )
   rospy.Subscriber("/puma/navigation/waypoints_remained", WaypointNav, wp_remained_cb)
   rospy.Subscriber("/puma/navigation/waypoints_list", WaypointNav, wp_list_cb)
-  
+  rospy.Subscriber("/puma/arduino/status_relay", StatusArduinoRelay, arduino_relay_cb)
   
 def get_msg_to_send():
-  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list
+  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list, arduino_relay
   
   data = {}
   
@@ -131,6 +139,8 @@ def get_msg_to_send():
     data["waypoint_remained"] = wp_remained
   if wp_list:
     data["waypoint_list"] = wp_list
+  if arduino_relay:
+    data["arduino_relay"] = arduino_relay
   
   return {"data": data}
 
@@ -152,11 +162,11 @@ if __name__ == "__main__":
   global BACKEND_URL, headers
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
   # Creación de variables globales
-  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list
+  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list, arduino_relay
   # Inicialización de variables
   realsense_front = realsense_rear = None 
   gps = arduino_status = control_mode = odometry = state_machine = battery = None
-  wp_completed = wp_remained = wp_list = None
+  wp_completed = wp_remained = wp_list = arduino_relay = None
   
   rospy.loginfo("Obteniendo token")
   try: 

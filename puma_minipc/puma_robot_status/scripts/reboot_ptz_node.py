@@ -41,7 +41,7 @@ def execute_srv(goal: RebootPtzGoal):
   global server
   result = RebootPtzResult()
   
-  if goal.action == "reboot":
+  if goal.action == RebootPtzGoal.REBOOT:
     send_log_message("Reiniciando PTZ...", 0)
     # Simulate reboot action
     if send_reboot_request():

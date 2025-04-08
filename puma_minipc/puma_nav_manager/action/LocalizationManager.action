@@ -1,6 +1,6 @@
 # Goal
-string ACTION_CHANGE_ANGLE = "change_angle"
-string ACTION_RESET_POSITION = "reset_position"
+string ACTION_CHANGE_ANGLE = change_angle
+string ACTION_RESET_POSITION = reset_position
 string action
 std_msgs/Float64 angle_deg
 ---

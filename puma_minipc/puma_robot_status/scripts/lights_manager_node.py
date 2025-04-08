@@ -93,15 +93,15 @@ def execute_srv(goal: LightsManagerGoal):
   global server
   result = LightsManagerResult()
   
-  if goal.action == "security":
+  if goal.action == LightsManagerGoal.ACTION_SECURITY_SIGNAL:
     state = rutine_security_lights()
     result.success = state
     result.message = "Se ha cambiado el modo de la luz de seguridad correctamente." if state else "No se ha logrado cambiar el modo de la luz de seguridad."
-  elif goal.action == "front_activate":
+  elif goal.action == LightsManagerGoal.ACTION_FRONT_ACTIVATE:
     state = rutine_front_lights_activate()
     result.success = state
     result.message = "Se ha activado la luz frontal correctamente." if state else "No se ha logrado activar la luz frontal."
-  elif goal.action == "front_deactivate":
+  elif goal.action == LightsManagerGoal.ACTION_FRONT_DEACTIVATE:
     state = rutine_front_lights_deactivate()
     result.success = state
     result.message = "Se ha desactivado la luz frontal correctamente." if state else "No se ha logrado desactivar la luz frontal."

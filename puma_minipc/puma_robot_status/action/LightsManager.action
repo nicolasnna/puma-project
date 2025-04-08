@@ -1,7 +1,7 @@
 # Goal
-string ACTION_SECURITY_SIGNAL = "security"
-string ACTION_FRONT_ACTIVATE = "front_activate"
-string ACTION_FRONT_DEACTIVATE = "front_deactivate"
+string ACTION_SECURITY_SIGNAL = security
+string ACTION_FRONT_ACTIVATE = front_activate
+string ACTION_FRONT_DEACTIVATE = front_deactivate
 string action
 ---
 # Result

@@ -1,5 +1,5 @@
 # Goal
-string REBOOT = "reboot"
+string REBOOT = reboot
 string action
 ---
 # Result

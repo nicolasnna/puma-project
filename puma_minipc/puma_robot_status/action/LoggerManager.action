@@ -1,5 +1,5 @@
 # Goal
-string GET_LOG_AND_CLEAN = "get_log_and_clean"
+string GET_LOG_AND_CLEAN = get_log_and_clean
 string action
 ---
 # Result
