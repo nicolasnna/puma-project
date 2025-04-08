@@ -10,6 +10,7 @@ from smach_msgs.msg import SmachContainerStatus
 from puma_web_interface.utils import *
 import base64
 from datetime import datetime
+import time
 
 def realsense_front_cb(data: CompressedImage):
   global realsense_front
@@ -168,15 +169,14 @@ if __name__ == "__main__":
   gps = arduino_status = control_mode = odometry = state_machine = battery = None
   wp_completed = wp_remained = wp_list = arduino_relay = None
   
-  rospy.loginfo("Obteniendo token")
-  try: 
-    token = get_token(BACKEND_URL)
-  except Exception as e:
-    rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
+  token = None
   while not token:
-    rospy.loginfo(f"{rospy.get_name()} - Token no encontrado, esperando 3 segundos")
-    rospy.sleep(3)
-    token = get_token(BACKEND_URL)
+    rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
+    time.sleep(3)
+    try: 
+      token = get_token(BACKEND_URL)
+    except Exception as e:
+      rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
   
   bearer_token = f"Bearer {str(token)}"
   headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
@@ -185,4 +185,4 @@ if __name__ == "__main__":
   
   while not rospy.is_shutdown():
     run_send()
-    rospy.Rate(2).sleep()
+    time.sleep(1)

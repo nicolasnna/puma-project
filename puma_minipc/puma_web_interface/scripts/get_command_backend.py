@@ -44,12 +44,11 @@ def check_and_send_remain_commands():
   if res:
     try:
       res_cmd = res.json()
-      rospy.loginfo(res_cmd)
       if isinstance(res_cmd, list) and len(res_cmd)>0:  # Si es una lista y no está vacía
         for cmd in res_cmd:
           # if cmd not in completed_commands:
           ''' Comprobar si el comando fue enviado hace menos de 5 minutos '''
-          rospy.loginfo(cmd)
+          # rospy.loginfo(cmd)
           time = datetime.fromisoformat(cmd['updated_at'])
           if time.tzinfo is None:
             time = time.replace(tzinfo=ZoneInfo("Chile/Continental"))
@@ -92,8 +91,8 @@ if __name__ == "__main__":
     global headers, completed_commands, intial_configuration
     intial_configuration = False
     completed_commands = []
-    token = None
     
+    token = None
     while not token:
       rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
       time.sleep(3)

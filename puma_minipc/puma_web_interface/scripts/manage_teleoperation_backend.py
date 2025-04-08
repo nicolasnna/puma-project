@@ -5,6 +5,7 @@ from datetime import datetime
 from puma_web_interface.utils import get_token
 from std_msgs.msg import String
 from puma_msgs.msg import WebTeleop
+import time
 
 def get_control_mode(msg):
   global current_mode
@@ -54,11 +55,14 @@ if __name__ == "__main__":
   rospy.Subscriber("puma/control/current_mode", String, get_control_mode)
   teleop_pub = rospy.Publisher("puma/web/teleop", WebTeleop, queue_size=3)
 
-  token = get_token(BACKEND_URL)
+  token = None
   while not token:
-    rospy.loginfo(f"{rospy.get_name()} - Token no encontrado, esperando 3 segundos")
-    rospy.sleep(3)
-    token = get_token(BACKEND_URL)
+    rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
+    time.sleep(3)
+    try: 
+      token = get_token(BACKEND_URL)
+    except Exception as e:
+      rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
   
   bearer_token = f"Bearer {str(token)}"
   headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
