@@ -142,12 +142,24 @@ def change_front_lights_fn(cmd):
     client_lights_manager.send_goal(goal)
     client_lights_manager.wait_for_result(rospy.Duration(5))
     result = client_lights_manager.get_result()
-    rospy.loginfo(result.message)
     return result.success
   except Exception as e:
-    send_log_msg(f"Error al conectar con el servidor: {e}", 1)
+    send_log_msg(f"Error al ejecutar la acción: {e}", 1)
     return False
-    
+
+def change_security_lights_fn(cmd):
+  send_log_msg(f"Detectado comando para cambiar el modo de la baliza de seguridad", 0)
+  try:
+    client_lights_manager.wait_for_server(rospy.Duration(5))
+    goal = LightsManagerGoal()
+    goal.action = LightsManagerGoal.ACTION_SECURITY_SIGNAL
+    client_lights_manager.send_goal(goal)
+    client_lights_manager.wait_for_result(rospy.Duration(5))
+    result = client_lights_manager.get_result()
+    return result.success
+  except Exception as e:
+    send_log_msg(f"Error al ejecutar la acción: {e}", 1)
+    return False
   
 translate_command = {
   "start_plan": start_plan_fn,
@@ -160,4 +172,5 @@ translate_command = {
   "change_angle_robot": change_angle_degree_fn,
   "change_mode_robot": change_mode_fn,
   "change_front_lights": change_front_lights_fn,
+  "change_security_lights": change_security_lights_fn
 }
