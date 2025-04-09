@@ -3,6 +3,11 @@ import threading
 import cv2
 import rospy
 import base64
+import time
+
+def get_rtsp_url(user, password, ip, channel, subtype):
+  ''' Función para construir la URL RTSP de la cámara '''
+  return f"rtsp://{user}:{password}@{ip}:554/cam/realmonitor?channel={channel}&subtype={subtype}"
 
 class AsyncVideoCapture:
   ''' Clase para capturar video de una cámara IP con asyncio - No bloqueante '''
@@ -34,9 +39,10 @@ class AsyncVideoCapture:
           self.queue.get_nowait()
         self.queue.put(frame)
       except Exception as e:
-        rospy.logerr(f"Error captura: {str(e)}")
+        rospy.logerr(f"Error capturando el frame: {e}")
         cap.release()
         self.running = False
+    time.sleep(0.2)
         
   def get_frame(self):
     return self.queue.get()
@@ -57,4 +63,4 @@ class AsyncVideoCapture:
         # Convierte los bytes a una cadena base64
     jpeg_base64 = base64.b64encode(jpeg_bytes).decode('utf-8')
     
-    return jpeg_base64
+    return jpeg_bytes

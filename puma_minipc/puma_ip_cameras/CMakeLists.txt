@@ -159,9 +159,9 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/show_camera_ip.py
-  scripts/show_camera_ip_encoded.py
   scripts/send_camera_to_backend.py
   scripts/ipcam_websocket.py
+  scripts/publish_camera_ip.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
