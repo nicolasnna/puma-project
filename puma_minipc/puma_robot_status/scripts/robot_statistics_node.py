@@ -60,85 +60,79 @@ def execute_cb(goal: RobotStatisticsGoal):
     result.message = 'Acción no reconocida'
   server.set_succeeded(result)
   
+data_recollect = {
+  "battery": None,
+  "gps": None,
+  "angle": None,
+  "vel_x": None,
+  "distance": 0,
+  "front_color": None,
+  "rear_color": None,
+  "front_depth": None,
+  "rear_depth": None,
+  "wp_completed": None,
+  "wp_remained": None,
+  "wp_list": None,
+  "control_mode": None,
+  "time": None
+}
+subscribers = []
+
 def statistics_manager():
-  global run_statistics, statistics, battery, gps, angle, vel_x, distance, front_color, rear_color, front_depth, rear_depth, last_time_odom
+  global run_statistics, statistics
   if run_statistics:
-    statistics.append({
-      "battery": battery,
-      "gps": gps,
-      "angle": angle,
-      "vel_x": vel_x,
-      "distance": distance,
-      "front_color": front_color,
-      "rear_color": rear_color,
-      "front_depth": front_depth,
-      "rear_depth": rear_depth,
-      "wp_completed": wp_completed,
-      "wp_remained": wp_remained,
-      "wp_list": wp_list,
-      "control_mode": control_mode,
-      "time": time_chile_now()
-    })
+    data_recollect["time"] = time_chile_now()
+    statistics.append(data_recollect)
   else:
     statistics = []
 
 def battery_cb(msg: BatteryState):
-  global battery
-  battery = msg.percentage
+  data_recollect["battery"] = msg.percentage
   
 def gps_cb(msg: NavSatFix):
-  global gps
-  gps = {"latitude": msg.latitude, "longitude": msg.longitude, "altitude": msg.altitude}
+  data_recollect["gps"] = {"latitude": msg.latitude, "longitude": msg.longitude, "altitude": msg.altitude}
 
 def arduino_cb(msg: StatusArduino):
-  global angle
-  angle = msg.direction.degree_angle
+  data_recollect["angle"] = msg.direction.degree_angle
 
 def odom_cb(msg: Odometry):
-  global vel_x, distance, last_time_odom
+  global last_time_odom
   current_time = msg.header.stamp
   if last_time_odom is None:
     last_time_odom = current_time
   else:
-    distance += vel_x * (current_time - last_time_odom).to_sec()
+    data_recollect["distance"] += data_recollect["vel_x"] * (current_time - last_time_odom).to_sec()
     last_time_odom = current_time
-  vel_x = msg.twist.twist.linear.x
+  data_recollect["vel_x"] = msg.twist.twist.linear.x
 
 def rs_front_color_cb(msg: CompressedImage):
-  global front_color
-  front_color = base64.b64encode(msg.data).decode('utf-8')
+  data_recollect["front_color"] = base64.b64encode(msg.data).decode('utf-8')
   
 def rs_rear_color_cb(msg: CompressedImage):
-  global rear_color
-  rear_color = base64.b64encode(msg.data).decode('utf-8')
+  data_recollect["rear_color"] = base64.b64encode(msg.data).decode('utf-8')
 
 def rs_front_depth_cb(msg: CompressedImage):
-  global front_depth
-  front_depth = base64.b64encode(msg.data).decode('utf-8')
+  data_recollect["front_depth"] = base64.b64encode(msg.data).decode('utf-8')
 
 def rs_rear_depth_cb(msg: CompressedImage):
-  global rear_depth
-  rear_depth = base64.b64encode(msg.data).decode('utf-8')
+  data_recollect["rear_depth"] = base64.b64encode(msg.data).decode('utf-8')
   
 def wp_completed_cb(msg: WaypointNav):
-  global wp_completed
-  wp_completed = [waypoint_to_dict(wp) for wp in msg.waypoints]
+  data_recollect["wp_completed"] = [waypoint_to_dict(wp) for wp in msg.waypoints]
 
 def wp_remained_cb(msg: WaypointNav):
-  global wp_remained
-  wp_remained = [waypoint_to_dict(wp) for wp in msg.waypoints]
+  data_recollect["wp_remained"] = [waypoint_to_dict(wp) for wp in msg.waypoints]
 
 def wp_list_cb(msg: WaypointNav):
-  global wp_list
-  wp_list = [waypoint_to_dict(wp) for wp in msg.waypoints]
+  data_recollect["wp_list"] = [waypoint_to_dict(wp) for wp in msg.waypoints]
   
 def mode_control_cb(msg: String):
-  global control_mode
-  control_mode = msg.data
+  data_recollect["control_mode"] = msg.data
   
 def subscriber(is_simulated: bool):
   global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, wp_complete_sub, wp_remained_sub, wp_list_sub, control_mode_sub
   init_values()
+  
   
   battery_sub = rospy.Subscriber('/puma/sensors/battery/status', BatteryState, battery_cb)
   gps_sub = rospy.Subscriber('/puma/sensors/gps/fix', NavSatFix, gps_cb)
@@ -231,21 +225,9 @@ def get_token(BACKEND_URL):
     rospy.logwarn(f"Error al obtener token: {e}")
     
 def init_values():
-  global battery, gps, angle, vel_x, distance, front_color, rear_color, front_depth, rear_depth, last_time_odom, wp_completed, wp_remained, wp_list, control_mode, start_at
-  battery = None
-  gps = None
-  angle = None
-  vel_x = None
-  distance = 0
-  front_color = None
-  rear_color = None
-  front_depth = None
-  rear_depth = None
-  last_time_odom = None
-  wp_completed = None
-  wp_remained = None
-  wp_list = None
-  control_mode = None
+  global start_at
+  for key, value in data_recollect.items():
+    data_recollect[key] = None if key != "distance" else 0
   start_at = time_chile_now()
     
 def main():
@@ -268,4 +250,7 @@ def main():
     rospy.Rate(1).sleep()
     
 if __name__ == "__main__":
-  main()
+  try:
+    main()
+  except rospy.ROSInterruptException:
+    pass
