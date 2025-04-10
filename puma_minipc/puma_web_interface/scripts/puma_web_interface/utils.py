@@ -2,7 +2,7 @@
 import rospy
 import requests
 from datetime import datetime
-from puma_msgs.msg import Log
+from puma_msgs.msg import Log, Waypoint
 try:
   from zoneinfo import ZoneInfo
 except ImportError:
@@ -42,3 +42,12 @@ def send_log_msg(content,level):
   elif level == 2:
     rospy.logerr(text)
   add_log_pub.publish(log)
+  
+def waypoint_to_dict(waypoint: Waypoint):
+  return {
+    "x": waypoint.x,
+    "y": waypoint.y,
+    "yaw": waypoint.yaw,
+    "latitude": waypoint.latitude,
+    "longitude": waypoint.longitude,
+  }

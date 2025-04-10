@@ -3,7 +3,7 @@ import rospy
 import requests
 import json
 from sensor_msgs.msg import CompressedImage, NavSatFix, BatteryState
-from puma_msgs.msg import StatusArduino, WaypointNav, Waypoint, StatusArduinoRelay
+from puma_msgs.msg import StatusArduino, WaypointNav, StatusArduinoRelay
 from nav_msgs.msg import Odometry
 from std_msgs.msg import String
 from smach_msgs.msg import SmachContainerStatus
@@ -12,40 +12,54 @@ import base64
 from datetime import datetime
 import time
 
+DATA_TO_SEND = {
+  "realsense_front": None,
+  "realsense_rear": None, 
+  "gps": None, 
+  "arduino_status": None, 
+  "control_mode": None, 
+  "odometry": None, 
+  "state_machine": None, 
+  "battery": None, 
+  "waypoint_completed": None, 
+  "waypoint_remained": None, 
+  "waypoint_list": None, 
+  "arduino_relay": None,
+  "nvr_cam1": None,
+  "nvr_cam2": None,
+  "nvr_cam3": None,
+  "realsense_front_depth": None,
+  "realsense_rear_depth": None,
+}
+
 def realsense_front_cb(data: CompressedImage):
-  global realsense_front
   image = base64.b64encode(data.data).decode('utf-8')
-  realsense_front = { "data": {"image": image} }
+  DATA_TO_SEND["realsense_front"] = { "data": {"image": image} }
     
 def realsense_rear_cb(data: CompressedImage):
-  global realsense_rear
   image = base64.b64encode(data.data).decode('utf-8')
-  realsense_rear = { "data": {"image": image} }
+  DATA_TO_SEND["realsense_rear"] = { "data": {"image": image} }
     
 def gps_cb(data: NavSatFix):
-  global gps
-  data_to_send = {"latitude": data.latitude, "longitude": data.longitude, "altitude": data.altitude}
-  gps = { "data": data_to_send }
+  gps = {"latitude": data.latitude, "longitude": data.longitude, "altitude": data.altitude}
+  DATA_TO_SEND["gps"] = { "data": gps }
 
 def arduino_status_cb(data: StatusArduino):
-  global arduino_status
-  data_to_send = {
+  status = {
     "brake": data.brake.activate, 
     "steering_degree": data.direction.degree_angle, 
     "steering_radian": data.direction.radian_angle,
     "voltage_accel": data.accelerator.voltage_out,
     "pwm": data.accelerator.pwm,
     "security_signal": data.control.security_signal}
-  arduino_status = { "data": data_to_send }
+  DATA_TO_SEND["arduino_status"] = { "data": status }
     
 def mode_control_cb(data: String):
-  global control_mode
-  data_to_send = {"mode": data.data}
-  control_mode = { "data": data_to_send }
+  control = {"mode": data.data}
+  DATA_TO_SEND["control_mode"] = { "data": control }
     
 def odometry_cb(data: Odometry):
-  global odometry
-  data_to_send = {
+  odometry = {
     "pos_x": data.pose.pose.position.x,
     "pos_y": data.pose.pose.position.y,
     "pos_z": data.pose.pose.position.z,
@@ -56,95 +70,86 @@ def odometry_cb(data: Odometry):
     "linear_x": data.twist.twist.linear.x,
     "angular_z": data.twist.twist.angular.z
   }
-  odometry = { "data": data_to_send, "created_at": datetime.now().isoformat()}
+  DATA_TO_SEND["odometry"] = { "data": odometry, "created_at": datetime.now().isoformat()}
     
 def state_machine_cb(data: SmachContainerStatus):
-  global state_machine
-  data_to_send = {"active_state": data.active_states[0]}
-  state_machine = { "data": data_to_send }
+  state_machine = {"active_state": data.active_states[0]}
+  DATA_TO_SEND["state_machine"] = { "data": state_machine }
     
 def battery_cb(data: BatteryState):
-  global battery
-  battery = {"data": {"voltage": data.voltage, "percentage": data.percentage}}
-  
-def waypoint_to_dict(waypoint: Waypoint):
-  return {
-    "x": waypoint.x,
-    "y": waypoint.y,
-    "yaw": waypoint.yaw,
-    "latitude": waypoint.latitude,
-    "longitude": waypoint.longitude,
-  }
+  DATA_TO_SEND["battery"] = {"data": {"voltage": data.voltage, "percentage": data.percentage}}
   
 def wp_completed_cb(data: WaypointNav):
-  global wp_completed
   waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
-  wp_completed = {"data": {"waypoints": waypoints}}
+  DATA_TO_SEND["waypoint_completed"] = {"data": {"waypoints": waypoints}}
 
 def wp_remained_cb(data: WaypointNav):
-  global wp_remained
   waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
-  wp_remained = {"data": {"waypoints": waypoints}}
+  DATA_TO_SEND["waypoint_remained"] = {"data": {"waypoints": waypoints}}
 
 def wp_list_cb(data: WaypointNav):
-  global wp_list
   waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
-  wp_list = {"data": {"waypoints": waypoints}}
+  DATA_TO_SEND["waypoint_list"] = {"data": {"waypoints": waypoints}}
 
 def arduino_relay_cb(data: StatusArduinoRelay):
-  global arduino_relay
-  data_to_send = {
+  data_send = {
     "charge_connection": data.charge_connection,
     "front_lights": data.lights_front
   }
-  arduino_relay = {"data": data_to_send}
+  DATA_TO_SEND["arduino_relay"] = {"data": data_send}
+  
+def nvr_camera0_cb(data: CompressedImage):
+  image = base64.b64encode(data.data).decode('utf-8')
+  DATA_TO_SEND["nvr_cam1"] = { "data": {"image": image} }
+  
+def nvr_camera1_cb(data: CompressedImage):
+  image = base64.b64encode(data.data).decode('utf-8')
+  DATA_TO_SEND["nvr_cam2"] = { "data": {"image": image} }
+  
+def nvr_camera2_cb(data: CompressedImage):
+  image = base64.b64encode(data.data).decode('utf-8')
+  DATA_TO_SEND["nvr_cam3"] = { "data": {"image": image} }
+  
+def realsense_front_depth_cb(data: CompressedImage):
+  image = base64.b64encode(data.data).decode('utf-8')
+  DATA_TO_SEND["realsense_front_depth"] = { "data": {"image": image} }
+  
+def realsense_rear_depth_cb(data: CompressedImage):
+  image = base64.b64encode(data.data).decode('utf-8')
+  DATA_TO_SEND["realsense_rear_depth"] = { "data": {"image": image} }
     
 def setting_up():
-  rospy.Subscriber("/puma/sensors/camera_front/color/image_raw/compressed", CompressedImage, realsense_front_cb)
-  rospy.Subscriber("/puma/sensors/camera_rear/color/image_raw/compressed", CompressedImage, realsense_rear_cb)
-  rospy.Subscriber("/puma/sensors/gps/fix", NavSatFix, gps_cb)
-  rospy.Subscriber("/puma/arduino/status", StatusArduino, arduino_status_cb)
-  rospy.Subscriber("/puma/control/current_mode", String, mode_control_cb)
-  rospy.Subscriber("/puma/localization/ekf_odometry", Odometry, odometry_cb)
-  rospy.Subscriber("/puma/smach/container_status", SmachContainerStatus, state_machine_cb)
-  rospy.Subscriber("/puma/sensors/battery/status", BatteryState, battery_cb)
-  rospy.Subscriber("/puma/navigation/waypoints_completed", WaypointNav, wp_completed_cb )
-  rospy.Subscriber("/puma/navigation/waypoints_remained", WaypointNav, wp_remained_cb)
-  rospy.Subscriber("/puma/navigation/waypoints_list", WaypointNav, wp_list_cb)
-  rospy.Subscriber("/puma/arduino/status_relay", StatusArduinoRelay, arduino_relay_cb)
+  topics_config = [
+    {"topic": "/puma/sensors/camera_front/color/image_raw/compressed", "type": CompressedImage, "cb" : realsense_front_cb},
+    {"topic": "/puma/sensors/camera_rear/color/image_raw/compressed", "type": CompressedImage, "cb" : realsense_rear_cb},
+    {"topic": "/puma/sensors/gps/fix", "type": NavSatFix, "cb" : gps_cb},
+    {"topic": "/puma/arduino/status", "type": StatusArduino, "cb" : arduino_status_cb},
+    {"topic": "/puma/control/current_mode", "type": String, "cb" : mode_control_cb},
+    {"topic": "/puma/localization/ekf_odometry", "type": Odometry, "cb" : odometry_cb},
+    {"topic": "/puma/smach/container_status", "type": SmachContainerStatus, "cb" : state_machine_cb},
+    {"topic": "/puma/sensors/battery/status", "type": BatteryState, "cb" : battery_cb},
+    {"topic": "/puma/navigation/waypoints_completed", "type": WaypointNav, "cb" : wp_completed_cb },
+    {"topic": "/puma/navigation/waypoints_remained", "type": WaypointNav, "cb" : wp_remained_cb},
+    {"topic": "/puma/navigation/waypoints_list", "type": WaypointNav, "cb" : wp_list_cb},
+    {"topic": "/puma/arduino/status_relay", "type": StatusArduinoRelay, "cb" : arduino_relay_cb},
+    {"topic": "/puma/nvr/camera0/image_raw/compressed", "type": CompressedImage, "cb": nvr_camera0_cb},
+    {"topic": "/puma/nvr/camera1/image_raw/compressed", "type": CompressedImage, "cb": nvr_camera1_cb},
+    {"topic": "/puma/nvr/camera2/image_raw/compressed", "type": CompressedImage, "cb": nvr_camera2_cb},
+    {"topic": "/puma/sensors/camera_front/depth/image_rect_raw/compressed", "type": CompressedImage, "cb": realsense_front_depth_cb},
+    {"topic": "/puma/sensors/camera_rear/depth/image_rect_raw/compressed", "type": CompressedImage, "cb": realsense_rear_depth_cb},
+  ]
+  
+  for topic in topics_config:
+    rospy.Subscriber(topic["topic"], topic["type"], topic["cb"])
   
 def get_msg_to_send():
-  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list, arduino_relay
-  
   data = {}
   
-  if realsense_front:
-    data["realsense_front"] = realsense_front
-  if realsense_rear:
-    data["realsense_rear"] = realsense_rear
-  if gps:
-    data["gps"] = gps
-  if arduino_status:
-    data["arduino_status"] = arduino_status
-  if control_mode:
-    data["control_mode"] = control_mode
-  if odometry:
-    data["odometry"] = odometry
-  if state_machine:
-    data["state_machine"] = state_machine
-  if battery:
-    data["battery"] = battery
-  if wp_completed:
-    data["waypoint_completed"] = wp_completed
-  if wp_remained:
-    data["waypoint_remained"] = wp_remained
-  if wp_list:
-    data["waypoint_list"] = wp_list
-  if arduino_relay:
-    data["arduino_relay"] = arduino_relay
+  for key, value in DATA_TO_SEND.items():
+    if value is not None:
+      data[key] = value
   
   return {"data": data}
-
 
 def run_send():
   global headers, BACKEND_URL
@@ -162,12 +167,6 @@ if __name__ == "__main__":
   rospy.loginfo(f"Empezando {rospy.get_name()} node")
   global BACKEND_URL, headers
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
-  # Creación de variables globales
-  global realsense_front, realsense_rear, gps, arduino_status, control_mode, odometry, state_machine, battery, wp_completed, wp_remained, wp_list, arduino_relay
-  # Inicialización de variables
-  realsense_front = realsense_rear = None 
-  gps = arduino_status = control_mode = odometry = state_machine = battery = None
-  wp_completed = wp_remained = wp_list = arduino_relay = None
   
   token = None
   while not token:
