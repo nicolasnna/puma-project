@@ -21,5 +21,5 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 2
 done
 
-roslaunch puma_bringup_jetson jetson_supervised_bringup.launch
+roslaunch puma_bringup_jetson jetson_bringup.launch
 
