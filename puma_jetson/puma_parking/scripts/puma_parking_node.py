@@ -2,6 +2,7 @@
 import rospy
 import Jetson.GPIO as GPIO
 from std_msgs.msg import Bool
+import atexit
 
 class ControlBrakeElectric():
     '''
@@ -17,6 +18,7 @@ class ControlBrakeElectric():
         self._brakeElectricPin = rospy.get_param("parking_pin", 15)
         self._stateBrakeElectric = False
         GPIO.setup(self._brakeElectricPin, GPIO.OUT, initial=False)
+        atexit.register(GPIO.cleanup)
         
     def _brakeCallback(self, data_received):
         if data_received.data != self._stateBrakeElectric:

@@ -22,10 +22,10 @@ String latestMode = "idle";
 bool isRunMode = false;
 #define MILLIS_LIMIT_MODE 500
 /* Variables freno */ 
-const int STEP_FRONT_PIN = 11;
-const int DIR_FRONT_PIN = 10;
-const int STEP_REAR_PIN = 9;
-const int DIR_REAR_PIN = 8;
+const int STEP_FRONT_PIN = 9; //11
+const int DIR_FRONT_PIN = 8; //10
+const int STEP_REAR_PIN = 11; //9
+const int DIR_REAR_PIN = 10; //8
 const int SWITCH_BRAKE_FRONT_OFF = 26;
 const int SWITCH_BRAKE_FRONT_ON = 28;
 const int SWITCH_BRAKE_REAR_OFF = 36;
@@ -37,11 +37,8 @@ unsigned long initTimeBrakeCmd = 0;
 #define LIMIT_TIME_BRAKE 1000
 #define LIMIT_TIME_BRAKE_OFF 1500
 #define PWM_FRONT_BRAKE 100
-#define PWM_REAR_BRAKE 90
-bool activated_rear_brake = false;
-bool activated_front_brake = false;
-bool deactivated_rear_brake = false;
-bool deactivated_front_brake = false;
+#define PWM_REAR_BRAKE 100
+
 unsigned long last_time_front = 0;
 unsigned long last_time_rear = 0;
 #define EXTRA_TIME_OFF_REAR 300
@@ -56,9 +53,9 @@ const int LEFT_DIRECTION_PIN = 4;
 const int ENABLE_DIRECTION_PIN = 5;
 // 45 grados limite
 const int LIMIT_DIR_ANALOG_MIN = 296; //263
-const int LIMIT_DIR_ANALOG_MAX = 554; //521
+const int LIMIT_DIR_ANALOG_MAX = 560; //521
 int ZERO_DIR_ANALOG = 425;  //392
-#define PWM_DIRECTION 100
+#define PWM_DIRECTION 140
 #define TOLERANCE_SENSOR 5
 
 float angleGoal = 0; // Is save angle goal in rads
@@ -224,8 +221,6 @@ void readSecurityAndControlMode() {
   int readSecurity = digitalRead(SECURITY_PIN);
   if (enableSecurity != readSecurity && readSecurity == 1) {
     initTimeBrakeCmd = 0;
-    activated_front_brake = false;
-    activated_rear_brake = false;
   } 
   enableSecurity = (readSecurity == 1);
   /* Revisar deteccion de modo */
@@ -334,97 +329,42 @@ void brakeController(){
   if (check_to_activated) {
     /* Revisar si ha pasado el tiempo limite de funcionamiento */
     if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
+      
       passLimitTimeBrake(true);
     } else {
-      processFrontBrake(true);
-      processRearBrake(true);
+      brakeFront(true);
     }
   } else {
     /* Revisar si ha pasado el tiempo limite de funcionamiento */
     if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE_OFF){
       passLimitTimeBrake(false);
     } else {
-      processFrontBrake(false);
-      processRearBrake(false);
+      brakeFront(false);
     }
   }
 }
 
-void processFrontBrake(bool activating) {
-  if (activating) {
-    digitalWrite(DIR_FRONT_PIN, LOW);
+void brakeFront(bool is_enable) {
+  if (is_enable) {
     int readFrontOn = digitalRead(SWITCH_BRAKE_FRONT_ON);
-    if (!activated_front_brake) {
-      if (!readFrontOn) 
-        analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
-      else {
-        if (last_time_front == 0)
-          last_time_front = millis();
-    
-        if (millis() - last_time_front >= EXTRA_TIME_ON_FRONT){
-          analogWrite(STEP_FRONT_PIN, 0);
-          activated_front_brake = true;
-          last_time_front = 0;
-        }
-      }
-    }
-  } else {
-    digitalWrite(DIR_FRONT_PIN, HIGH);
-    int readFrontOff = digitalRead(SWITCH_BRAKE_FRONT_OFF);
-    if (!deactivated_front_brake) {
-      if (!readFrontOff) 
-        analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
-      else {
-        if (last_time_front == 0)
-          last_time_front = millis();
-    
-        if (millis() - last_time_front >= EXTRA_TIME_OFF_FRONT){
-          analogWrite(STEP_FRONT_PIN, 0);
-          deactivated_front_brake = true;
-          last_time_front = 0;
-        }
-      }
-    }
-  }
-}
+    digitalWrite(DIR_FRONT_PIN, LOW);
 
-void processRearBrake(bool activating) {
-  if (activating) {
-    digitalWrite(DIR_REAR_PIN, LOW);
-    int readRearOn = digitalRead(SWITCH_BRAKE_REAR_ON);
-    if (!activated_rear_brake) {
-      if (!readRearOn) 
-        analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
-      else {
-        if (last_time_rear == 0)
-          last_time_rear = millis();
-    
-        if (millis() - last_time_rear >= EXTRA_TIME_ON_REAR){
-          analogWrite(STEP_REAR_PIN, 0);
-          activated_rear_brake = true;
-          last_time_rear = 0;
-        }
-      }
-    } 
-  } else {
-    digitalWrite(DIR_REAR_PIN, HIGH);
-    int readRearOff = digitalRead(SWITCH_BRAKE_REAR_OFF);
-    if (!deactivated_rear_brake) {
-      if (!readRearOff) 
-        analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
-      else {
-        if (last_time_rear == 0)
-          last_time_rear = millis();
-    
-        if (millis() - last_time_rear >= EXTRA_TIME_OFF_REAR){
-          analogWrite(STEP_REAR_PIN, 0);
-          deactivated_rear_brake = true;
-          last_time_rear = 0;
-        }
-      }
+    if (!readFrontOn) {
+      analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+      return;
     }
+    analogWrite(STEP_FRONT_PIN, 0);
+    return;
   }
-}
+  int readFrontOff = digitalRead(SWITCH_BRAKE_FRONT_OFF);
+  digitalWrite(DIR_FRONT_PIN, HIGH);
+  if (!readFrontOff) {
+    analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+    return;
+  }
+  analogWrite(STEP_FRONT_PIN, 0);
+} 
+
 
 void passLimitTimeBrake(bool cmdIsActivate) {
   analogWrite(STEP_FRONT_PIN, 0);
@@ -573,13 +513,6 @@ void brakeCallback( const std_msgs::Bool& data_received ) {
   bool activateBrakeRos = data_received.data;
   if (activateBrakeRos != enableBrake) {
     initTimeBrakeCmd = 0;
-    if (activateBrakeRos) {
-      activated_rear_brake = false;
-      activated_front_brake = false;
-    } else {
-      deactivated_front_brake = false;
-      deactivated_rear_brake = false;
-    }
     last_time_front = 0;
     last_time_rear = 0;
     isSendedLogBrake = false;

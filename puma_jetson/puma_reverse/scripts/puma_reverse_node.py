@@ -2,6 +2,7 @@
 import rospy
 import Jetson.GPIO as GPIO
 from std_msgs.msg import Bool
+import atexit
 
 class ControlReverse():
     '''
@@ -18,6 +19,7 @@ class ControlReverse():
         self._stateReverse = False
         GPIO.setup(self._reversePin, GPIO.OUT, initial=False)
         
+        atexit.register(GPIO.cleanup)
         
     def _reverseCallback(self, data_received):
         if data_received.data != self._stateReverse :

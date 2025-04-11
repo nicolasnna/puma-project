@@ -8,8 +8,8 @@ puma_joy:
   accel_puma_topic: "puma/accelerator/command"
   min_accel: 0
   max_accel: 39 # max value 126
-  angle_min_degree: -40
-  angle_max_degree: 40
+  angle_min_degree: -45
+  angle_max_degree: 45
   # --- Params for controller --- #
   lt_left_index: 2
   rt_right_index: 5
