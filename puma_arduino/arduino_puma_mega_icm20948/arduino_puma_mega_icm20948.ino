@@ -2,6 +2,7 @@
 #include <puma_msgs/DirectionCmd.h>
 #include <puma_msgs/StatusArduino.h>
 #include <puma_msgs/StatusTachometer.h>
+#include <puma_msgs/UpdateParamArduino.h>
 #include <puma_msgs/Log.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Int16.h>
@@ -10,7 +11,7 @@
 #define ANALOG_TO_RAD 0.006135937
 #define RAD_TO_DEG 57.2958279
 #define TIME_PUBLISH_IMU 30 // freq 33
-#define TIME_PUBLISH_STATUS 600 // freq 1.6
+#define TIME_PUBLISH_STATUS 1500 // freq 0.67
 
 /* Señal seguridad */
 const int SECURITY_PIN = 45;
@@ -34,29 +35,46 @@ bool enableBrake = false;
 bool isSendedLogBrake = false;
 /* Control Freno */
 unsigned long initTimeBrakeCmd = 0;
-#define LIMIT_TIME_BRAKE 2000
-#define LIMIT_TIME_BRAKE_OFF 1500
+int LIMIT_TIME_BRAKE = 1400;
+int LIMIT_TIME_BRAKE_OFF = 1500;
 #define PWM_FRONT_BRAKE 100
 #define PWM_REAR_BRAKE 100
-int turnOnFront = LOW;
-int turnOffFront = HIGH;
+
 int countChangeFrontBrake = 0;
 /* TESTEAR */
 unsigned long lastBrakeChangeTime = 0;
 const unsigned long DEBOUNCE_DELAY = 200;    
-const int MAX_ATTEMPS_BRAKE = 3;
 
-bool delayInProgress = false;
-unsigned long deactivationDelayStart = 0;
-const unsigned long RELEASE_DELAY = 300;
+struct {
+  int turnOn;
+  int turnOff;
+} rotationBrakeFront, rotationBrakeRear;
+
+struct {
+  bool frontOff = false;
+  bool frontOn = false;
+  bool rearOff = false;
+  bool rearOn = false;
+} lastSwitchState;
+
+struct {
+  unsigned long frontOff = 0;
+  unsigned long frontOn = 0;
+  unsigned long rearOff = 0;
+  unsigned long rearOn = 0;
+} switchRisingTime;
+
+struct {
+  unsigned long FRONT_OFF = 300;
+  unsigned long FRONT_ON = 300;
+  unsigned long REAR_OFF = 300;
+  unsigned long REAR_ON = 300;
+} DELAY_BRAKE;
 
 
 unsigned long last_time_front = 0;
 unsigned long last_time_rear = 0;
-#define EXTRA_TIME_OFF_REAR 300
-#define EXTRA_TIME_ON_REAR 0
-#define EXTRA_TIME_OFF_FRONT 300
-#define EXTRA_TIME_ON_FRONT 0
+
 
 /* Variables direccion */
 const int SENSOR_DIRECTION_PIN = A3;
@@ -64,8 +82,8 @@ const int RIGHT_DIRECTION_PIN = 3;
 const int LEFT_DIRECTION_PIN = 4;
 const int ENABLE_DIRECTION_PIN = 5;
 // 45 grados limite
-const int LIMIT_DIR_ANALOG_MIN = 296; //263
-const int LIMIT_DIR_ANALOG_MAX = 560; //521
+int LIMIT_DIR_ANALOG_MIN = 296; //263
+int LIMIT_DIR_ANALOG_MAX = 560; //521
 int ZERO_DIR_ANALOG = 425;  //392
 #define PWM_DIRECTION 140
 #define TOLERANCE_SENSOR 5
@@ -80,8 +98,8 @@ bool enablePinDirection = false;
 
 /* Variables acelerador */ 
 const int ACCELERATOR_PIN = 12;
-const int PWM_MIN_ACCELERATOR = 43; // 0.843v
-const int PWM_MAX_ACCELERATOR = 83; // 1.625v
+int PWM_MIN_ACCELERATOR = 43; // 0.843v
+int PWM_MAX_ACCELERATOR = 83; // 1.625v
 // const int PWM_MAX_ACCELERATOR = 90; // 1.765v
 int acceleratorValue = PWM_MIN_ACCELERATOR;
 int newAcceleratorValue = 0;
@@ -120,6 +138,9 @@ ros::Subscriber<std_msgs::Bool> brake_sub("puma/control/brake", brakeCallback);
 ros::Subscriber<puma_msgs::DirectionCmd> dir_sub("puma/control/direction", directionCallback);
 ros::Subscriber<std_msgs::Int16> accel_sub("puma/control/accelerator", acceleratorCallback);
 ros::Subscriber<std_msgs::String> mode_sub("puma/control/current_mode", modeSelectorCallback);
+
+void reconfigureCb( const puma_msgs::UpdateParamArduino& param);
+ros::Subscriber<puma_msgs::UpdateParamArduino> param_sub("puma/arduino/param_mega", reconfigureCb);
 
 puma_msgs::StatusArduino status_msg;
 puma_msgs::StatusTachometer tacometer_msg;
@@ -170,6 +191,7 @@ void configRos() {
   nh.subscribe(dir_sub);
   nh.subscribe(accel_sub);
   nh.subscribe(mode_sub);
+  nh.subscribe(param_sub);
   nh.advertise(arduinoStatusPub);
   nh.advertise(tacometerStatusPub);
   nh.advertise(icm20948Pub);
@@ -203,6 +225,15 @@ void configPinMode() {
   pinMode(ACCELERATOR_PIN, OUTPUT);
   /* Pin Tacometro */
   pinMode(TACHOMETER_PIN, INPUT_PULLUP); 
+  /* Revisar estado de los frenos */
+  lastSwitchState.frontOff = digitalRead(SWITCH_BRAKE_FRONT_OFF);
+  lastSwitchState.frontOn = digitalRead(SWITCH_BRAKE_FRONT_ON);
+  lastSwitchState.rearOff = digitalRead(SWITCH_BRAKE_REAR_OFF);
+  lastSwitchState.rearOn = digitalRead(SWITCH_BRAKE_REAR_ON);
+  rotationBrakeFront.turnOn = LOW;
+  rotationBrakeFront.turnOff = HIGH;
+  rotationBrakeRear.turnOn = HIGH;
+  rotationBrakeRear.turnOff = LOW;
 }
 
 void configImuMag() {
@@ -331,81 +362,99 @@ void directionController(){
 }
 
 void brakeController(){
-  /* Dar prioridad a la señal de seguridad */
-  /* Activar frenos con la señal normal o al no detectar un modo de control*/
-  if (millis() - lastBrakeChangeTime < DEBOUNCE_DELAY) return;
+  
+  bool currentFrontOff = digitalRead(SWITCH_BRAKE_FRONT_OFF);
+  bool currentRearOff = digitalRead(SWITCH_BRAKE_REAR_OFF);
 
+  /* Detectar flancos de subida*/
+  if (currentFrontOff && !lastSwitchState.frontOff) switchRisingTime.frontOff = millis();
+  
+  if (currentRearOff && !lastSwitchState.rearOff) switchRisingTime.rearOff = millis();
+
+
+  if (millis() - lastBrakeChangeTime < DEBOUNCE_DELAY) return;
 
   if (initTimeBrakeCmd == 0) initTimeBrakeCmd = millis();
 
   bool check_to_activated = (enableSecurity || enableBrake || !isRunMode);
   
-  if (check_to_activated) {
+  frontBrakeController(currentFrontOff, check_to_activated);
+  rearBrakeController(currentRearOff, check_to_activated);
 
-    if (digitalRead(SWITCH_BRAKE_FRONT_ON) || countChangeFrontBrake >= MAX_ATTEMPS_BRAKE) {
-      analogWrite(STEP_FRONT_PIN, 0);
+}
+
+void rearBrakeController(bool currentOff, bool activateMode) {
+  if (activateMode) {
+
+    if (digitalRead(SWITCH_BRAKE_REAR_ON)) {
+      analogWrite(STEP_REAR_PIN, 0);
       return;
     }
-    
 
-    if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE){
-      // passLimitTimeBrake(true);
-      turnOnFront = !turnOnFront;
-      turnOffFront = !turnOffFront;
-      initTimeBrakeCmd = millis();
-      countChangeFrontBrake++;
+    if ( millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE ) {
+      analogWrite(STEP_REAR_PIN, 0);
+      return;
     }
 
-    digitalWrite(DIR_FRONT_PIN, turnOnFront);
-    analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+    digitalWrite(DIR_REAR_PIN, rotationBrakeRear.turnOn);
+    analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
     
   } else {
 
-    if (delayInProgress) {
-      
+    lastSwitchState.rearOff = currentOff;
+
+    if (switchRisingTime.rearOff > 0 && (millis() - switchRisingTime.rearOff) < DELAY_BRAKE.REAR_OFF) {
+      analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
+      return;
+    } else {
+      switchRisingTime.rearOff = 0;
     }
 
-    if (digitalRead(SWITCH_BRAKE_FRONT_OFF) || countChangeFrontBrake > 3) {
+    if (digitalRead(SWITCH_BRAKE_REAR_OFF) || millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE_OFF) {
+      analogWrite(STEP_REAR_PIN, 0);
+      return;
+    }
+
+    digitalWrite(DIR_REAR_PIN, rotationBrakeRear.turnOff);
+    analogWrite(STEP_REAR_PIN, PWM_REAR_BRAKE);
+  }
+}
+
+void frontBrakeController(bool currentOff, bool activateMode){
+  if (activateMode) {
+
+    if (digitalRead(SWITCH_BRAKE_FRONT_ON)) {
       analogWrite(STEP_FRONT_PIN, 0);
       return;
     }
 
-    /* Revisar si ha pasado el tiempo limite de funcionamiento */
-    if (millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE_OFF){
-    // passLimitTimeBrake(false);
-      turnOnFront = !turnOnFront;
-      turnOffFront = !turnOffFront;
-      initTimeBrakeCmd = millis();
-      countChangeFrontBrake++;
-    }
-  
-    digitalWrite(DIR_FRONT_PIN, turnOffFront);
-    analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
-    
-  }
-}
-
-void brakeFront(bool is_enable) {
-  if (is_enable) {
-    int readFrontOn = digitalRead(SWITCH_BRAKE_FRONT_ON);
-    digitalWrite(DIR_FRONT_PIN, turnOnFront);
-
-    if (!readFrontOn) {
-      analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+    if ( millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE ) {
+      analogWrite(STEP_FRONT_PIN, 0);
       return;
     }
-    analogWrite(STEP_FRONT_PIN, 0);
-    return;
-  }
-  int readFrontOff = digitalRead(SWITCH_BRAKE_FRONT_OFF);
-  digitalWrite(DIR_FRONT_PIN, turnOffFront);
-  if (!readFrontOff) {
+    
+    digitalWrite(DIR_FRONT_PIN, rotationBrakeFront.turnOn);
     analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
-    return;
-  }
-  analogWrite(STEP_FRONT_PIN, 0);
-} 
+    
+  } else {
+    lastSwitchState.frontOff = currentOff;
 
+    if (switchRisingTime.frontOff > 0 && (millis() - switchRisingTime.frontOff) < DELAY_BRAKE.FRONT_OFF) {
+      analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+      return;
+    } else {
+      switchRisingTime.frontOff = 0;
+    }
+
+    if (currentOff || millis() - initTimeBrakeCmd > LIMIT_TIME_BRAKE_OFF) {
+      analogWrite(STEP_FRONT_PIN, 0);
+      return;
+    }
+  
+    digitalWrite(DIR_FRONT_PIN, rotationBrakeFront.turnOff);
+    analogWrite(STEP_FRONT_PIN, PWM_FRONT_BRAKE);
+  }
+}
 
 void passLimitTimeBrake(bool cmdIsActivate) {
   analogWrite(STEP_FRONT_PIN, 0);
@@ -520,6 +569,16 @@ void publishMsgStatus() {
     status_msg.control.mode_signal_accept = isRunMode;
     status_msg.control.security_signal = enableSecurity;
     status_msg.control.mode_detected = latestMode.c_str();
+    /* Param info */
+    status_msg.param.limit_time_brake = LIMIT_TIME_BRAKE;
+    status_msg.param.limit_time_brake_off = LIMIT_TIME_BRAKE_OFF;
+    status_msg.param.delay_brake_rear_off = DELAY_BRAKE.REAR_OFF;
+    status_msg.param.delay_brake_front_off = DELAY_BRAKE.FRONT_OFF;
+    status_msg.param.limit_dir_analog_min = LIMIT_DIR_ANALOG_MIN;
+    status_msg.param.limit_dir_analog_max = LIMIT_DIR_ANALOG_MAX;
+    status_msg.param.zero_dir_analog = ZERO_DIR_ANALOG;
+    status_msg.param.pwm_min_accelerator = PWM_MIN_ACCELERATOR;
+    status_msg.param.pwm_max_accelerator = PWM_MAX_ACCELERATOR;
     arduinoStatusPub.publish(&status_msg);
     lastTimeStatus = millis(); // Reset time
   }
@@ -527,13 +586,10 @@ void publishMsgStatus() {
 
 void acceleratorCallback( const std_msgs::Int16& data_received ) {
   newAcceleratorValue = data_received.data + PWM_MIN_ACCELERATOR;
-  if (newAcceleratorValue>= PWM_MIN_ACCELERATOR && newAcceleratorValue < PWM_MAX_ACCELERATOR){
-    acceleratorValue = newAcceleratorValue;
-    enableAccelerator = true;
-  } else {
-    enableAccelerator = false;
-    nh.logwarn("Valor de acceleracion recibida invalida");
-  }
+  int verifyValue = max(PWM_MIN_ACCELERATOR, min(newAcceleratorValue, PWM_MAX_ACCELERATOR));
+
+  acceleratorValue = verifyValue;
+  enableAccelerator = true;
 }
 
 void directionCallback( const puma_msgs::DirectionCmd& data_received) {
@@ -554,8 +610,6 @@ void brakeCallback( const std_msgs::Bool& data_received ) {
   bool activateBrakeRos = data_received.data;
   if (activateBrakeRos != enableBrake) {
     initTimeBrakeCmd = 0;
-    last_time_front = 0;
-    last_time_rear = 0;
     isSendedLogBrake = false;
     lastBrakeChangeTime = millis();
   }
@@ -568,7 +622,41 @@ void modeSelectorCallback( const std_msgs::String& data_received) {
   bool isCorrectMode = false;
   for (int i = 0; i < 4; i++) {
     isCorrectMode = posibleModes[i] == data_received.data;
-    if (isCorrectMode) {break;}
+    if (isCorrectMode) break;
   }
   isRunMode = isCorrectMode;
+}
+
+void reconfigureCb( const puma_msgs::UpdateParamArduino& param) {
+  switch (param.param) {
+    case 0:
+      LIMIT_TIME_BRAKE = param.value;
+      break;
+    case 1:
+      LIMIT_TIME_BRAKE_OFF = param.value;
+      break;
+    case 2:
+      DELAY_BRAKE.REAR_OFF = param.value;
+      break;
+    case 3:
+      DELAY_BRAKE.FRONT_OFF = param.value;
+      break;
+    case 4:
+      LIMIT_DIR_ANALOG_MIN = param.value;
+      break;
+    case 5:
+      LIMIT_DIR_ANALOG_MAX = param.value;
+      break;
+    case 6:
+      ZERO_DIR_ANALOG = param.value;
+      break;
+    case 7:
+      PWM_MIN_ACCELERATOR = param.value;
+      break;
+    case 8:
+      PWM_MAX_ACCELERATOR = param.value;
+      break;
+    default:
+      break;
+  }
 }

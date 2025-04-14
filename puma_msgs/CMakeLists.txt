@@ -67,6 +67,8 @@ add_message_files(
   WaypointNav.msg
   WebTeleop.msg
   ImuData.msg
+  ArduinoMegaParamInfo.msg
+  UpdateParamArduino.msg
 )
 
 ## Generate services in the 'srv' folder

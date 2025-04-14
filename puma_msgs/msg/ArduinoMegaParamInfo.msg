@@ -1,0 +1,9 @@
+int32 limit_time_brake
+int32 limit_time_brake_off
+int32 delay_brake_rear_off
+int32 delay_brake_front_off
+int32 limit_dir_analog_min
+int32 limit_dir_analog_max
+int32 zero_dir_analog
+int32 pwm_min_accelerator
+int32 pwm_max_accelerator
