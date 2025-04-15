@@ -7,19 +7,20 @@ from sensor_msgs.msg import Joy
 from puma_joy.utils_joy import *
 from diagnostic_msgs.msg import DiagnosticArray
 import signal
+from dynamic_reconfigure.server import Server
+from puma_joy.cfg import PumaJoyConfig
 
 class PumaInterfaceJoy:
   """ Interfaz puma joy """
   def __init__(self):
     joy_sub_topic = rospy.get_param('~joy_topic', 'joy')
-    self.accel_range = [
-      rospy.get_param('~min_accel', 0),
-      rospy.get_param('~max_accel', 10)
-    ]
-    self.angle_range = [
-      round(math.radians(rospy.get_param('~angle_min_degree', -45)),3),
-      round(math.radians(rospy.get_param('~angle_max_degree', 45)),3)
-    ]
+    min_accel = rospy.get_param('~min_accel', 0)
+    max_accel = rospy.get_param('~max_accel', 10)
+    angle_min_degree = rospy.get_param('~angle_min_degree', -45)
+    angle_max_degree = rospy.get_param('~angle_max_degree', 45)
+    
+    self.config_param(min_accel, max_accel, angle_min_degree, angle_max_degree)
+    
     axes_index = {
       'x_left'  : rospy.get_param('~x_left_index', 0),
       'y_left'  : rospy.get_param('~y_left_index', 1),
@@ -55,6 +56,9 @@ class PumaInterfaceJoy:
     rospy.Subscriber('/puma/control/current_mode', String, self.mode_callback)
     rospy.Subscriber('diagnostics', DiagnosticArray, self.diagnostic_callback)
     
+    #server reconfigure
+    self.srv = Server(PumaJoyConfig, self.reconfigure_cb)
+    
     self.joystick_input = JoystickInput(axes_index, buttons_index)
     self.controller = PumaJoyController(self.accel_range, self.angle_range)
     self.data_control = {}
@@ -64,6 +68,20 @@ class PumaInterfaceJoy:
     self.time_between_log = 20
     self.mode_puma = "idle"
     self.register_signal_handlers()
+    
+  def config_param(self, min_accel, max_accel, angle_min_degree, angle_max_degree):
+    self.accel_range = [
+      min_accel,
+      max_accel
+    ]
+    self.angle_range = [
+      round(math.radians(angle_min_degree),3),
+      round(math.radians(angle_max_degree),3)
+    ]
+    
+  def reconfigure_cb(self, config, level):
+    self.config_param(config.min_accel, config.max_accel, config.angle_min_degree, config.angle_max_degree)
+    return config
     
   def register_signal_handlers(self):
     """Registra manejadores de señales para un apagado seguro."""
