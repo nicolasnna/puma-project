@@ -26,10 +26,11 @@ Se usa el lanzador roslaunch **`puma_joy.launch`** para la ejecución:
 
 Ejecuta tanto el paquete **`joy`** encargado de la lectura del control y publicación en ROS, como de la interfaz encargada de traducir el estado de los botones a tópicos específicos para el control del robot.
 
-En **`param/joy_params.yaml`** se configura ciertos parámetros del control como aceleración mínima y máxima del robot. Son valores de la PWM entre 0 y 255. También se puede ajustar el valor de la dirección.
+En **`param/joy_params.yaml`** se configura ciertos parámetros del control como aceleración mínima y máxima del robot. Son valores de la PWM entre 0 y 255. También se puede ajustar el valor de la dirección. 
+
 
 > [!WARNING]
-> No es recomendable usar valores altos en la PWM, el robot PUMA posee mucha potencia y por ende, si se está en un espacio limitado, será difícil de controlar.
+> No es recomendable usar valores altos en la PWM, el robot PUMA posee mucha potencia y por ende, si se está en un espacio limitado, será difícil de controlar. 
 
 > [!NOTE]
 > Se debe tener cuidado en el ángulo de la dirección para no ocasionar daños en el robot, igualmente, el Arduino Mega emplea un filtro de máximos y mínimos para mantener la dirección en cierto margen.
@@ -42,3 +43,6 @@ Los controles configurados son:
 - **`Analogo izquierdo + A`**: Mueve la dirección del robot.
 - **`LB`**: Mantenerlo pulsado activa el modo reversa.
 - **`RB`**: Mantenerlo pulsado desactiva el control del motor, por ende, desactiva la aceleración.
+
+Cuenta con servidor _reconfigure_ para ajustar parámtros como acelerador y ángulo de dirección mientras se encuentra en ejecución el programa.
+
