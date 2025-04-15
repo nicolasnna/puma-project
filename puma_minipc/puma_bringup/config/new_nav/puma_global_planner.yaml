@@ -3,5 +3,5 @@ PumaGlobalPlanner:
   turning_radius: 2.5
   step_size_dubins: 0.3
   meters_subsamples: 7.0
-  use_dubins: True
+  use_dubins: False
   detect_obstacles: True

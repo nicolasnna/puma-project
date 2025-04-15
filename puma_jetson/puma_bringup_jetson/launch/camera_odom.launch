@@ -3,5 +3,6 @@
 
   <include file="$(find puma_bringup_jetson)/launch/core/realsense.launch"/>
   <include file="$(find puma_bringup_jetson)/launch/core/odom_rtabmap.launch"/>
+  <include file="$(find puma_bringup_jetson)/launch/core/filter_imu_realsense"/>
 
 </launch>

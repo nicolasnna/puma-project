@@ -21,6 +21,8 @@
   <include file="$(find puma_bringup_jetson)/launch/core/controller.launch"/>
   <!-- IMU -->
   <include file="$(find puma_bringup_jetson)/launch/imu_bringup.launch"/>
+  <!-- Camara realsense -->
+  <include file="$(find puma_bringup_jetson)/launch/camera_odom.launch"/>
   
 
 </launch>
