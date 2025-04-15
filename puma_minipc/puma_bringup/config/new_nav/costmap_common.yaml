@@ -24,7 +24,7 @@ obstacle_layer:
     marking: true,
     clearing: true,
     min_obstacle_height: 1.0,
-    max_obstacle_height: 1.6,
+    max_obstacle_height: 2.0,
   }
   enabled: true
   track_unknown_space: true

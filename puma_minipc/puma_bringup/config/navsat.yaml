@@ -1,72 +1,72 @@
-puma_ekf_map:
-  frequency: 30
-  sensor_timeout: 0.1
-  two_d_mode: true
-  transform_time_offset: 0.0
-  transform_timeout: 0.0
-  print_diagnostics: false
-  debug: false
-  publish_tf: true
+# puma_ekf_map:
+#   frequency: 30
+#   sensor_timeout: 0.1
+#   two_d_mode: true
+#   transform_time_offset: 0.0
+#   transform_timeout: 0.0
+#   print_diagnostics: false
+#   debug: false
+#   publish_tf: true
 
-  map_frame: map
-  odom_frame: odom
-  base_link_frame: base_link
-  world_frame: map
+#   map_frame: map
+#   odom_frame: odom
+#   base_link_frame: base_link
+#   world_frame: map
 
-  odom0: puma/rtabmap/camera_front/odom_visual
-  odom0_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
-                false, false, true,
-                false, false, false]
-  odom0_relative: true
-  odom0_pose_rejection_threshold: 1000
-  odom0_twist_rejection_threshold: 1000
+#   odom0: puma/rtabmap/camera_front/odom_visual
+#   odom0_config: [false, false, false,
+#                 false, false, false,
+#                 true,  true,  true,
+#                 false, false, true,
+#                 false, false, false]
+#   odom0_relative: true
+#   odom0_pose_rejection_threshold: 1000
+#   odom0_twist_rejection_threshold: 1000
 
-  odom1: puma/rtabmap/camera_rear/odom_visual
-  odom1_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
-                false, false, true,
-                false, false, false]
-  odom1_relative: true
-  odom1_pose_rejection_threshold: 1000
-  odom1_twist_rejection_threshold: 1000
+#   odom1: puma/rtabmap/camera_rear/odom_visual
+#   odom1_config: [false, false, false,
+#                 false, false, false,
+#                 true,  true,  true,
+#                 false, false, true,
+#                 false, false, false]
+#   odom1_relative: true
+#   odom1_pose_rejection_threshold: 1000
+#   odom1_twist_rejection_threshold: 1000
 
-  odom2: puma/localization/odometry_wheel
-  odom2_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
-                false, false, false,
-                false, false, false]
-  odom2_differential: false
-  odom2_relative: false
+#   odom2: puma/localization/odometry_wheel
+#   odom2_config: [false, false, false,
+#                 false, false, false,
+#                 true,  true,  true,
+#                 false, false, false,
+#                 false, false, false]
+#   odom2_differential: false
+#   odom2_relative: false
 
-  odom3: puma/localization/gps_odometry
-  odom3_config: [true, true, false,
-                false, false, false,
-                false,  false,  false,
-                false, false, false,
-                false, false, false]
-  odom3_queue_size: 10
-  odom3_nodelay: true
-  odom3_differential: false
-  odom3_relative: false
+#   odom3: puma/localization/gps_odometry
+#   odom3_config: [true, true, false,
+#                 false, false, false,
+#                 false,  false,  false,
+#                 false, false, false,
+#                 false, false, false]
+#   odom3_queue_size: 10
+#   odom3_nodelay: true
+#   odom3_differential: false
+#   odom3_relative: false
 
 
-  imu0: puma/sensors/camera_front/imu/filtered
-  imu0_config: [false, false, false,
-                true,  true,  false,
-                false, false, false,
-                true,  true,  true,
-                true,  true,  true]
-  imu0_nodelay: true
-  imu0_differential: false
-  imu0_relative: false
-  imu0_queue_size: 10
-  imu0_remove_gravitational_acceleration: true
+#   imu0: puma/sensors/camera_front/imu/filtered
+#   imu0_config: [false, false, false,
+#                 true,  true,  false,
+#                 false, false, false,
+#                 true,  true,  true,
+#                 true,  true,  true]
+#   imu0_nodelay: true
+#   imu0_differential: false
+#   imu0_relative: false
+#   imu0_queue_size: 10
+#   imu0_remove_gravitational_acceleration: true
 
-  use_control: false
+#   use_control: false
 
 navsat_transform:
   frequency: 30
@@ -75,5 +75,5 @@ navsat_transform:
   yaw_offset: 1.570796327  # IMU reads 0 facing magnetic north, not east
   zero_altitude: true
   publish_filtered_gps: true
-  use_odometry_yaw: false
+  use_odometry_yaw: true
   wait_for_datum: false

@@ -19,10 +19,10 @@
       <arg name="initial_reset"             value="$(arg initial_reset)"/>
       <arg name="reconnect_timeout"         value="$(arg reconnect_timeout)"/>
       <arg name="publish_odom_tf"           value="false"/>
-      <arg name="depth_width"               value="640"/>
+      <arg name="depth_width"               value="848"/>
       <arg name="depth_height"              value="480"/>
       <arg name="depth_fps"                 value="30"/>
-      <arg name="color_width"               value="640"/>
+      <arg name="color_width"               value="848"/>
       <arg name="color_height"              value="480"/>
       <arg name="color_fps"                 value="30"/>
       <arg name="enable_depth"              value="true"/>

@@ -31,24 +31,24 @@ puma_ekf_odom:
 
   
   odom0: puma/rtabmap/camera_front/odom_visual
-  odom0_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
+  odom0_config: [true, true, false,
+                false, false, true,
+                true,  true,  false,
                 false, false, true,
                 false, false, false]
   odom0_relative: true
-  odom0_pose_rejection_threshold: 1000
-  odom0_twist_rejection_threshold: 1000
+  odom0_pose_rejection_threshold: 50
+  odom0_twist_rejection_threshold: 50
 
-  # odom1: puma/rtabmap/camera_rear/odom_visual
-  # odom1_config: [false, false, false,
-  #               false, false, false,
-  #               true,  true,  true,
-  #               false, false, true,
-  #               false, false, false]
-  # odom1_relative: true
-  # odom1_pose_rejection_threshold: 1000
-  # odom1_twist_rejection_threshold: 1000
+  odom1: puma/rtabmap/camera_rear/odom_visual
+  odom1_config: [true, true, false,
+                false, false, true,
+                true,  true,  false,
+                false, false, true,
+                false, false, false]
+  odom1_relative: true
+  odom1_pose_rejection_threshold: 50
+  odom1_twist_rejection_threshold: 50
 
   # odom2: puma/localization/odometry_wheel
   # odom2_config: [false, false, false,
