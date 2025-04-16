@@ -1,7 +1,7 @@
 import rospy
 import requests
-from puma_web_interface.utils import get_token
 from puma_robot_status.msg import LoggerManagerAction, LoggerManagerGoal
+from std_msgs.msg import String
 import actionlib
 import json
 import time
@@ -41,20 +41,18 @@ def main():
   rospy.loginfo(f"Empezando {rospy.get_name()} node")
   # global headers, BACKEND_URL, client_log
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
-  rospy.loginfo("Backend: "+BACKEND_URL)
+  rospy.loginfo(f"{rospy.get_name()} -> Backend: "+BACKEND_URL)
   client_log = actionlib.SimpleActionClient('/puma/logs', LoggerManagerAction)
   
-  token = None
-  while not token:
-    rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
-    time.sleep(3)
+  headers = None
+  while not headers:
+    rospy.loginfo(f"{rospy.get_name()} -> Buscando token en /puma/web/auth_token.")
     try: 
-      token = get_token(BACKEND_URL)
+      bearer_token: String = rospy.wait_for_message("/puma/web/auth_token", String, timeout=10)
+      headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token.data}
     except Exception as e:
       rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
-    
-  bearer_token = f"Bearer {str(token)}"
-  headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
+  rospy.loginfo(f"{rospy.get_name()} -> Token recibido, ejecutando nodo")
   
   while not rospy.is_shutdown():
     logs_msgs = get_logs(client_log)

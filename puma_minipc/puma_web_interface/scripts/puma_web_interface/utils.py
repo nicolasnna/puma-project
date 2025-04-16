@@ -10,9 +10,9 @@ except ImportError:
 
 add_log_pub = rospy.Publisher("/puma/logs/add_log", Log, queue_size=4)
 
-def get_token(BACKEND_URL):
+def get_token(BACKEND_URL, username, password):
   headers = { 'Content-Type': 'application/x-www-form-urlencoded'}
-  body = { 'username': 'puma', 'password': 'puma2023'}
+  body = { 'username': username, 'password': password}
   try:
     response = requests.post(BACKEND_URL+"/auth/login", headers=headers, data=body, timeout=5)
     if response.status_code == 200:

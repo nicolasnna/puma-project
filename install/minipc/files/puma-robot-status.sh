@@ -12,6 +12,4 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 2
 done
 
-echo "ROS Master detectado. Ejecutando robot status manager..."
-
 roslaunch puma_robot_status all_robot_status.launch

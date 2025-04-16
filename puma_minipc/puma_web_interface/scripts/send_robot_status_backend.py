@@ -168,17 +168,15 @@ if __name__ == "__main__":
   global BACKEND_URL, headers
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
   
-  token = None
-  while not token:
-    rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
-    time.sleep(3)
+  headers = None
+  while not headers:
+    rospy.loginfo(f"{rospy.get_name()} -> Buscando token en /puma/web/auth_token.")
     try: 
-      token = get_token(BACKEND_URL)
+      bearer_token: String = rospy.wait_for_message("/puma/web/auth_token", String, timeout=10)
+      headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token.data}
     except Exception as e:
       rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
-  
-  bearer_token = f"Bearer {str(token)}"
-  headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
+  rospy.loginfo(f"{rospy.get_name()} -> Token recibido, ejecutando nodo")
 
   setting_up()
   

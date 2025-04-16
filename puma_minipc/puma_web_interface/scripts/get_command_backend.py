@@ -5,6 +5,7 @@ from puma_web_interface.translate_command import translate_command
 from puma_web_interface.utils import *
 import time
 from datetime import datetime
+from std_msgs.msg import String
 
 def get_remain_command_robot():
   global headers, BACKEND_URL
@@ -92,18 +93,16 @@ if __name__ == "__main__":
     intial_configuration = False
     completed_commands = []
     
-    token = None
-    while not token:
-      rospy.loginfo("Esperando 3 segundos para la solicitud del token de autenticacion.")
-      time.sleep(3)
+    headers = None
+    while not headers:
+      rospy.loginfo(f"{rospy.get_name()} -> Buscando token en /puma/web/auth_token.")
       try: 
-        token = get_token(BACKEND_URL)
+        bearer_token: String = rospy.wait_for_message("/puma/web/auth_token", String, timeout=10)
+        headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token.data}
       except Exception as e:
         rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
-  
-    bearer_token = f"Bearer {str(token)}"
-    headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token}
-  
+    rospy.loginfo(f"{rospy.get_name()} -> Token recibido, ejecutando nodo")
+    
     while not rospy.is_shutdown():
       check_and_send_remain_commands()
       time.sleep(3)

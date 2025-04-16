@@ -133,7 +133,6 @@ def subscriber(is_simulated: bool):
   global battery_sub, gps_sub, odom, status_arduino, rs_front_color, rs_rear_color, rs_front_depth, rs_rear_depth, wp_complete_sub, wp_remained_sub, wp_list_sub, control_mode_sub
   init_values()
   
-  
   battery_sub = rospy.Subscriber('/puma/sensors/battery/status', BatteryState, battery_cb)
   gps_sub = rospy.Subscriber('/puma/sensors/gps/fix', NavSatFix, gps_cb)
   odom = rospy.Subscriber('/puma/localization/ekf_odometry', Odometry, odom_cb)
@@ -195,12 +194,17 @@ def save_statistics():
     
   if rospy.get_param('~upload_db', False):
     backend_url = rospy.get_param('~backend_url', 'http://localhost:8000')
-    token = get_token(backend_url)
-    while not token:
-      rospy.logwarn('No se ha obtenido el token, reintentando en 3 seg...')
-      rospy.Rate(3).sleep()
-      token = get_token(backend_url)
-    headers = { 'Content-Type': 'application/json', 'Authorization': f'Bearer {str(token)}' }
+    
+    headers = None
+    while not headers:
+      rospy.loginfo(f"{rospy.get_name()} -> Buscando token en /puma/web/auth_token.")
+      try: 
+        bearer_token: String = rospy.wait_for_message("/puma/web/auth_token", String, timeout=10)
+        headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token.data}
+      except Exception as e:
+        rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
+    rospy.loginfo(f"{rospy.get_name()} -> Token recibido")
+    
     try:
       res = requests.post(backend_url+'/database/statistics', headers=headers, data=json_data, timeout=5)
       if res.status_code != 200:
@@ -211,18 +215,6 @@ def save_statistics():
       rospy.logerr(f'Error al subir las estadísticas a la base de datos')
       return False
   return True
-
-def get_token(BACKEND_URL):
-  headers = { 'Content-Type': 'application/x-www-form-urlencoded'}
-  body = { 'username': 'puma', 'password': 'puma2023'}
-  try:
-    response = requests.post(BACKEND_URL+"/auth/login", headers=headers, data=body, timeout=5)
-    if response.status_code == 200:
-      return response.json()['access_token']
-    else:
-      rospy.logwarn(f"Error al obtener token: {response.status_code} - {response.text}")
-  except requests.exceptions.RequestException as e:
-    rospy.logwarn(f"Error al obtener token: {e}")
     
 def init_values():
   global start_at
