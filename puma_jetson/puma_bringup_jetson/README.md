@@ -50,6 +50,16 @@ Debido a que es una agrupación de paquetes para la Jetson Nano, solo se tiene u
 
     - **`ublox/fix`** -> **`puma/sensors/gps/fix`**
     - **`ublox/fix_velocity`** -> **`puma/sensors/gps/fix_velocity`**
+  
+  - **`puma_joy`**: Encargado de la lectura de mando de xbox360 y control manual del robot.
+
+  - **`control_mode`**: Encargado de identificar y publicar el modo de control actual del robot.
+
+  - **`controller`**: Encargado de realizar el control del robot, dependiendo del modo utilizado.
+
+  - **`imu_bringup`**: Encargado de traducir los valores de la imu ICM20948 conectado al arduino MEGA, e implementar el filtro de madgwick para mejorar el resultado de la IMU.
+
+  - **`camera_odom`**: Encargado de activar la camara realsense trasera del robot e implementar la odometria visual con rtabmap.
 
 ## Config files
 

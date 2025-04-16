@@ -1,7 +1,7 @@
 <launch>
   <arg name="device_type"         default="d455"/>
   <arg name="camera_name"         default="camera_rear"/>
-  <arg name="output"              default="screen"/>
+  <arg name="output"              default="log"/>
   <arg name="camera_prefix"       default="puma/sensors/$(arg camera_name)"/>
   <arg name="serial_no"           default="215122255064"/>
   <arg name="initial_reset"       default="false"/>

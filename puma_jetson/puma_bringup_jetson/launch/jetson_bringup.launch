@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- Load params-->
-  <rosparam command="load" file="$(find puma_bringup_jetson)/config/jetson_params.yaml"/>
-  
+
   <!-- Arduino -->
   <include file="$(find puma_bringup_jetson)/launch/core/arduino.launch"/>
   <!-- Reverse manage -->
