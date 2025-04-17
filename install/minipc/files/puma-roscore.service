@@ -1,0 +1,15 @@
+[Unit]
+Description=ROS Core Service
+After=network.target
+
+StartLimitInterval=500
+StartLimitBurst=7
+
+[Service]
+Environment=ROS_MASTER_URI=http://localhost:11311
+ExecStart=/bin/bash -c "source /opt/ros/noetic/setup.bash && /opt/ros/noetic/bin/roscore"
+Restart=on-failure
+User=puma
+
+[Install]
+WantedBy=multi-user.target

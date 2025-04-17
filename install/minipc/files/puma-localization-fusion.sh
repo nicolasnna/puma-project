@@ -12,6 +12,6 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 5
 done
 
-echo "ROS Master disponible. Iniciando seguimiento del estado del robot..."
+echo "ROS Master disponible. Iniciando la localizacion por fusion de sensores con algoritmo EKF..."
 
-roslaunch puma_robot_status all_robot_status.launch
+roslaunch puma_bringup localization_bringup.launch

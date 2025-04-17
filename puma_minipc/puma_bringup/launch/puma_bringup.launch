@@ -5,7 +5,8 @@
   <include file="$(find puma_bringup)/launch/camera_bringup.launch"/>
 
   <!-- Navigation -->
-  <include file="$(find puma_bringup)/launch/navigation/new_navigation_bringup.launch"/>
+  <include file="$(find puma_bringup)/launch/navigation/navigation_bringup.launch"/>
+  <include file="$(find puma_bringup)/launch/navigation/map_server.launch"/>
   
   <include file="$(find puma_bringup)/launch/core/nav_manager.launch"/>
 
@@ -15,7 +16,7 @@
   <include file="$(find puma_bringup)/launch/localization/imu_filter_realsense.launch"/>
   <include file="$(find puma_bringup)/launch/localization/localization_bringup.launch"/>
   <!-- Static Tf between map and odom -->
-  <node pkg="tf2_ros" type="static_transform_publisher" name="odom_wrt_map_tf" args="0 0 0 0 0 0 map odom"/>
+  <include file="$(find puma_bringup)/launch/localization/static_tf_map.launch" />
   <!-- <include file="$(find puma_bringup)/launch/localization/gps_localization.launch"/> -->
 
 </launch>

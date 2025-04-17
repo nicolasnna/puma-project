@@ -12,6 +12,6 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 5
 done
 
-echo "ROS Master disponible. Iniciando seguimiento del estado del robot..."
+echo "ROS Master disponible. Iniciando el map server..."
 
-roslaunch puma_robot_status all_robot_status.launch
+roslaunch puma_bringup map_server.launch

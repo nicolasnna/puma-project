@@ -77,7 +77,7 @@ def state_machine_cb(data: SmachContainerStatus):
   DATA_TO_SEND["state_machine"] = { "data": state_machine }
     
 def battery_cb(data: BatteryState):
-  DATA_TO_SEND["battery"] = {"data": {"voltage": data.voltage, "percentage": data.percentage}}
+  DATA_TO_SEND["battery"] = {"data": {"voltage": round(data.voltage,2), "percentage": round(data.percentage)}}
   
 def wp_completed_cb(data: WaypointNav):
   waypoints = [waypoint_to_dict(wp) for wp in data.waypoints]
