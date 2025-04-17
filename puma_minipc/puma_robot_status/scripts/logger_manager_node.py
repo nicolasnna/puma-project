@@ -1,25 +1,27 @@
 import rospy
-import rospkg
 from puma_msgs.msg import Log, LogArray
 from std_msgs.msg import Empty
 from datetime import datetime
 from puma_robot_status.msg import LoggerManagerAction, LoggerManagerGoal, LoggerManagerResult
 from actionlib import SimpleActionServer
-from pathlib import Path
+import os
 
 class writeToFile:
   def __init__(self):
     is_simulated = rospy.get_param('~is_simulation', False)
     
-    project_root = Path(__file__).resolve().parent.parent  # Sube a puma_robot_status
-    tmp_dir = project_root / "tmp" / "logs" / "simulation"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
+    home_dir = os.path.expanduser('~')
+    dir_local = os.path.join(home_dir, 'tmp', 'logs')
+    os.makedirs(dir_local, exist_ok=True)  # Crear directorios si no existen
+  
+    # project_root = Path(__file__).resolve().parent.parent  # Sube a puma_robot_status
+    # tmp_dir = project_root / "tmp" / "logs" / "simulation"
+    # tmp_dir.mkdir(parents=True, exist_ok=True)
         
-    directory = rospkg.RosPack().get_path('puma_robot_status') + '/tmp/logs/'
     if is_simulated:
-      self.filename = directory + "simulation/" + "log simulation -" + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.txt'
+      self.filename = dir_local + "/log simulation -" + datetime.now().strftime('%Y-%m-%d %H-%M-%S') + '.txt'
     else:
-      self.filename = directory + "log sesion -" + datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.txt'
+      self.filename = dir_local + "/log -" + datetime.now().strftime('%Y-%m-%d %H-%M-%S') + '.txt'
     
   def write(self, data):
     with open(self.filename, 'a') as file:

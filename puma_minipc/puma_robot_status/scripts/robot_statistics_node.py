@@ -8,6 +8,7 @@ from puma_msgs.msg import StatusArduino, WaypointNav, Waypoint
 from std_msgs.msg import String
 import base64
 import json
+import os
 import rospkg
 import requests
 from datetime import datetime
@@ -176,7 +177,10 @@ def end_subscriber():
   
 def save_statistics():
   global type_statistics, statistics, end_at
-  dir_local = rospkg.RosPack().get_path('puma_robot_status') + '/tmp/statistics'
+  home_dir = os.path.expanduser('~')
+  dir_local = os.path.join(home_dir, 'tmp', 'statistics')
+  os.makedirs(dir_local, exist_ok=True)  # Crear directorios si no existen
+  
   statistics_manager()
   name_file = f'{type_statistics} - {str(time_chile_now())}'
   end_at = time_chile_now()
