@@ -15,7 +15,7 @@ SCRIPT_DST="/usr/local/bin"
 # Decarar servicios en arreglo tipo:
 # "clave" = "nombre | ruta_servicio_origen | ruta_servicio_destino | ruta_script_origen | ruta_script_destino"
 declare -A servicios=(
-  ["0"]="puma-roscore|${FILES_DIR}/puma-roscore.service|${SERVICE_DST}/puma-roscore.service|None|None"
+  ["0"]="puma-roscore|${FILES_DIR}/puma-roscore.service|${SERVICE_DST}/puma-roscore.service"
   ["1"]="puma-imu-filter-realsense|${FILES_DIR}/puma-imu-filter-realsense.service|${SERVICE_DST}/puma-imu-filter-realsense.service|${FILES_DIR}/puma-imu-filter-realsense.sh|${SCRIPT_DST}/puma-imu-filter-realsense.sh"
   ["2"]="puma-localization-fusion|${FILES_DIR}/puma-localization-fusion.service|${SERVICE_DST}/puma-localization-fusion.service|${FILES_DIR}/puma-localization-fusion.sh|${SCRIPT_DST}/puma-localization-fusion.sh"
   ["3"]="puma-map-server|${FILES_DIR}/puma-map-server.service|${SERVICE_DST}/puma-map-server.service|${FILES_DIR}/puma-map-server.sh|${SCRIPT_DST}/puma-map-server.sh"
