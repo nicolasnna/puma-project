@@ -34,6 +34,7 @@ def check_and_use_teleop_cmd():
           msg_teleop = WebTeleop()
           msg_teleop.accel_value = min(int(res['accel_value']), 24)
           msg_teleop.angle_degree = float(res['angle_degree'])
+          msg_teleop.enable_direction = bool(res['enable_direction'])
           msg_teleop.brake = bool(res['brake'])
           msg_teleop.reverse = bool(res['reverse'])
           msg_teleop.parking = bool(res['parking'])

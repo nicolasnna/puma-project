@@ -53,7 +53,7 @@ class ControlPublisher:
   def publish(self, accelerator, reverse, direction, brake, parking):
     self.accel_pub.publish(Int16(int(accelerator)))
     self.reverse_pub.publish(Bool(reverse))
-    self.direction_pub.publish(DirectionCmd(angle=direction["angle"], activate=direction["activate"]))
+    self.direction_pub.publish(DirectionCmd(angle=round(direction["angle"],3), activate=direction["activate"]))
     self.brake_pub.publish(Bool(brake))
     self.parking_pub.publish(Bool(parking))
 
@@ -74,6 +74,23 @@ class PumaController:
       min_value=self.config.range_accel_converter[0], 
       max_value=self.config.range_accel_converter[1],
       max_value_initial=self.config.limit_accel_initial
+    )
+    self.pid_web_accel = PIDAntiWindUp(
+      kp=0.5,
+      ki=0.3,
+      kd=0.005,
+      min_value=18,
+      max_value=35,
+      max_value_initial=22
+    )
+    self.pid_web_angle = PIDAntiWindUp(
+      kp=0.55,
+      ki=0.3,
+      kd=0.005,
+      min_value=math.radians(-45),
+      max_value=math.radians(45),
+      max_value_initial=0,
+      disable_final_check=True
     )
 
     self.log_publisher.publish(0, "Iniciando controlador robot puma. Recordar definir el modo de control.")
@@ -107,11 +124,8 @@ class PumaController:
     self.vel_linear = 0
     self.vel_linear_odometry = 0
     self.angle = 0
-    self.web_accel = 0
-    self.web_angle = 0
-    self.web_brake = False
-    self.web_reverse = False
-    self.web_parking = False
+    self.web = {"accel": 0, "angle": 0, "brake": False, "reverse": False, "parking": False, "enable_direction": False}
+    self.web_pid_output = {"accel": 18, "angle": 0}
     self.mode_puma = ''
     self.last_time_msg = {key: 0 for key in ["odometry", "ackermann", "web", "pid_control", "move_base"]}
     self.last_time_log_error = {key: rospy.get_time() for key in ["web", "odometry", "ackermann", "mode", "joystick", "secure"]}
@@ -198,25 +212,32 @@ class PumaController:
   def web_command_callback(self, data):
     ''' MODIFICAR PARA SIMPLIFICAR '''
     if self.mode_puma == "web":
-      self.web_accel = max(min(data.accel_value, self.config.range_accel_converter[1]), 0)
-      self.web_angle = self.clamp_angle(math.radians(data.angle_degree))
-      self.web_brake = data.brake
-      self.web_parking = data.parking
-      self.web_reverse = data.reverse
+      self.web["accel"] = max(min(data.accel_value, self.config.range_accel_converter[1]), 0)
+      self.web["angle"] = self.clamp_angle(math.radians(data.angle_degree))
+      self.web["enable_direction"] = data.enable_direction
+      self.web["brake"] = data.brake
+      self.web["parking"] = data.parking
+      self.web["reverse"] = data.reverse
       self.last_time_msg["web"]= rospy.get_time()
-      
+  
   def control_web(self):
     ''' Control del robot a partir de la web '''
     current_time = rospy.get_time()
     
     if current_time - self.last_time_msg["web"] < self.time_between_msg["web"] and not self.signal_secure:
+      self.web_pid_output["accel"] = self.pid_web_accel.update(self.web["accel"], self.web_pid_output["accel"])
+      
+      if self.web["enable_direction"]:
+        self.web_pid_output["angle"] = self.pid_web_angle.update(self.web["angle"], self.web_pid_output["angle"])
+      
       self.control_publisher.publish(
-        accelerator=self.web_accel, 
-        reverse=self.web_reverse, 
-        direction={"angle": self.web_angle, "activate": True}, 
-        brake=self.web_brake,
-        parking=self.web_parking
+        accelerator=round(self.web_pid_output["accel"]), 
+        reverse=self.web["reverse"], 
+        direction={"angle": self.web_pid_output["angle"], "activate": self.web["enable_direction"]}, 
+        brake=self.web["brake"],
+        parking=self.web["parking"]
       )
+      rospy.Rate(10).sleep()
     else:
       self.manage_send_error_log("web" if not self.signal_secure else "secure")
       self.publish_idle()
@@ -234,7 +255,7 @@ class PumaController:
     return round(max(
       min(angle, 
           math.radians(self.config.limit_angle_degree)), 
-      math.radians(-self.config.limit_angle_degree)),2)
+      math.radians(-self.config.limit_angle_degree)),3)
   
   def should_change_reverse(self):
     """
@@ -246,7 +267,7 @@ class PumaController:
 
   def publish_idle(self):
     """Publica comandos para dejar el robot en estado inactivo."""
-    self.vel_linear = self.web_accel = 0 # Limpiar el ultimo comando recibido
+    self.vel_linear = self.web["accel"] = 0 # Limpiar el ultimo comando recibido
     self.control_publisher.publish(
       accelerator=0, 
       reverse=False,

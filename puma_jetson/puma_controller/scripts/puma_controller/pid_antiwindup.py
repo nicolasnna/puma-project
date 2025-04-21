@@ -1,7 +1,7 @@
 import time
 
 class PIDAntiWindUp:
-  def __init__(self, kp, ki, kd, min_value, max_value, max_value_initial):
+  def __init__(self, kp, ki, kd, min_value, max_value, max_value_initial, disable_final_check=False):
     '''
     kp: float - Constante proporcional
     ki: float - Constante integral
@@ -23,6 +23,7 @@ class PIDAntiWindUp:
     self.integral = 0.0
     self.previus_error = 0.0
     self.last_time = None
+    self.disable_final_check = disable_final_check
   
   def update(self, setpoint, measurement): 
     current_time = time.time()
@@ -33,7 +34,7 @@ class PIDAntiWindUp:
     error = setpoint - measurement
 
     proportional = self._kp * error
-    self.integral += error +dt
+    self.integral += error * dt
     self.integral = max(min(self.integral, self._max_value/self._ki), self._min_value/self._ki)
       
     integral = self._ki*self.integral
@@ -43,11 +44,14 @@ class PIDAntiWindUp:
       derivative = self._kd * (error - self.previus_error) / dt
     # Calcualar salida
     output = proportional + integral + derivative
-    if measurement < 0.1:
-      output = max(min(self._max_value_initial, output),self._min_value)
+    if not self.disable_final_check:
+      if measurement < 0.1:
+        output = max(min(self._max_value_initial, output),self._min_value)
+      else:
+        output = max(min(output, self._max_value), self._min_value)
     else:
       output = max(min(output, self._max_value), self._min_value)
-    
+      
     self.previus_error = error
     self.last_time = current_time
     
