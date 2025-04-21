@@ -26,6 +26,7 @@ declare -A servicios=(
   ["9"]="puma-parking|${FILES_DIR}/puma-parking.service|${SERVICE_DST}/puma-parking.service|${FILES_DIR}/puma-parking.sh|${SCRIPT_DST}/puma-parking.sh"
   ["10"]="puma-realsense|${FILES_DIR}/puma-realsense.service|${SERVICE_DST}/puma-realsense.service|${FILES_DIR}/puma-realsense.sh|${SCRIPT_DST}/puma-realsense.sh"
   ["11"]="puma-reverse|${FILES_DIR}/puma-reverse.service|${SERVICE_DST}/puma-reverse.service|${FILES_DIR}/puma-reverse.sh|${SCRIPT_DST}/puma-reverse.sh"
+  ["12"]="puma-ip-cameras|${FILES_DIR}/puma-ip-cameras.service|${SERVICE_DST}/puma-ip-cameras.service|${FILES_DIR}/puma-ip-cameras.sh|${SCRIPT_DST}/puma-ip-cameras.sh"
 )
 
 mostrar_menu() {

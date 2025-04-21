@@ -3,10 +3,10 @@
 
   <node name="publish_camera_nvr_node" pkg="puma_ip_cameras" type="publish_camera_ip.py" output="screen" respawn="true" respawn_delay="5">
     <param name="user" value="admin"/>
-    <param name="password" value="Admin1234"/>
-    <param name="ip" value="192.168.0.108"/>
-    <rosparam param="channels">[1, 2, 3, 4, 5]</rosparam>
-    <rosparam param="subtypes">[0, 0, 0, 0, 0]</rosparam>
+    <param name="password" value="smartbot2023"/>
+    <param name="ip" value="10.42.0.107"/>
+    <rosparam param="channels">[5, 6, 7, 8]</rosparam>
+    <rosparam param="subtypes">[0, 0, 0, 0]</rosparam>
     <param name="ns_camera" value="/puma/nvr"/>
   </node>
   

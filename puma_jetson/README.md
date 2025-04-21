@@ -19,3 +19,4 @@ Los paquetes en este directorio tienen las siguientes funciones:
 
 - **`puma_mode_control`**: Manejador del tipo de control a emplear en el robot. Distintos modos para evitar que interfiera entre sí.
 
+- **`puma_ip_cameras`**: Maneja de las cámaras IP conectadas del robot PUMA para ser visualizadas en el entorno de ROS.
