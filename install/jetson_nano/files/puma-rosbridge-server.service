@@ -6,6 +6,9 @@ Wants=network-online.target
 [Service]
 Environment="ROS_MASTER_URI=http://10.42.0.100:11311"
 Environment="ROS_IP=10.42.0.11"
+User=puma
+Group=puma
+WorkingDirectory=/home/puma
 ExecStart=/usr/local/bin/puma-rosbridge-server.sh
 Restart=always
 RestartSec=10
