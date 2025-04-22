@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 source /home/puma/.bashrc
-source /opt/ros/noetic/setup.bash
+source /opt/ros/melodic/setup.bash
 source /home/puma/puma_ws/devel/setup.bash
 
 ROS_MASTER="10.42.0.100"
