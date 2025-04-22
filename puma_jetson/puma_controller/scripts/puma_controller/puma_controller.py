@@ -79,7 +79,7 @@ class PumaController:
       kp=0.5,
       ki=0.3,
       kd=0.005,
-      min_value=18,
+      min_value=12,
       max_value=35,
       max_value_initial=22
     )
