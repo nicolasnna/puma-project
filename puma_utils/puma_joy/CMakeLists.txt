@@ -92,7 +92,6 @@ catkin_python_setup()
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
 generate_dynamic_reconfigure_options(
   cfg/PumaJoy.cfg
-#   cfg/DynReconf2.cfg
 )
 
 ###################################
@@ -164,6 +163,9 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/puma_joy_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(DIRECTORY cfg
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 ## Mark executables for installation
