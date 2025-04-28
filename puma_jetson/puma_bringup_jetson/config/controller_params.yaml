@@ -1,5 +1,5 @@
 puma_controller:
-  range_accel_converter: [22, 35]
+  range_accel_converter: [18, 35]
   limit_angle_degree: 45
   connect_to_ackermann_converter: false
   limit_accel_initial: 27

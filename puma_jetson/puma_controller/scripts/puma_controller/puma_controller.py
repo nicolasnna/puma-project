@@ -32,11 +32,11 @@ class PumaController:
     )
     self.pid_web_accel = PidAccelerator(
       name="pid_web_accel",
-      kp=0.5,
+      kp=0.4,
       ki=0.3,
       kd=0.005,
       min_value=12,
-      max_value=35,
+      max_value=30,
       max_value_initial=22
     )
     self.pid_web_angle = PidAngle(
