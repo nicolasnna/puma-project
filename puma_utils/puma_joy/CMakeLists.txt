@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.0.2...3.22)
 project(puma_joy)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -14,6 +14,10 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   dynamic_reconfigure
 )
+
+if(POLICY CMP0148)
+  cmake_policy(SET CMP0148 OLD)  # Usa el comportamiento antiguo
+endif()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
