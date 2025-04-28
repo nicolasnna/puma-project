@@ -194,7 +194,7 @@ class PumaController:
         brake=self.web["brake"],
         parking=self.web["parking"]
       )
-      rospy.Rate(10).sleep()
+      rospy.Rate(20).sleep()
     else:
       self.manage_send_error_log("web" if not self.signal_secure else "secure")
       self.publish_idle()

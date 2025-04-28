@@ -1,6 +1,21 @@
 <?xml version="1.0"?>
 <launch>
 
+  <arg name="username" default="admin"/>
+  <arg name="password" default="admin"/>
+
+  <node
+    name="get_token_api"
+    pkg="puma_web_interface"
+    type="get_token_node.py"
+    output="screen"
+    respawn="true"
+    respawn_delay="4"
+  >
+    <param name="username" value="$(arg username)"/>
+    <param name="password" value="$(arg password)"/>
+  </node>
+
   <node 
     name="get_web_command_to_ros" 
     pkg="puma_web_interface" 

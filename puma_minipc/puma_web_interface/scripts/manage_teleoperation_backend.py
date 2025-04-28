@@ -37,7 +37,7 @@ def check_and_use_teleop_cmd():
           msg_teleop.reverse = bool(res['reverse'])
           msg_teleop.parking = bool(res['parking'])
           teleop_pub.publish(msg_teleop)
-          rospy.loginfo(f"Teleop command: {msg_teleop}")
+          # rospy.loginfo(f"Teleop command: {msg_teleop}")
           latest_command = res
           
   except Exception as e:
@@ -64,7 +64,7 @@ if __name__ == "__main__":
       rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
   rospy.loginfo(f"{rospy.get_name()} -> Token recibido, ejecutando nodo")
 
-  rate = rospy.Rate(10)
+  rate = rospy.Rate(20)
   while not rospy.is_shutdown():
     if current_mode == "web":
       check_and_use_teleop_cmd()
