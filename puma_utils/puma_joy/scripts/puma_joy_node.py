@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from puma_joy.cfg import PumaJoyConfig
 import rospy
 from puma_joy.puma_interface_joy import PumaInterfaceJoy
 

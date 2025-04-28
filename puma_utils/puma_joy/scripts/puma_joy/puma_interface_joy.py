@@ -7,8 +7,8 @@ from sensor_msgs.msg import Joy
 from puma_joy.utils_joy import *
 from diagnostic_msgs.msg import DiagnosticArray
 import signal
-from dynamic_reconfigure.server import Server
-from puma_joy.cfg import PumaJoyConfig
+# from dynamic_reconfigure.server import Server
+# from puma_joy.cfg import PumaJoyConfig
 
 class PumaInterfaceJoy:
   """ Interfaz puma joy """
@@ -57,7 +57,7 @@ class PumaInterfaceJoy:
     rospy.Subscriber('diagnostics', DiagnosticArray, self.diagnostic_callback)
     
     #server reconfigure
-    self.srv = Server(PumaJoyConfig, self.reconfigure_cb)
+    # self.srv = Server(PumaJoyConfig, self.reconfigure_cb)
     
     self.joystick_input = JoystickInput(axes_index, buttons_index)
     self.controller = PumaJoyController(self.accel_range, self.angle_range)
