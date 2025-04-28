@@ -81,7 +81,7 @@ class PIDAntiWindUp:
     
 class PidAccelerator(PIDAntiWindUp):
   def init_ddynamic_reconfigure(self):
-    self.reconfigure.add_variable("kp", "Constante proporcional", self._kp, 0, 5.0)
+    self.reconfigure.add_variable("kp", "Constante proporcional", self._kp, 0, 10.0)
     self.reconfigure.add_variable("ki", "Constante integral", self._ki, 0, 5.0)
     self.reconfigure.add_variable("kd", "Constante derivativa", self._kd, 0, 0.5)
     self.reconfigure.add_variable("min_value", "Valor minimo de salida", self._min_value, 0, 20)
