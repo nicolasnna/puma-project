@@ -14,102 +14,87 @@ puma_ekf_odom:
   world_frame: odom
 
   odom0: puma/rtabmap/camera_front/odom_visual
-  odom0_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
+  odom0_config: [true, true, false,
+                false, false, true,
+                true,  true,  false,
                 false, false, true,
                 false, false, false]
   odom0_relative: true
-  odom0_queue_size: 10
-  odom0_nodelay: true
-  odom0_differential: false
-  odom0_pose_rejection_threshold: 1000
-  odom0_twist_rejection_threshold: 1000
+  odom0_pose_rejection_threshold: 50
+  odom0_twist_rejection_threshold: 50
 
   odom1: puma/rtabmap/camera_rear/odom_visual
-  odom1_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
+  odom1_config: [true, true, false,
+                false, false, true,
+                true,  true,  false,
                 false, false, true,
                 false, false, false]
   odom1_relative: true
-  odom1_queue_size: 10
-  odom1_nodelay: true
-  odom1_differential: false
-  odom1_pose_rejection_threshold: 1000
-  odom1_twist_rejection_threshold: 1000
+  odom1_pose_rejection_threshold: 50
+  odom1_twist_rejection_threshold: 50
 
-  odom2: puma/localization/odometry_wheel
-  odom2_config: [false, false, false,
-                false, false, false,
-                true,  true,  true,
-                false, false, false,
-                false, false, false]
-  odom2_differential: false
-  odom2_relative: false
-
-  # odom3: puma/localization/gps_odometry
-  # odom3_config: [true,  true,  false,
+  # odom2: puma/localization/odometry_wheel
+  # odom2_config: [false, false, false,
   #               false, false, false,
-  #               false, false, false,
+  #               true,  true,  true,
   #               false, false, false,
   #               false, false, false]
-  # odom3_queue_size: 10
-  # odom3_nodelay: true
-  # odom3_differential: false
-  # odom3_relative: false
+  # odom2_differential: false
+  # odom2_relative: false
 
-  imu0: puma/sensors/camera_front/imu/filtered
+
+  imu0: puma/sensors/icm20948/imu/filtered
   imu0_config: [false, false, false,
                 false,  false,  false,
                 false, false, false,
-                true,  true,  true,
+                false,  false,  true,
                 false,  false,  false]
-  imu0_differential: true
+  imu0_nodelay: false
+  imu0_differential: false
   imu0_relative: false
 
-  imu1: puma/sensors/camera_rear/imu/filtered
+  imu1: puma/sensors/camera_front/imu/filtered
   imu1_config: [false, false, false,
                 false,  false,  false,
                 false, false, false,
-                true,  true,  true,
+                false,  false,  true,
                 false,  false,  false]
-  imu1_differential: true
+  imu1_differential: false
   imu1_relative: false
 
   use_control: false
 
-  process_noise_covariance: [1e-3, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    1e-3, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    1e-3, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0.3,  0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0.3,  0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0.01, 0,     0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0.5,   0,     0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0.5,   0,    0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0.1,  0,    0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0.3,  0,    0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.3,  0,    0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.3,  0,    0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.3,  0,    0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.3,  0,
-                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.3]
+  # process_noise_covariance: [1e-3, 0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    1e-3, 0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    1e-3, 0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0.3,  0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0.3,  0,    0,     0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0.01, 0,     0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0.5,   0,     0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0.5,   0,    0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0.1,  0,    0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0.3,  0,    0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.3,  0,    0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.3,  0,    0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.3,  0,    0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.3,  0,
+  #                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.3]
 
-  initial_estimate_covariance: [1e-9, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    1e-9, 0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    1e-9, 0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    1.0,  0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    1.0,  0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    1e-9, 0,    0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    1.0,  0,    0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    1.0,  0,    0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    1.0,  0,     0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    0,    1.0,   0,     0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     1.0,   0,     0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     1.0,   0,    0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     1.0,  0,    0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    1.0,  0,
-                                0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    1.0]
+  # initial_estimate_covariance: [1e-9, 0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    1e-9, 0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    1e-9, 0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    1.0,  0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    1.0,  0,    0,    0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    1e-9, 0,    0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    1.0,  0,    0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    1.0,  0,    0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    1.0,  0,     0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    1.0,   0,     0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     1.0,   0,     0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     1.0,   0,    0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     1.0,  0,    0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    1.0,  0,
+  #                               0,    0,    0,    0,    0,    0,    0,    0,    0,    0,     0,     0,     0,    0,    1.0]
 
 
 # navsat_transform:

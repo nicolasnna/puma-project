@@ -52,7 +52,9 @@ def main():
       headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token.data}
     except Exception as e:
       rospy.logwarn(f"{rospy.get_name()} -> Error al obtener token: {e}")
+      time.sleep(10)
   rospy.loginfo(f"{rospy.get_name()} -> Token recibido, ejecutando nodo")
+
   
   while not rospy.is_shutdown():
     logs_msgs = get_logs(client_log)
