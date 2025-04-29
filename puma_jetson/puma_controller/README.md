@@ -128,6 +128,10 @@ Se encarga del control del robot variando el valor del acelerador, la reversa, d
   
     Componente derivativo del controlador PIDAntiWindUP para la velocidad.
 
+#### Reconfigure
+
+El nodo incorpora el paquete dynamic_reconfigure, permitiendo ajustes en el control PID en medio de la ejecución del nodo. Además incorpora 3 PID: PID para la navegacion, PID para acelerador en caso de teleoperación, PID para el ángulo de la dirección en caso de teleoperación. 
+
 ### convert_ackermann
 
 Se encarga de convertir velocidades lineales y angulares (tipo `Twist`) a velocidad lineal y posición angular (tipo `AckermannDriveStamped`) para luego ser usado en el nodo de control.
