@@ -102,8 +102,8 @@ class PumaController:
       "mode": 10,
       "secure": 10,
     }
-    self.is_change_reverse = False
-
+    self.turn_forward = None
+    
   def manage_send_error_log(self, key, with_time=True):
     """ Manejador de logs de estado. 
       :param key: odometry, ackermann, web, mode, joystick, secure, pid_control, move_base
@@ -164,7 +164,6 @@ class PumaController:
     if not self.config.connect_to_ackermann_converter and self.mode_puma == "navegacion":
       self.vel_linear = round(data.linear.x,2)
       self.angle = self.clamp_angle(data.angular.z)
-      self.is_change_reverse = self.should_change_reverse()
       
   def web_command_callback(self, data):
     ''' MODIFICAR PARA SIMPLIFICAR '''
@@ -205,7 +204,6 @@ class PumaController:
       self.last_time_msg["ackermann"] = rospy.get_time()
       self.vel_linear = round(acker_data.drive.speed,3)
       self.angle = self.clamp_angle(acker_data.drive.steering_angle)
-      self.is_change_reverse = self.should_change_reverse()
       
   def clamp_angle(self, angle):
     """Limita el ángulo dentro del rango permitido. angle debe ser radianes."""
@@ -214,11 +212,10 @@ class PumaController:
           math.radians(self.config.limit_angle_degree)), 
       math.radians(-self.config.limit_angle_degree)),3)
   
-  def should_change_reverse(self):
+  def is_change_direction(self):
     """
-    Determina si es necesario cambiar a marcha atrás (reverse)
-    en función de las velocidades actuales.
-    :return: True si debe cambiar a reversa, False de lo contrario.
+    Determina si ocurre un cambio de direccion respecto al comando de velocidad anterior
+    :return: True si occurre un cambio.
     """
     return (self.vel_linear > 0 and self.vel_linear_odometry < 0.3) or (self.vel_linear < 0 and self.vel_linear_odometry > 0.3)
 
@@ -238,6 +235,26 @@ class PumaController:
     Control para el modo navegación
     '''
     current_time = rospy.get_time()
+    
+    if abs(self.vel_linear > 0.1) and (self.vel_linear >= 0) != self.turn_forward:
+      self.turn_forward = self.vel_linear >= 0
+      self.last_direction_change_time = current_time
+      self.control_publisher.publish(
+        accelerator=0, 
+        reverse=self.vel_linear < 0,
+        direction={"angle": 0, "activate": True}, 
+        brake=True, 
+        parking=False
+      )
+      self.pid.clean_acumulative_error()
+      rospy.loginfo("Detectado cambio de sentido")
+      return
+    
+    if hasattr(self, "last_direction_change_time"):
+      if current_time - self.last_direction_change_time < 0.1:
+        return
+      else:
+        del self.last_direction_change_time
     
     if current_time - self.last_time_msg["odometry"] < self.time_between_msg["odometry"] and not self.signal_secure:
       if self.vel_linear == 0 or self.signal_secure:
