@@ -236,6 +236,7 @@ class PumaController:
     '''
     current_time = rospy.get_time()
     
+    # Verificar si ocurre un cambio de direccion
     if abs(self.vel_linear > 0.1) and (self.vel_linear >= 0) != self.turn_forward:
       self.turn_forward = self.vel_linear >= 0
       self.last_direction_change_time = current_time
@@ -249,9 +250,9 @@ class PumaController:
       self.pid.clean_acumulative_error()
       rospy.loginfo("Detectado cambio de sentido")
       return
-    
+    # Temporizador no bloqueante para evitar errores de hardware
     if hasattr(self, "last_direction_change_time"):
-      if current_time - self.last_direction_change_time < 0.1:
+      if current_time - self.last_direction_change_time < self.config.time_between_directions:
         return
       else:
         del self.last_direction_change_time

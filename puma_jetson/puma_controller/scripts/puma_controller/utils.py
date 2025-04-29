@@ -24,6 +24,7 @@ class NodeConfig:
     self.kp = rospy.get_param('~kp', 0.3)
     self.ki = rospy.get_param('~ki', 0.2)
     self.kd = rospy.get_param('~kd', 0.05)
+    self.time_between_directions = rospy.get_param('~time_between_directions', 0.4)
 
 class LogPublisher:
   """Clase responsable de publicar logs en el sistema."""

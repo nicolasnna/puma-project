@@ -5,6 +5,7 @@ puma_controller:
   kp: 2.7
   ki: 0.5
   kd: 0.12
+  time_between_directions: 0.5
 
 
 ackermann_converter:

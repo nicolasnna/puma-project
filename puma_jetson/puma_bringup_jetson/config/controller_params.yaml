@@ -6,3 +6,4 @@ puma_controller:
   kp: 2.0
   ki: 0.4
   kd: 0.05
+  time_between_directions: 0.5
