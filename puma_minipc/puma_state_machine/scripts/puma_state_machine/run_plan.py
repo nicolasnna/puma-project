@@ -133,12 +133,24 @@ class RunPlan(smach.State):
       self.send_log(f"Error al ajustar destino, siguiendo con el destino original. Error: {e}",1)
       return goal
   
+  def check_cameras_realsense(self):
+    try:
+      rospy.wait_for_service('/puma/sensors/camera_front/color/camera_info', timeout=5)
+    except rospy.ROSException as e:
+      self.send_log(f"Error al comprobar la camara realsense frontal: {e}", 1)
+    
+    try:
+      rospy.wait_for_service('/puma/sensors/camera_rear/color/camera_info', timeout=5)
+    except rospy.ROSException as e:
+      self.send_log(f"Error al comprobar la camara realsense trasera: {e}", 1)
+  
   def execute(self, ud):
     rospy.loginfo('----- Estado ejecución de plan -----')
     self.send_log("Iniciando en el estado de ejecución de plan de navegación.", 0)
     ''' Variables '''
     self.is_aborted = False
     self.status_move_base = 0
+    self.check_cameras_realsense()
 
     self.mode_selector_pub.publish(String(data='navegacion'))
     rospy.sleep(0.3)

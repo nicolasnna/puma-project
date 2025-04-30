@@ -27,6 +27,8 @@ class RunPlanCustom(RunPlan):
     ''' Variables '''
     self.is_aborted = False
     self.status_move_base = 0
+    self.check_cameras_realsense()
+    
     ''' Definir modo navegacion en el control puma '''
     self.mode_selector_pub.publish(String(data='navegacion'))
     rospy.sleep(0.3)

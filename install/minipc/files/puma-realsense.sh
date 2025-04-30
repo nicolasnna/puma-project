@@ -12,6 +12,7 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 5
 done
 
-echo "ROS Master disponible. Iniciando la camara realsense ROS..."
+echo "ROS Master disponible. Iniciando la camara realsense ROS en 30 segundos..."
 
+sleep 30
 roslaunch puma_bringup realsense_camera.launch camera_name:=camera_front serial_no:=215122254316

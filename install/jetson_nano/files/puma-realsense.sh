@@ -12,6 +12,7 @@ while ! nc -z $ROS_MASTER $PORT; do
   sleep 5
 done
 
-echo "ROS Master detectado. Ejecutando realsense ros..."
+echo "ROS Master detectado. Ejecutando realsense ros en 30 segundos..."
 
+sleep 30
 roslaunch puma_bringup_jetson realsense.launch
