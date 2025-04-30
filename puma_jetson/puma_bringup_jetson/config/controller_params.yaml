@@ -1,9 +1,32 @@
 puma_controller:
-  range_accel_converter: [14, 35]
   limit_angle_degree: 45
   connect_to_ackermann_converter: false
-  limit_accel_initial: 27
-  kp: 2.0
-  ki: 0.4
-  kd: 0.05
   time_between_directions: 0.5
+
+  navigation:
+    kp: 5.0
+    ki: 2.0
+    kd: 0.1
+    min_value: 14
+    max_value: 35
+    max_value_initial: 27
+    disable_final_check: false
+
+  teleop:
+    accelerator: 
+      kp: 0.4
+      ki: 0.3
+      kd: 0.005
+      min_value: 12
+      max_value: 30
+      max_value_initial: 23
+      disable_final_check: false
+    
+    steering_angle:
+      kp: 0.55
+      ki: 0.3
+      kd: 0.005
+      min_value: -45
+      max_value: 45
+      max_value_initial: 0
+      disable_final_check: true

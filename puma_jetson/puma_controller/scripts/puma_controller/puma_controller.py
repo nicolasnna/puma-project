@@ -23,31 +23,33 @@ class PumaController:
     )
     self.pid = PidAccelerator(
       name="pid_navigation",
-      kp=self.config.kp, 
-      ki=self.config.ki, 
-      kd=self.config.kd, 
-      min_value=self.config.range_accel_converter[0], 
-      max_value=self.config.range_accel_converter[1],
-      max_value_initial=self.config.limit_accel_initial
+      kp=self.config.navigation.kp, 
+      ki=self.config.navigation.ki, 
+      kd=self.config.navigation.kd, 
+      min_value=self.config.navigation.min_value, 
+      max_value=self.config.navigation.max_value,
+      max_value_initial=self.config.navigation.max_value_initial,
+      disable_final_check=self.config.navigation.disable_final_check
     )
     self.pid_web_accel = PidAccelerator(
       name="pid_web_accel",
-      kp=0.4,
-      ki=0.3,
-      kd=0.005,
-      min_value=12,
-      max_value=30,
-      max_value_initial=22
+      kp=self.config.teleop_accel.kp,
+      ki=self.config.teleop_accel.ki,
+      kd=self.config.teleop_accel.kd,
+      min_value=self.config.teleop_accel.min_value,
+      max_value=self.config.teleop_accel.max_value,
+      max_value_initial=self.config.teleop_accel.max_value_initial,
+      disable_final_check=self.config.teleop_accel.disable_final_check
     )
     self.pid_web_angle = PidAngle(
       name="pid_web_angle",
-      kp=0.55,
-      ki=0.3,
-      kd=0.005,
-      min_value=math.radians(-45),
-      max_value=math.radians(45),
-      max_value_initial=0,
-      disable_final_check=True
+      kp=self.config.teleop_angle.kp,
+      ki=self.config.teleop_angle.ki,
+      kd=self.config.teleop_angle.kd,
+      min_value=self.config.teleop_angle.min_value,
+      max_value=self.config.teleop_angle.max_value,
+      max_value_initial=self.config.teleop_angle.max_value_initial,
+      disable_final_check=self.config.teleop_angle.disable_final_check  
     )
 
     self.log_publisher.publish(0, "Iniciando controlador robot puma. Recordar definir el modo de control.")
@@ -102,6 +104,7 @@ class PumaController:
       "mode": 10,
       "secure": 10,
     }
+    self.prev_detect_mode = True
     self.turn_forward = None
     
   def manage_send_error_log(self, key, with_time=True):
@@ -118,13 +121,19 @@ class PumaController:
       "pid_control": f"Error en el control de velocidad por PID, ha pasado mas de {self.time_between_msg['pid_control']} segundos desde que se llego al límite inicial en el comando de velocidad y aún no se ha logrado producir movimiento. Limpiando PID.",
       "move_base": f"Error en el uso de move_base para la navegación, ha pasado mas de {self.time_between_msg['move_base']} seg desde el ultimo estado recibido."
     }
-    if with_time:
-      time_now = rospy.get_time()
-      if time_now - self.last_time_log_error[key] > self.time_between_log[key]:
+    
+    if key == 'mode': 
+      if self.prev_detect_mode:
         self.log_publisher.publish(2, text[key])
-        self.last_time_log_error[key] = time_now
+        self.prev_detect_mode = False
     else:
-      self.log_publisher.publish(2, text[key])
+      if with_time:
+        time_now = rospy.get_time()
+        if time_now - self.last_time_log_error[key] > self.time_between_log[key]:
+          self.log_publisher.publish(2, text[key])
+          self.last_time_log_error[key] = time_now
+      else:
+        self.log_publisher.publish(2, text[key])
     
 
   def selector_mode_callback(self, mode):
@@ -145,6 +154,8 @@ class PumaController:
       self.log_publisher.publish(0, text["enter_web"])
     
     self.mode_puma = mode.data
+    if mode.data != 'idle':
+      self.prev_detect_mode = True
     
   def move_base_status_callback(self, _):
     self.last_time_msg["move_base"] = rospy.get_time()
@@ -168,8 +179,8 @@ class PumaController:
   def web_command_callback(self, data):
     ''' MODIFICAR PARA SIMPLIFICAR '''
     if self.mode_puma == "web":
-      self.web["accel"] = max(min(data.accel_value, self.config.range_accel_converter[1]), 0)
-      self.web["angle"] = self.clamp_angle(math.radians(data.angle_degree))
+      self.web["accel"] = data.accel_value
+      self.web["angle"] = data.angle_degree
       self.web["enable_direction"] = data.enable_direction
       self.web["brake"] = data.brake
       self.web["parking"] = data.parking
@@ -185,11 +196,13 @@ class PumaController:
       
       if self.web["enable_direction"]:
         self.web_pid_output["angle"] = self.pid_web_angle.update(self.web["angle"], self.web_pid_output["angle"])
+        
+      angle_output = self.clamp_angle(math.radians(self.web_pid_output["angle"]))
       
       self.control_publisher.publish(
         accelerator=round(self.web_pid_output["accel"]), 
         reverse=self.web["reverse"], 
-        direction={"angle": self.web_pid_output["angle"], "activate": self.web["enable_direction"]}, 
+        direction={"angle": angle_output, "activate": self.web["enable_direction"]}, 
         brake=self.web["brake"],
         parking=self.web["parking"]
       )

@@ -2,16 +2,14 @@
 import rospy
 import smach
 import math
-from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
-from puma_msgs.msg import Log, WaypointNav, Waypoint, ConfigurationStateMachine
-from std_msgs.msg import Empty, String
-from sensor_msgs.msg import NavSatFix
-from nav_msgs.msg import Path, Odometry
-from puma_state_machine.utils import *
-from puma_nav_manager.msg import ImportExportPlanAction, ImportExportPlanGoal, WaypointsManagerAction, WaypointsManagerGoal
 import actionlib
 import tf
+from geometry_msgs.msg import PoseWithCovarianceStamped, PoseArray, PoseStamped
+from puma_msgs.msg import WaypointNav, Waypoint, ConfigurationStateMachine
+from std_msgs.msg import Empty, String
+from puma_nav_manager.msg import ImportExportPlanAction, ImportExportPlanGoal, WaypointsManagerAction, WaypointsManagerGoal
 from puma_state_machine.msg import StateMachineAction, StateMachineResult, StateMachineGoal
+from puma_state_machine.utils import *
 
 class PlanConfiguration(smach.State):
   def __init__(self):
