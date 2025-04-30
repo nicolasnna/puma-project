@@ -10,6 +10,7 @@ from std_srvs.srv import Empty as EmptySrv
 from puma_nav_manager.msg import WaypointsManagerAction, WaypointsManagerGoal
 from puma_state_machine.msg import StateMachineAction, StateMachineResult, StateMachineGoal
 from puma_robot_status.msg import RobotStatisticsAction, RobotStatisticsGoal
+from sensor_msgs.msg import CameraInfo
 
 class RunPlan(smach.State):
   def __init__(self):
@@ -135,12 +136,12 @@ class RunPlan(smach.State):
   
   def check_cameras_realsense(self):
     try:
-      rospy.wait_for_service('/puma/sensors/camera_front/color/camera_info', timeout=5)
+      rospy.wait_for_message('/puma/sensors/camera_front/color/camera_info', CameraInfo, timeout=5)
     except rospy.ROSException as e:
       self.send_log(f"Error al comprobar la camara realsense frontal: {e}", 1)
     
     try:
-      rospy.wait_for_service('/puma/sensors/camera_rear/color/camera_info', timeout=5)
+      rospy.wait_for_message('/puma/sensors/camera_rear/color/camera_info', CameraInfo, timeout=5)
     except rospy.ROSException as e:
       self.send_log(f"Error al comprobar la camara realsense trasera: {e}", 1)
   
