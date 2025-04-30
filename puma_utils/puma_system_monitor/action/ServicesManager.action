@@ -1,0 +1,17 @@
+# Goal
+string START_CMD = start
+string STOP_CMD = stop
+string RESTART_CMD = restart
+string STATUS_CMD = status
+string RELOAD_CMD = reload
+string ENABLE_CMD = enable
+string DISABLE_CMD = disable
+string command
+string service_name
+---
+# Result
+bool success
+string message
+---
+# Feedback
+string message
