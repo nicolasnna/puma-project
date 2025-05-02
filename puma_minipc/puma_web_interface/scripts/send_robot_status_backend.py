@@ -162,6 +162,7 @@ def run_send():
   except requests.exceptions.RequestException as e:
     rospy.logwarn_throttle(10, f"Error al enviar datos: {e}")
 
+
 if __name__ == "__main__":
   rospy.init_node("send_robot_status_backend")
   rospy.loginfo(f"Empezando {rospy.get_name()} node")

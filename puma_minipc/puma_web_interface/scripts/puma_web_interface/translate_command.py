@@ -5,7 +5,8 @@ from puma_state_machine.msg import StateMachineAction, StateMachineGoal
 from smach_msgs.msg import SmachContainerStatus
 from puma_nav_manager.msg import LocalizationManagerAction, LocalizationManagerGoal
 from puma_robot_status.msg import LightsManagerAction, LightsManagerGoal
-from puma_web_interface.utils import send_log_msg
+from puma_system_monitor.msg import ServicesManagerAction, ServicesManagerGoal
+from puma_web_interface.utils import send_log_msg, send_latest_data
 import actionlib
 
 # ------ Publishers ------
@@ -16,6 +17,8 @@ client_sm_run_plan = actionlib.SimpleActionClient('/puma/state_machine/run_plan'
 client_sm_run_plan_custom = actionlib.SimpleActionClient('/puma/state_machine/run_plan_custom', StateMachineAction)
 client_localization_manager = actionlib.SimpleActionClient('/puma/localization/manager', LocalizationManagerAction)
 client_lights_manager = actionlib.SimpleActionClient('/puma/control/lights', LightsManagerAction)
+client_service_jetson_manager = actionlib.SimpleActionClient('/puma/jetson/services_manager', ServicesManagerAction)
+client_service_minipc_manager = actionlib.SimpleActionClient('/puma/minipc/services_manager', ServicesManagerAction)
 
 def action_state_machine(client,goal):
   try:
@@ -161,6 +164,61 @@ def change_security_lights_fn(cmd):
     send_log_msg(f"Error al ejecutar la acción: {e}", 1)
     return False
   
+
+def get_services_from_client(client: StateMachineAction):
+  client.wait_for_server(rospy.Duration(5))
+  goal = ServicesManagerGoal()
+  goal.command = ServicesManagerGoal.GET_ALL_SERVICES_CMD
+  client.send_goal(goal)
+  if client.wait_for_result(rospy.Duration(10)):
+    result = client.get_result()
+    return result.services
+  return []
+  
+def update_services_state_fn(cmd):
+  send_log_msg("Detectado comando para actualizar la información de los servicios", 0)
+  
+  try: 
+    srvs_jetson = get_services_from_client(client_service_jetson_manager)
+    srvs_minipc = get_services_from_client(client_service_minipc_manager)
+    
+    send_latest_data("services_jetson", srvs_jetson)
+    send_latest_data("services_minipc", srvs_minipc)
+    
+  except Exception as e:
+    send_log_msg(f"Error al actualizar los servicios del robot: {e}")
+    return False
+  
+  send_log_msg("Se ha actualizado la información de los servicios del robot en la base de datos")
+  return True
+  
+def change_service_state_fn(cmd): 
+  """
+  cmd: { action: str, service_name: str, source: str }  
+  """
+  send_log_msg("Detectado comando para cambiar el estado de los servicios", 0)
+  
+  if cmd["source"] == "jetson":
+    client = client_service_jetson_manager
+  elif cmd["source"] == "minipc":
+    client = client_service_minipc_manager
+  else:
+    send_log_msg(f"Error: fuente de servicio no válida {cmd['source']}", 1)
+    return False
+  
+  try:
+    client.wait_for_server(rospy.Duration(5))
+    goal = ServicesManagerGoal()
+    goal.command = cmd["action"]
+    goal.service_name = cmd["service_name"]
+    client.send_goal(goal)
+    if client.wait_for_result(rospy.Duration(5)):
+      result = client.get_result()
+      return result.success
+  except Exception as e:
+    send_log_msg(f"Error al conectar con el servidor: {e}", 1)
+  return False
+  
 translate_command = {
   "start_plan": start_plan_fn,
   "stop_plan": stop_plan_fn,
@@ -172,5 +230,7 @@ translate_command = {
   "change_angle_robot": change_angle_degree_fn,
   "change_mode_robot": change_mode_fn,
   "change_front_lights": change_front_lights_fn,
-  "change_security_lights": change_security_lights_fn
+  "change_security_lights": change_security_lights_fn,
+  "update_services_state": update_services_state_fn,
+  "change_service_state": change_service_state_fn,
 }

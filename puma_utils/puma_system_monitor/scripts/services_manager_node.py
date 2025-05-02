@@ -71,6 +71,17 @@ def action_server_cb(goal : ServicesManagerGoal):
     result.success = False
     result.message ="Error: No se ha detectado el comando o nombre del servicio"
     srv.set_aborted(result)
+    
+  if goal.command not in [
+    ServicesManagerGoal.START_CMD,
+    ServicesManagerGoal.STOP_CMD,
+    ServicesManagerGoal.RESTART_CMD,
+    ServicesManagerGoal.RELOAD_CMD,
+    ServicesManagerGoal.STATUS_CMD,
+    ServicesManagerGoal.ENABLE_CMD,
+    ServicesManagerGoal.DISABLE_CMD
+    ]:
+    return srv.set_aborted(result, f"Error: Comando {goal.command} no soportado")
   
   out, err, code = call_service_command(goal.command, goal.service_name)
   if code == 0:

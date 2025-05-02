@@ -54,6 +54,7 @@
   <build_depend>actionlib</build_depend>
   <build_depend>actionlib_msgs</build_depend>
   <build_depend>puma_state_machine</build_depend>
+  <build_depend>puma_system_monitor</build_depend>
   <build_export_depend>rospy</build_export_depend>
   <exec_depend>rospy</exec_depend>
 
