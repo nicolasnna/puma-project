@@ -26,7 +26,7 @@ def get_all_services_raw():
     stderr=subprocess.PIPE,
   )
   grep = subprocess.Popen(
-    ["grep", "-E", ".*\\.service"],
+    ["grep", "-E", "puma-.*\\.service"],
     stdin=systemctl_list.stdout,
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
@@ -86,7 +86,8 @@ def action_server_cb(goal : ServicesManagerGoal):
 def main():
   rospy.init_node("services_manager_node")
   global srv
-  srv = actionlib.SimpleActionServer('/services_manager', ServicesManagerAction, action_server_cb, False)
+  ns = rospy.get_param('~ns_service', '')
+  srv = actionlib.SimpleActionServer(ns+'/services_manager', ServicesManagerAction, action_server_cb, False)
   srv.start()
   
   rospy.spin()

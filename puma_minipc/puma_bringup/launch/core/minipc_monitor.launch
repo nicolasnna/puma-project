@@ -8,4 +8,8 @@
     <remap from="/memory_usage" to="/puma/minipc/memory_usage"/>
   </node>
 
+  <node name="minipc_services_manager" pkg="puma_system_monitor" type="services_manager_node.py" output="log" respawn="true" respawn_delay="2" clear_params="true">
+    <param name="ns_service" value="puma/minipc"/>
+  </node>
+
 </launch>
