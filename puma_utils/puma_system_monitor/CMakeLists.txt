@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   actionlib
   actionlib_msgs
+  puma_msgs
 )
 
 # catkin_python_setup()
@@ -65,6 +66,7 @@ add_action_files(
 generate_messages(
   DEPENDENCIES
   actionlib_msgs
+  puma_msgs
 )
 
 ###################################

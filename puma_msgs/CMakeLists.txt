@@ -60,6 +60,7 @@ add_message_files(
   GoalGpsNavInfo.msg
   Log.msg
   LogArray.msg
+  ServiceInfo.msg
   StatusArduino.msg
   StatusArduinoRelay.msg
   StatusTachometer.msg

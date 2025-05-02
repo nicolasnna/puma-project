@@ -6,12 +6,14 @@ string STATUS_CMD = status
 string RELOAD_CMD = reload
 string ENABLE_CMD = enable
 string DISABLE_CMD = disable
+string GET_ALL_SERVICES_CMD = get_all_services
 string command
 string service_name
 ---
 # Result
 bool success
 string message
+puma_msgs/ServiceInfo[] services
 ---
 # Feedback
 string message
