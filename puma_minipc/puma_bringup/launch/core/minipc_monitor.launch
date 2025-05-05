@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
     
-  <node name="minipc_sytem_monitor" pkg="puma_system_monitor" type="system_monitor_node.py" output="screen" respawn="true" respawn_delay="1">
+  <node name="minipc_sytem_monitor" pkg="puma_system_monitor" type="system_monitor_node.py" output="screen" respawn="true" respawn_delay="1" clear_params="true">
     <param name="thermal_zone" value="1"/>
     <remap from="/cpu_usage" to="/puma/minipc/cpu_usage"/>
     <remap from="/cpu_temperature" to="/puma/minipc/cpu_temperature"/>
