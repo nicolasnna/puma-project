@@ -58,11 +58,13 @@ def get_all_services():
   
 def action_server_cb(goal : ServicesManagerGoal):
   result = ServicesManagerResult()
+  rospy.loginfo("Recibido solicitud para servicios")
 
   if goal.command == ServicesManagerGoal.GET_ALL_SERVICES_CMD:
+    rospy.loginfo("Detectado comando para obtener todos los servicios")
     out, err, code = get_all_services()
     result.success = code == 0
-    result.message = "Información de servicios obtenidos" if code == 0 else f"Error: {err}"
+    result.message = "Información de servicios obtenidos" if code == 0 else f"Error al obtener servicios: {err}"
     result.services = out
     srv.set_succeeded(result)
     return
@@ -71,6 +73,7 @@ def action_server_cb(goal : ServicesManagerGoal):
     result.success = False
     result.message ="Error: No se ha detectado el comando o nombre del servicio"
     srv.set_aborted(result)
+    return
     
   if goal.command not in [
     ServicesManagerGoal.START_CMD,
