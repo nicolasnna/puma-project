@@ -11,6 +11,7 @@
     output="screen"
     respawn="true"
     respawn_delay="4"
+    clear_params="true"
   >
     <param name="username" value="$(arg username)"/>
     <param name="password" value="$(arg password)"/>
@@ -21,18 +22,21 @@
     pkg="puma_web_interface" 
     type="get_command_backend.py" 
     output="screen"
+    clear_params="true"
   />
   <node 
     name="manage_teleoperation_backend" 
     pkg="puma_web_interface" 
     type="manage_teleoperation_backend.py" 
     output="screen"
+    clear_params="true"
   />
   <node 
     name="send_robot_status_backend" 
     pkg="puma_web_interface" 
     type="send_robot_status_backend.py" 
     output="screen"
+    clear_params="true"
   />
 
   <node 
@@ -40,6 +44,7 @@
     pkg="puma_web_interface" 
     type="update_logs_backend.py" 
     output="screen" 
+    clear_params="true"
   />
 
 </launch>

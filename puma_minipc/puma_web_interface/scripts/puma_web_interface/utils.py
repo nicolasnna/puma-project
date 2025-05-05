@@ -55,11 +55,10 @@ def waypoint_to_dict(waypoint: Waypoint):
   }
   
 def send_latest_data(type: str, data: dict):
-  try: 
+  try:
     bearer_token: String = rospy.wait_for_message("/puma/web/auth_token", String, timeout=10)
     headers = { 'Content-Type': 'application/json', 'Authorization': bearer_token.data}
     BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
-    
     res = requests.post(f"{BACKEND_URL}/database/latest-data/{type}", data=json.dumps(data), headers=headers)
     
     if res.status_code != 200:

@@ -12,6 +12,7 @@
     output="screen"
     respawn="true"
     respawn_delay="4"
+    clear_params="true"
   >
     <param name="backend_url" value="$(arg backend_url)"/>
     <param name="username" value="$(arg username)"/>
@@ -25,6 +26,7 @@
     output="screen"
     respawn="true"
     respawn_delay="4"
+    clear_params="true"
   >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
@@ -36,6 +38,7 @@
     output="screen" 
     respawn="true" 
     respawn_delay="4"
+    clear_params="true"
   >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
@@ -47,6 +50,7 @@
     output="screen" 
     respawn="true" 
     respawn_delay="4"
+    clear_params="true"
   >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>
@@ -58,6 +62,7 @@
     output="screen" 
     respawn="true" 
     respawn_delay="4"
+    clear_params="true"
   >
     <param name="backend_url" value="$(arg backend_url)"/>
   </node>

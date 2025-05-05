@@ -179,17 +179,24 @@ def update_services_state_fn(cmd):
   send_log_msg("Detectado comando para actualizar la información de los servicios", 0)
   
   try: 
-    srvs_jetson = get_services_from_client(client_service_jetson_manager)
-    srvs_minipc = get_services_from_client(client_service_minipc_manager)
+    srvs_jetson_raw = get_services_from_client(client_service_jetson_manager)
+    srvs_minipc_raw = get_services_from_client(client_service_minipc_manager)
     
-    send_latest_data("services_jetson", srvs_jetson)
-    send_latest_data("services_minipc", srvs_minipc)
+    srvs_jetson = []
+    for i in srvs_jetson_raw:
+      srvs_jetson.append({"service_name": i.service_name, "state": i.state, "default": i.default})
+    srvs_minipc = []
+    for i in srvs_minipc_raw:
+      srvs_minipc.append({"service_name": i.service_name, "state": i.state, "default": i.default})
+      
+    send_latest_data("services_jetson", {"data": srvs_jetson})
+    send_latest_data("services_minipc", {"data": srvs_minipc})
     
   except Exception as e:
-    send_log_msg(f"Error al actualizar los servicios del robot: {e}")
+    send_log_msg(f"Error al actualizar los servicios del robot: {e}", 1)
     return False
   
-  send_log_msg("Se ha actualizado la información de los servicios del robot en la base de datos")
+  send_log_msg("Se ha actualizado la información de los servicios del robot en la base de datos", 0)
   return True
   
 def change_service_state_fn(cmd): 
