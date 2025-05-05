@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node name="serial_node_minipc" pkg="rosserial_python" type="serial_node.py"  output="log" respawn="true" respawn_delay="2">
+  <node name="serial_node_minipc" pkg="rosserial_python" type="serial_node.py"  output="screen" respawn="true" respawn_delay="2">
   </node>
 
 </launch>
