@@ -24,6 +24,12 @@ else
     echo " -X no se ha encontrado system_monitor_node.py"
 fi
 
+if [ -f "../puma_utils/puma_system_monitor/scripts/services_manager_node.py" ]; then
+    chmod +x ../puma_utils/puma_system_monitor/scripts/services_manager_node.py && echo " -> services_manager_node listo !!!"
+else
+    echo " -X no se ha encontrado services_manager_node.py"
+fi
+
 if [ -f "../puma_utils/puma_joy/scripts/puma_joy_node.py" ]; then
     chmod +x ../puma_utils/puma_joy/scripts/puma_joy_node.py && echo " -> puma_joy listo !!!"
 else
