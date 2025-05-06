@@ -44,13 +44,15 @@ def get_all_services():
   if code != 0:
     return [], err, code
   array = out.split()
-  total_services = len(array) // 3 # name state default
+  is_jetson = rospy.get_param("~is_jetson_nano", False)
+  columns = 2 if is_jetson else 3
+  total_services = len(array) // columns # name state default
   services = []
   for i in range(0,total_services):
     service = ServiceInfo()
-    service.service_name = array[i*3]
+    service.service_name = array[i*3].split(".")[0]
     service.state = array[i*3 + 1]
-    service.default = array[i*3 + 2]
+    service.default = array[i*3 + (columns - 1)]
     services.append(service)
   
   return services, err, code
