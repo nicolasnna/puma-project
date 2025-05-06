@@ -216,7 +216,12 @@ def change_service_state_fn(cmd):
   try:
     client.wait_for_server(rospy.Duration(5))
     goal = ServicesManagerGoal()
-    goal.command = cmd["action"]
+    if cmd["action"] == 'enabled':
+      goal.command = 'enable'
+    elif cmd["action"] == 'disabled':
+      goal.command = 'disable'
+    else:
+      goal.command = cmd["action"]
     goal.service_name = cmd["service_name"]
     client.send_goal(goal)
     if client.wait_for_result(rospy.Duration(5)):
