@@ -1,4 +1,4 @@
-# Puma Ip Cameras
+# Puma Ip Devices
 
 ## Resumen
 

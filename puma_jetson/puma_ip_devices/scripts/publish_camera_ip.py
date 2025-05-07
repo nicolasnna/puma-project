@@ -1,5 +1,5 @@
 #/usr/bin/env python3
-from puma_ip_cameras.utils_video_ip import AsyncVideoCapture, get_rtsp_url
+from puma_ip_devices.utils_video_ip import AsyncVideoCapture, get_rtsp_url
 import rospy
 from sensor_msgs.msg import CompressedImage
 

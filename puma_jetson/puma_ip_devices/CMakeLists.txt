@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(puma_ip_cameras)
+project(puma_ip_devices)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -159,8 +159,6 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
   scripts/show_camera_ip.py
-  scripts/send_camera_to_backend.py
-  scripts/ipcam_websocket.py
   scripts/publish_camera_ip.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -14,4 +14,4 @@ done
 
 echo "ROS Master detectado. Ejecutando manejador de Ip cameras con NVR.."
 
-roslaunch puma_ip_cameras publish_camera_nvr.launch
+roslaunch puma_ip_devices publish_camera_nvr.launch
