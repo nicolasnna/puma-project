@@ -1,7 +1,7 @@
 #/usr/bin/env python3
 import rospy
 import actionlib
-from puma_robot_status.msg import RebootPtzAction, RebootPtzResult, RebootPtzGoal
+from puma_ip_devices.msg import RebootPtzAction, RebootPtzResult, RebootPtzGoal
 import requests
 from requests.auth import HTTPDigestAuth
 from puma_msgs.msg import Log
@@ -27,7 +27,7 @@ def send_reboot_request():
   password = rospy.get_param("password_ptz", "smartbot2023")
   auth = HTTPDigestAuth(user, password)
   try: 
-    r = requests.get(url, auth=auth)
+    r = requests.get(url, auth=auth, timeout=10)
     if r.status_code == 200:
       send_log_message("Acción de reinicio efectuada correctamente.", 0)
       return True
