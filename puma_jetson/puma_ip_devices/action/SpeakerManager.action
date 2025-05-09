@@ -1,0 +1,18 @@
+# Goal
+string ACTION_PLAY = play
+string ACTION_STOP = stop
+string MODE_PLAY_TIME = duration
+string MODE_PLAY_REPEAT = multiple
+string action
+string filename 
+string mode
+int32 time_seconds # Disponible en modo 'duration'
+int16 repeats # Disponible en modo 'multiple'
+int16 volume # 1-100 sino usar volumen por defecto
+---
+# Result
+bool success
+string message
+---
+# Feedback
+float32 progress

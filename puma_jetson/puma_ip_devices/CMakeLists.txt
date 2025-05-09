@@ -67,6 +67,7 @@ add_action_files(
   DIRECTORY action
   FILES
   RebootPtz.action
+  SpeakerManager.action
 )
 
 generate_messages(
