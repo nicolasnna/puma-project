@@ -8,7 +8,6 @@ from std_msgs.msg import Bool
 CHARGE_CONNECTION = "puma/control/charge_connection"
 
 def send_log_message(message, level):
-  global log_pub
   msg = Log()
   msg.node = rospy.get_name()
   msg.level = level
@@ -65,9 +64,10 @@ def charge_srv_cb(goal: ChargeManagerGoal):
 
 def main():
   rospy.init_node('charge_manager_node')
-  global srv, charge_rele_pub
+  global srv, charge_rele_pub, log_pub
   
   charge_rele_pub = rospy.Publisher(CHARGE_CONNECTION, Bool, queue_size=2)
+  log_pub = rospy.Publisher('/puma/logs/add_log', Log, queue_size=10)
   
   srv = actionlib.SimpleActionServer('/puma/control/charge', ChargeManagerAction, execute_cb=charge_srv_cb, auto_start=False)
   srv.start()
