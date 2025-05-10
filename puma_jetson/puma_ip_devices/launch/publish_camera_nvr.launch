@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node name="publish_camera_nvr_node" pkg="puma_ip_devices" type="publish_camera_ip.py" output="screen" respawn="true" respawn_delay="5">
+  <node name="publish_camera_nvr_node" pkg="puma_ip_devices" type="publish_camera_ip.py" output="screen" respawn="true" respawn_delay="5" clear_params="true">
     <param name="user" value="admin"/>
     <param name="password" value="smartbot2023"/>
     <param name="ip" value="10.42.0.107"/>

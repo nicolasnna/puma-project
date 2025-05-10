@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <node name="logger_puma" pkg="puma_robot_status" type="logger_manager_node.py" output="log" respawn="true" respawn_delay="4">
+  <node name="logger_puma" pkg="puma_robot_status" type="logger_manager_node.py" output="log" respawn="true" respawn_delay="4" clear_params="true">
     <param name="is_simulation" value="false"/>
   </node>
 

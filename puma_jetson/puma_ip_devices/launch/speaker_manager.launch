@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="speaker_manager" pkg="puma_ip_devices" type="speaker_manager_node.py" output="screen"  respawn="true" respawn_delay="5" clear_params="true">
+    <param name="ip_speaker" value="10.42.0.95"/>
+  </node>
+
+</launch>

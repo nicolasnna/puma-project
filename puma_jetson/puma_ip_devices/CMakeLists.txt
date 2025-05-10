@@ -172,6 +172,7 @@ catkin_install_python(PROGRAMS
   scripts/show_camera_ip.py
   scripts/publish_camera_ip.py
   scripts/reboot_ptz_node.py
+  scripts/speaker_manager_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
