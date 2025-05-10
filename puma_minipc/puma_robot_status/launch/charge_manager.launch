@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="charge_manager_puma" pkg="puma_robot_status" type="charge_manager_node.py" output="screen" respawn="true" respawn_delay="5">
+
+  </node>
+  
+
+</launch>

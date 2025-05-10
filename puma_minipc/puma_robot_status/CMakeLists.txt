@@ -19,6 +19,7 @@ add_action_files(
   RobotStatistics.action
   LoggerManager.action
   LightsManager.action
+  ChargeManager.action
 )
 
 generate_messages(
@@ -60,6 +61,7 @@ catkin_install_python(PROGRAMS
   scripts/robot_statistics_node.py
   scripts/logger_manager_node.py
   scripts/lights_manager_node.py
+  scripts/charge_manager_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

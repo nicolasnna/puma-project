@@ -35,7 +35,7 @@ def speaker_srv_cb(goal: SpeakerManagerGoal):
 def main():
   rospy.init_node('speaker_manager_node')
   global srv
-  srv = actionlib.SimpleActionServer('puma/speaker', execute_cb=speaker_srv_cb,auto_start=False)
+  srv = actionlib.SimpleActionServer('puma/speaker', SpeakerManagerAction, execute_cb=speaker_srv_cb,auto_start=False)
   srv.start()
   send_log_message(f"{rospy.get_name()} esta listo para recibir comandos.", 0)
   rospy.spin()

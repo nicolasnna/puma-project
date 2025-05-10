@@ -1,0 +1,12 @@
+# Goal
+string ACTION_CONNECT = activate
+string ACTION_DISCONNECT = deactivate
+string action
+---
+# Result
+bool success
+string message
+--- 
+# Feedback
+string message
+float32 progress
