@@ -4,7 +4,7 @@ from puma_msgs.msg import ConfigurationStateMachine, WaypointNav, Waypoint, Log
 from puma_state_machine.msg import StateMachineAction, StateMachineGoal
 from smach_msgs.msg import SmachContainerStatus
 from puma_nav_manager.msg import LocalizationManagerAction, LocalizationManagerGoal
-from puma_robot_status.msg import LightsManagerAction, LightsManagerGoal
+from puma_robot_status.msg import LightsManagerAction, LightsManagerGoal, ChargeManagerAction, ChargeManagerGoal
 from puma_system_monitor.msg import ServicesManagerAction, ServicesManagerGoal
 from puma_web_interface.utils import send_log_msg, send_latest_data
 import actionlib
@@ -19,6 +19,7 @@ client_localization_manager = actionlib.SimpleActionClient('/puma/localization/m
 client_lights_manager = actionlib.SimpleActionClient('/puma/control/lights', LightsManagerAction)
 client_service_jetson_manager = actionlib.SimpleActionClient('/puma/jetson/services_manager', ServicesManagerAction)
 client_service_minipc_manager = actionlib.SimpleActionClient('/puma/minipc/services_manager', ServicesManagerAction)
+client_charge_manager = actionlib.SimpleActionClient('/puma/control/charge', ChargeManagerAction)
 
 def action_state_machine(client,goal):
   try:
@@ -230,6 +231,21 @@ def change_service_state_fn(cmd):
   except Exception as e:
     send_log_msg(f"Error al conectar con el servidor: {e}", 1)
   return False
+
+def change_charge_connector_state_fn(cmd):
+  send_log_msg("Detectado comando para cambiar el estado el conector de carga", 0)
+  
+  try:
+    client_charge_manager.wait_for_server(rospy.Duration(5))
+    goal = ChargeManagerGoal()
+    goal.action = cmd["action"]
+    client_charge_manager.send_goal(goal)
+    if client_charge_manager.wait_for_result(rospy.Duration(5)):
+      result = client_charge_manager.get_result()
+      return result.success
+  except Exception as e:
+    send_log_msg(f"Error al conectar con el servidor: {e}", 1)
+  return False
   
 translate_command = {
   "start_plan": start_plan_fn,
@@ -245,4 +261,5 @@ translate_command = {
   "change_security_lights": change_security_lights_fn,
   "update_services_state": update_services_state_fn,
   "change_service_state": change_service_state_fn,
+  "change_charge_connector_state": change_charge_connector_state_fn
 }
