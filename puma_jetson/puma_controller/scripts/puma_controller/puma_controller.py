@@ -204,7 +204,7 @@ class PumaController:
         reverse=self.web["reverse"], 
         direction={"angle": angle_output, "activate": self.web["enable_direction"]}, 
         brake=self.web["brake"],
-        parking=self.web["parking"]
+        parking=False
       )
       rospy.Rate(20).sleep()
     else:
