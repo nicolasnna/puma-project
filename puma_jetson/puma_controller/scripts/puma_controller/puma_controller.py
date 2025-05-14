@@ -209,7 +209,11 @@ class PumaController:
       rospy.Rate(20).sleep()
     else:
       self.manage_send_error_log("web" if not self.signal_secure else "secure")
-      self.publish_idle()
+      self.control_publisher.publish(
+        accelerator=0, 
+        reverse=False,
+        parking=True
+      )
   
   def ackermann_callback(self, acker_data):
     ''' Get velocity lineal of ackermann converter '''

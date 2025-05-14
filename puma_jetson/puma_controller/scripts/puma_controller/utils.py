@@ -107,8 +107,13 @@ class ControlPublisher:
     self.brake_pub = brake_pub
 
   def publish(self, accelerator, reverse, direction, brake, parking):
-    self.accel_pub.publish(Int16(int(accelerator)))
-    self.reverse_pub.publish(Bool(reverse))
-    self.direction_pub.publish(DirectionCmd(angle=round(direction["angle"],3), activate=direction["activate"]))
-    self.brake_pub.publish(Bool(brake))
-    self.parking_pub.publish(Bool(parking))
+    if accelerator:
+      self.accel_pub.publish(Int16(int(accelerator)))
+    if reverse:
+      self.reverse_pub.publish(Bool(reverse))
+    if direction:
+      self.direction_pub.publish(DirectionCmd(angle=round(direction["angle"],3), activate=direction["activate"]))
+    if brake:
+      self.brake_pub.publish(Bool(brake))
+    if parking:
+      self.parking_pub.publish(Bool(parking))
