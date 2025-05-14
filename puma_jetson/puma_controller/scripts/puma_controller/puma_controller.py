@@ -92,7 +92,7 @@ class PumaController:
     self.time_between_msg = {
       "odometry": 0.3,
       "ackermann": 0.3,
-      "web": 0.8,
+      "web": 1.5,
       "pid_control": 2,
       "move_base": 0.5
     }
