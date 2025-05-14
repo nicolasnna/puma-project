@@ -1,31 +1,38 @@
 import rospy
 from puma_msgs.msg import DirectionCmd, Log
 from std_msgs.msg import Bool, Int16
-from dataclasses import dataclass
+# from dataclasses import dataclass
 
-@dataclass
+# @dataclass
+
 class ParamPid:
-  """Clase para almacenar parámetros PID con valores por defecto."""
-  kp: float
-  ki: float
-  kd: float
-  min_value: float
-  max_value: float
-  max_value_initial: float
-  disable_final_check: bool
+    """Clase para almacenar parámetros PID con valores por defecto."""
+    def __init__(self, kp, ki, kd, min_value, max_value,
+                 max_value_initial, disable_final_check):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.min_value = min_value
+        self.max_value = max_value
+        self.max_value_initial = max_value_initial
+        self.disable_final_check = disable_final_check
 
-  @classmethod
-  def from_namespace(cls, namespace: str, defaults: dict):
-    """Carga parámetros desde un namespace de ROS con valores por defecto."""
-    return cls(
-        kp=rospy.get_param(f"{namespace}/kp", defaults['kp']),
-        ki=rospy.get_param(f"{namespace}/ki", defaults['ki']),
-        kd=rospy.get_param(f"{namespace}/kd", defaults['kd']),
-        min_value=rospy.get_param(f"{namespace}/min_value", defaults['min_value']),
-        max_value=rospy.get_param(f"{namespace}/max_value", defaults['max_value']),
-        max_value_initial=rospy.get_param(f"{namespace}/max_value_initial", defaults['max_value_initial']),
-        disable_final_check=rospy.get_param(f"{namespace}/disable_final_check", defaults['disable_final_check'])
-    )
+    @classmethod
+    def from_namespace(cls, namespace, defaults):
+        """Carga parámetros desde un namespace de ROS con valores por defecto."""
+        kp = rospy.get_param(f"{namespace}/kp", defaults['kp'])
+        ki = rospy.get_param(f"{namespace}/ki", defaults['ki'])
+        kd = rospy.get_param(f"{namespace}/kd", defaults['kd'])
+        min_value = rospy.get_param(f"{namespace}/min_value", defaults['min_value'])
+        max_value = rospy.get_param(f"{namespace}/max_value", defaults['max_value'])
+        max_value_initial = rospy.get_param(f"{namespace}/max_value_initial",
+                                            defaults['max_value_initial'])
+        disable_final_check = rospy.get_param(f"{namespace}/disable_final_check",
+                                              defaults['disable_final_check'])
+        return cls(kp, ki, kd, min_value,
+                   max_value, max_value_initial,
+                   disable_final_check)
+    
 
 
 class NodeConfig:
