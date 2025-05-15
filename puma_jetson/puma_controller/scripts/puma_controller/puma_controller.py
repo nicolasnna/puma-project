@@ -212,7 +212,7 @@ class PumaController:
       self.control_publisher.publish(
         accelerator=0, 
         reverse=False,
-        parking=True
+        parking=False
       )
   
   def ackermann_callback(self, acker_data):
