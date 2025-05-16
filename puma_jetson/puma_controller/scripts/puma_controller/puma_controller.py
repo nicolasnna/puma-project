@@ -92,7 +92,7 @@ class PumaController:
     self.time_between_msg = {
       "odometry": 0.3,
       "ackermann": 0.3,
-      "web": 1.5,
+      "web": 0.8,
       "pid_control": 2,
       "move_base": 0.5
     }
@@ -204,16 +204,12 @@ class PumaController:
         reverse=self.web["reverse"], 
         direction={"angle": angle_output, "activate": self.web["enable_direction"]}, 
         brake=self.web["brake"],
-        parking=False
+        parking=self.web["parking"]
       )
       rospy.Rate(20).sleep()
     else:
       self.manage_send_error_log("web" if not self.signal_secure else "secure")
-      self.control_publisher.publish(
-        accelerator=0, 
-        reverse=False,
-        parking=False
-      )
+      self.publish_idle()
   
   def ackermann_callback(self, acker_data):
     ''' Get velocity lineal of ackermann converter '''
@@ -269,19 +265,19 @@ class PumaController:
       return
     # Temporizador no bloqueante para evitar errores de hardware
     if hasattr(self, "last_direction_change_time"):
-      if current_time - self.last_direction_change_time < 0.2:
+      if current_time - self.last_direction_change_time < self.config.time_between_directions:
         return
       else:
         del self.last_direction_change_time
     
     if current_time - self.last_time_msg["odometry"] < self.time_between_msg["odometry"] and not self.signal_secure:
       if self.vel_linear == 0 or self.signal_secure:
-        accel_value = self.config.navigation.min_value
+        accel_value = self.config.range_accel_converter[0]
         self.pid.clean_acumulative_error()
       else:
         accel_value = self.pid.update(abs(self.vel_linear), abs(self.vel_linear_odometry))
       
-      if accel_value == self.config.navigation.max_value_initial and self.vel_linear_odometry < 0.1:
+      if accel_value == self.config.limit_accel_initial and self.vel_linear_odometry < 0.1:
         self.last_time_msg["pid_control"] = current_time if self.last_time_msg["pid_control"] == 0 else self.last_time_msg["pid_control"]
         if current_time - self.last_time_msg["pid_control"] > self.time_between_msg["pid_control"]:
           self.manage_send_error_log("pid_control", False)
