@@ -269,7 +269,7 @@ class PumaController:
       return
     # Temporizador no bloqueante para evitar errores de hardware
     if hasattr(self, "last_direction_change_time"):
-      if current_time - self.last_direction_change_time < self.config.navigation.time_between_directions:
+      if current_time - self.last_direction_change_time < 0.2:
         return
       else:
         del self.last_direction_change_time
