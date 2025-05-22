@@ -1,3 +1,4 @@
+
 class JoystickInput:
   """ Maneja la lectura de datos """
   def __init__(self, axes_index, buttons_index):
@@ -24,12 +25,21 @@ class PumaJoyController:
     self.data_control = {}
   
   def process_inputs(self, joystick_data):
-    self.data_control["accelerator"] = int(self.convert_trigger_to_range(joystick_data['rt_right'], *self.accel_range))
+    
+    if joystick_data['rt_right'] < 1.0 and joystick_data['lt_left'] < 1.0:
+      self.data_control["accelerator"] = int(0)
+      self.data_control["reverse"] = False
+    elif joystick_data['lt_left'] < 1.0:
+      self.data_control["accelerator"] = int(self.convert_trigger_to_range(joystick_data['lt_left'], *self.accel_range))
+      self.data_control["reverse"] = True
+    else:
+      self.data_control["accelerator"] = int(self.convert_trigger_to_range(joystick_data['rt_right'], *self.accel_range))
+      self.data_control["reverse"] = False
+      
     self.data_control["direction_angle"] = round(self.convert_trigger_to_range(-joystick_data['x_left'], *self.angle_range),3)
-    self.data_control["activate_direction"] = joystick_data['A']
-    self.data_control["brake"] = joystick_data['lt_left'] < 0.0
-    self.data_control["reverse"] = joystick_data['LB']
-    self.data_control["parking"] = joystick_data['RB']
+    self.data_control["activate_direction"] = True
+    self.data_control["brake"] = joystick_data['B']
+    self.data_control["parking"] = False
   
   def convert_trigger_to_range(self, trigger_value, min_value, max_value):
     return (min_value - max_value) / 2 * (trigger_value - 1 ) + min_value
