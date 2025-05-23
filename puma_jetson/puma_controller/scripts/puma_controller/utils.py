@@ -8,7 +8,7 @@ from std_msgs.msg import Bool, Int16
 class ParamPid:
     """Clase para almacenar parámetros PID con valores por defecto."""
     def __init__(self, kp, ki, kd, min_value, max_value,
-                 max_value_initial, disable_final_check):
+                max_value_initial, disable_final_check):
         self.kp = kp
         self.ki = ki
         self.kd = kd
@@ -30,8 +30,8 @@ class ParamPid:
         disable_final_check = rospy.get_param(f"{namespace}/disable_final_check",
                                               defaults['disable_final_check'])
         return cls(kp, ki, kd, min_value,
-                   max_value, max_value_initial,
-                   disable_final_check)
+                  max_value, max_value_initial,
+                  disable_final_check)
     
 
 
@@ -57,14 +57,14 @@ class NodeConfig:
       'navigation',
       {'kp': 5.0, 'ki': 2.0, 'kd': 0.1,
         'min_value': 14, 'max_value': 35,
-        'max_value_initial': 23, 'disable_final_check': False}
+        'max_value_initial': 27, 'disable_final_check': False}
     )
     
     self.teleop_accel = self._load_pid_params(
         'teleop/accelerator',
         {'kp': 0.4, 'ki': 0.3, 'kd': 0.005,
           'min_value': 12, 'max_value': 30,
-          'max_value_initial': 23, 'disable_final_check': False}
+          'max_value_initial': 27, 'disable_final_check': False}
     )
 
     self.teleop_angle = self._load_pid_params(

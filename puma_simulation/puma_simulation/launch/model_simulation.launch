@@ -5,7 +5,7 @@
   
   <!-- Puma controller -->
   <rosparam command="load" file="$(find puma_simulation)/config/puma_controller.yaml"/>
-  <!-- <node name="puma_controller" pkg="puma_controller" type="puma_controller_node.py" output="screen"/> -->
+  <node name="puma_controller" pkg="puma_controller" type="puma_controller_node.py" output="screen"/>
 
   <!-- Control de modos -->
   <node name="control_mode_node" pkg="puma_mode_control" type="control_mode_node.py" output="screen"/>
