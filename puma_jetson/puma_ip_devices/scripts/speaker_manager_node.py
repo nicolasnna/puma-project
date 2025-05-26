@@ -10,10 +10,10 @@ def send_to_speaker(url):
   try:
     rs = requests.get(url, timeout=5)
     if rs.status_code == 200:
-      send_log_message(f"Se ha realizado la petición al parlante correctamente.")
+      send_log_message(f"Se ha realizado la petición al parlante correctamente.", 0)
       return True
   except requests.exceptions.RequestException as e:
-    send_log_message(f"Error al obtener datos al realizar peticion al parlante: {e}")
+    send_log_message(f"Error al obtener datos al realizar peticion al parlante: {e}", 1)
   return False
 
 def play_speaker(goal: SpeakerManagerGoal):
@@ -47,7 +47,7 @@ def play_speaker(goal: SpeakerManagerGoal):
     url = url + f"&volume={goal.volume}"
   
   is_work = send_to_speaker(url)
-  
+  send_log_message(f"URL para la petición del parlante: {url}", 0)
   result.success = is_work
   result.message = "Se ha realizado la petición al parlante correctamente" if is_work else "No se ha logrado realizar la petición al parlante"
   return result
@@ -60,13 +60,15 @@ def stop_speaker():
   
   result.success = is_work
   result.message = "Se ha realizado la petición de parada al parlante" if is_work else "No se ha logrado realizar la petición al parlante"
+  send_log_message(f"URL para la petición del parlante: {url}", 0)
+
   return result
 
 def speaker_srv_cb(goal: SpeakerManagerGoal):
   result = SpeakerManagerResult()
   
   if goal.action == SpeakerManagerGoal.ACTION_PLAY:
-    result = play_speaker()
+    result = play_speaker(goal)
   elif goal.action == SpeakerManagerGoal.ACTION_STOP:
     result = stop_speaker()
   else:

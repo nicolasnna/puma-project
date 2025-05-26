@@ -256,11 +256,14 @@ def execute_speaker_fn(cmd):
     client_speaker.wait_for_server(rospy.Duration(5))
     goal = SpeakerManagerGoal()
     goal.action = cmd["action"]
-    goal.filename = cmd["filename"]
-    goal.mode = cmd["mode"]
-    goal.time_seconds = cmd["time_seconds"]
-    goal.repeats = cmd["repeats"]
-    goal.volume = cmd["volume"]
+    if cmd["action"] == "play":
+      goal.filename = cmd["filename"]
+      goal.mode = cmd["mode"]
+      goal.volume = cmd["volume"]
+      if cmd["time_seconds"] is not None:
+        goal.time_seconds = cmd["time_seconds"]
+      if cmd["repeats"]:
+        goal.repeats = cmd["repeats"]
     client_speaker.send_goal(goal)
     if client_speaker.wait_for_result(rospy.Duration(5)):
       result = client_speaker.get_result()
