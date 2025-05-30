@@ -50,13 +50,12 @@ def get_all_services():
   services = []
   for i in range(0,total_services):
     service = ServiceInfo()
-    service.service_name = array[i*3].split(".")[0]
-    # if service.service_name == "puma-jetson":
-    #   continue
-    service.state = array[i*3 + 1]
-    service.default = array[i*3 + (columns - 1)]
+    service.service_name = array[i*columns].split(".")[0]
+    if service.service_name == "puma-jetson":
+      continue
+    service.state = array[i*columns + 1]
+    service.default = array[i*columns + (columns - 1)]
     services.append(service)
-  rospy.loginfo(services)
   return services, err, code
   
   
