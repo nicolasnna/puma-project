@@ -2,6 +2,6 @@
 <launch>
 
   <include file="$(find puma_ip_devices)/launch/reboot_ptz.launch"/>
-  
+  <include file="$(find puma_ip_devices)/launch/speaker_manager.launch"/>
 
 </launch>
