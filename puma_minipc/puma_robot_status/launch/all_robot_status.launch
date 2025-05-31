@@ -5,5 +5,6 @@
   <include file="$(find puma_robot_status)/launch/lights_manager.launch"/>
   <include file="$(find puma_robot_status)/launch/robot_statistics.launch"/>  
   <include file="$(find puma_robot_status)/launch/logger.launch"/>
+  <include file="$(find puma_robot_status)/launch/charge_manager.launch"/>
 
 </launch>
