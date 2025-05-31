@@ -6,6 +6,18 @@ cd "$SCRIPT_DIR"
 
 echo "Cambiando permisos a los nodos"
 
+if [ -f "puma_ip_devices/scripts/reboot_ptz_node.py" ]; then
+    chmod +x puma_ip_devices/scripts/reboot_ptz_node.py && echo " -> reboot_ptz_node listo !!!"
+else
+    echo " -X no se ha encontrado reboot_ptz_node.py"
+fi
+
+if [ -f "puma_ip_devices/scripts/speaker_manager_node.py" ]; then
+    chmod +x puma_ip_devices/scripts/speaker_manager_node.py && echo " -> speaker_manager_node listo !!!"
+else
+    echo " -X no se ha encontrado speaker_manager_node.py"
+fi
+
 if [ -f "puma_parking/scripts/puma_parking_node.py" ]; then
     chmod +x puma_parking/scripts/puma_parking_node.py && echo " -> puma_parking_node listo !!!"
 else
@@ -59,5 +71,7 @@ if [ -f "../puma_utils/puma_imu/scripts/translate_icm20948_arduino.py" ]; then
 else
     echo " -X no se ha encontrado translate_icm20948_arduino.py"
 fi
+
+
 
 echo "Cambio de permisos a ejecutables terminado"
