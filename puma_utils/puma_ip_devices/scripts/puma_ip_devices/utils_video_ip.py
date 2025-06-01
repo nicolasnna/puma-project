@@ -31,6 +31,7 @@ class AsyncVideoCapture:
         ret, frame = cap.read()
         if not ret:
           rospy.logwarn('Reconectando a la cámara...')
+          time.sleep(0.5)
           cap.release()
           cap = cv2.VideoCapture(self.rtsp_url, cv2.CAP_FFMPEG)
           continue
