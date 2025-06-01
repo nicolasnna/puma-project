@@ -3,6 +3,7 @@ import rospy
 import requests
 from std_msgs.msg import String
 from puma_msgs.msg import WebTeleop
+from puma_web_interface.utils import send_log_msg
 import time
 
 def get_control_mode(msg):
@@ -36,23 +37,28 @@ def check_and_use_teleop_cmd():
           msg_teleop.brake = bool(res['brake'])
           msg_teleop.reverse = bool(res['reverse'])
           msg_teleop.parking = bool(res['parking'])
+          last_time_command = time.time()
           teleop_pub.publish(msg_teleop)
           # rospy.loginfo(f"Teleop command: {msg_teleop}")
           latest_command = res
-          
+        else:
+          send_log_msg("No hay comando nuevo de teleoperación disponible.", 1)
+  
   except Exception as e:
-    rospy.logwarn(f"Error: {e}")
+    send_log_msg(f"Error: {e}", 2)
 
 
 if __name__ == "__main__":
   rospy.init_node("get_teleop_backend")
   rospy.loginfo(f"Empezando {rospy.get_name()} node")
-  global headers, BACKEND_URL, current_mode, latest_command, initial_configuration
+  global headers, BACKEND_URL, current_mode, latest_command, initial_configuration, last_time_command
+  last_time_command = None
   BACKEND_URL = rospy.get_param('~backend_url',"http://localhost:8000")
   initial_configuration = True
   current_mode = ''
   rospy.Subscriber("puma/control/current_mode", String, get_control_mode)
   teleop_pub = rospy.Publisher("puma/web/teleop", WebTeleop, queue_size=3)
+  change_mode_pub = rospy.Publisher("/puma/control/change_mode", String, queue_size=1)
 
   headers = None
   while not headers:
@@ -69,6 +75,12 @@ if __name__ == "__main__":
   while not rospy.is_shutdown():
     if current_mode == "web":
       check_and_use_teleop_cmd()
+      if last_time_command is not None and time.time() - last_time_command > 120:
+        send_log_msg("No se ha recibido un comando de teleoperación en los últimos 120 segundos, reiniciando configuración.", 1)
+        latest_command = None
+        initial_configuration = True
+        last_time_command = None
+        change_mode_pub.publish(String('idle'))
     else:
       initial_configuration = True
     rate.sleep()
