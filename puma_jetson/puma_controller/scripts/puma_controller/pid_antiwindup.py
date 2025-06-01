@@ -63,11 +63,11 @@ class PIDAntiWindUp:
     output = proportional + integral + derivative
     if not self.disable_final_check:
       if measurement < 0.1:
-        output = max(min(self._max_value_initial, output),self._min_value)
+        output = max(min(self._max_value_initial, output, setpoint),self._min_value)
       else:
-        output = max(min(output, self._max_value), self._min_value)
+        output = max(min(output, self._max_value, setpoint), self._min_value)
     else:
-      output = max(min(output, self._max_value), self._min_value)
+      output = max(min(output, self._max_value, setpoint), self._min_value)
       
     self.previus_error = error
     self.last_time = current_time

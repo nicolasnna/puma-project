@@ -194,10 +194,10 @@ class PumaController:
     if current_time - self.last_time_msg["web"] < self.time_between_msg["web"] and not self.signal_secure:
       self.web_pid_output["accel"] = self.pid_web_accel.update(self.web["accel"], self.web_pid_output["accel"])
       
-      if self.web["enable_direction"]:
-        self.web_pid_output["angle"] = self.pid_web_angle.update(self.web["angle"], self.web_pid_output["angle"])
+      # if self.web["enable_direction"]:
+      #   self.web_pid_output["angle"] = self.pid_web_angle.update(self.web["angle"], self.web_pid_output["angle"])
         
-      angle_output = self.clamp_angle(math.radians(self.web_pid_output["angle"]))
+      angle_output = self.clamp_angle(math.radians(self.web["angle"]))
       
       self.control_publisher.publish(
         accelerator=round(self.web_pid_output["accel"]), 
