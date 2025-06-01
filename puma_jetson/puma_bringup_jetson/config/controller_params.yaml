@@ -18,8 +18,8 @@ puma_controller:
       ki: 0.3
       kd: 0.005
       min_value: 12
-      max_value: 30
-      max_value_initial: 23
+      max_value: 40
+      max_value_initial: 27
       disable_final_check: false
     
     steering_angle:
