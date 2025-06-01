@@ -27,10 +27,11 @@ class AsyncVideoCapture:
     cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
     
     while self.running:
-      if rospy.is_shutdown():
-        self.stop()
       try:
         ret, frame = cap.read()
+        if rospy.is_shutdown():
+          cap.release()
+          break
         if not ret:
           rospy.logwarn('Reconectando a la cámara...')
           time.sleep(0.5)
