@@ -6,7 +6,7 @@ from smach_msgs.msg import SmachContainerStatus
 from puma_nav_manager.msg import LocalizationManagerAction, LocalizationManagerGoal
 from puma_robot_status.msg import LightsManagerAction, LightsManagerGoal, ChargeManagerAction, ChargeManagerGoal
 from puma_system_monitor.msg import ServicesManagerAction, ServicesManagerGoal
-from puma_ip_devices.msg import SpeakerManagerAction, SpeakerManagerGoal
+from puma_ip_devices.msg import SpeakerManagerAction, SpeakerManagerGoal, RebootPtzAction, RebootPtzGoal
 from puma_web_interface.utils import send_log_msg, send_latest_data
 import actionlib
 
@@ -22,6 +22,7 @@ client_service_jetson_manager = actionlib.SimpleActionClient('/puma/jetson/servi
 client_service_minipc_manager = actionlib.SimpleActionClient('/puma/minipc/services_manager', ServicesManagerAction)
 client_charge_manager = actionlib.SimpleActionClient('/puma/control/charge', ChargeManagerAction)
 client_speaker = actionlib.SimpleActionClient('/puma/speaker', SpeakerManagerAction)
+client_reboot_ptz = actionlib.SimpleActionClient('/puma/nvr/reboot_ptz', RebootPtzAction)
 
 def action_state_machine(client,goal):
   try:
@@ -162,6 +163,8 @@ def change_security_lights_fn(cmd):
     client_lights_manager.send_goal(goal)
     client_lights_manager.wait_for_result(rospy.Duration(5))
     result = client_lights_manager.get_result()
+    if result.success:
+      send_log_msg("Baliza de seguridad activada correctamente", 0)
     return result.success
   except Exception as e:
     send_log_msg(f"Error al ejecutar la acción: {e}", 1)
@@ -175,6 +178,10 @@ def get_services_from_client(client: StateMachineAction):
   client.send_goal(goal)
   if client.wait_for_result(rospy.Duration(10)):
     result = client.get_result()
+    if result.success:
+      send_log_msg("Servicios obtenidos correctamente", 0)
+      if result.services:
+        send_log_msg(f"Servicios: {[s.service_name for s in result.services]}", 0)
     return result.services
   return []
   
@@ -229,6 +236,7 @@ def change_service_state_fn(cmd):
     client.send_goal(goal)
     if client.wait_for_result(rospy.Duration(5)):
       result = client.get_result()
+      send_log_msg(f"Resultado de la acción del servicio {cmd['service_name']}: {result.message}", 0)
       return result.success
   except Exception as e:
     send_log_msg(f"Error al conectar con el servidor: {e}", 1)
@@ -244,6 +252,7 @@ def change_charge_connector_state_fn(cmd):
     client_charge_manager.send_goal(goal)
     if client_charge_manager.wait_for_result(rospy.Duration(5)):
       result = client_charge_manager.get_result()
+      send_log_msg(f"Resultado de la acción del conector de carga: {result.message}", 0)
       return result.success
   except Exception as e:
     send_log_msg(f"Error al conectar con el servidor: {e}", 1)
@@ -267,11 +276,27 @@ def execute_speaker_fn(cmd):
     client_speaker.send_goal(goal)
     if client_speaker.wait_for_result(rospy.Duration(5)):
       result = client_speaker.get_result()
+      send_log_msg(f"Resultado de la acción del parlante: {result.message}", 0)
       return result.success
   except Exception as e:
     send_log_msg(f"Error al conectar con el servidor: {e}", 1)
   return False
-  
+
+def reboot_ptz_fn(cmd):
+  send_log_msg("Detectado comando para reinicio de la cámara ptz", 0)
+  try:
+    client_reboot_ptz.wait_for_server(rospy.Duration(5))
+    goal = RebootPtzGoal()
+    goal.action = cmd["action"]
+    client_reboot_ptz.send_goal(goal)
+    if client_reboot_ptz.wait_for_result(rospy.Duration(5)):
+      result = client_reboot_ptz.get_result()
+      send_log_msg(f"Resultado del reinicio de la cámara ptz: {result.message}", 0)
+      return result.success
+  except Exception as e:
+    send_log_msg(f"Error al conectar con el servidor para la ptz: {e}", 1)
+  return False
+
 translate_command = {
   "start_plan": start_plan_fn,
   "stop_plan": stop_plan_fn,
@@ -287,5 +312,6 @@ translate_command = {
   "update_services_state": update_services_state_fn,
   "change_service_state": change_service_state_fn,
   "change_charge_connector_state": change_charge_connector_state_fn,
-  "execute_speaker": execute_speaker_fn
+  "execute_speaker": execute_speaker_fn,
+  "reboot_ptz": reboot_ptz_fn
 }
