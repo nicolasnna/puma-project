@@ -1,4 +1,4 @@
-#/usr/bin/env python3
+#!/usr/bin/env python3
 import rospy
 import actionlib
 from puma_ip_devices.msg import RebootPtzAction, RebootPtzResult, RebootPtzGoal
