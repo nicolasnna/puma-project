@@ -5,7 +5,7 @@
     <param name="user" value="admin"/>
     <param name="password" value="smartbot2023"/>
     <param name="ip" value="10.42.0.107"/>
-    <rosparam param="channels">[5, 6, 7, 8]</rosparam>
+    <rosparam param="channels">[3, 4, 5, 6]</rosparam>
     <rosparam param="subtypes">[0, 0, 0, 0]</rosparam>
     <param name="ns_camera" value="/puma/nvr"/>
   </node>
