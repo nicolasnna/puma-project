@@ -12,6 +12,12 @@ else
     echo " -X no se ha encontrado reboot_ptz_node.py"
 fi
 
+if [ -f "puma_ip_devices/scripts/publish_camera_ip.py" ]; then
+    chmod +x puma_ip_devices/scripts/publish_camera_ip.py && echo " -> publish_camera_ip listo !!!"
+else
+    echo " -X no se ha encontrado publish_camera_ip.py"
+fi
+
 if [ -f "puma_ip_devices/scripts/speaker_manager_node.py" ]; then
     chmod +x puma_ip_devices/scripts/speaker_manager_node.py && echo " -> speaker_manager_node listo !!!"
 else

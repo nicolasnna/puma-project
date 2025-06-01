@@ -29,6 +29,8 @@ declare -A servicios=(
   ["11"]="puma-web-interface|${FILES_DIR}/puma-web-interface.service|${SERVICE_DST}/puma-web-interface.service|${FILES_DIR}/puma-web-interface.sh|${SCRIPT_DST}/puma-web-interface.sh"
   ["12"]="puma-minipc-monitor|${FILES_DIR}/puma-minipc-monitor.service|${SERVICE_DST}/puma-minipc-monitor.service|${FILES_DIR}/puma-minipc-monitor.sh|${SCRIPT_DST}/puma-minipc-monitor.sh"
   ["13"]="puma-arduino-nano|${FILES_DIR}/puma-arduino-nano.service|${SERVICE_DST}/puma-arduino-nano.service|${FILES_DIR}/puma-arduino-nano.sh|${SCRIPT_DST}/puma-arduino-nano.sh"
+  ["14"]="puma-ip-manager|${FILES_DIR}/puma-ip-manager.service|${SERVICE_DST}/puma-ip-manager.service|${FILES_DIR}/puma-ip-manager.sh|${SCRIPT_DST}/puma-ip-manager.sh"
+  ["15"]="puma-ip-cameras|${FILES_DIR}/puma-ip-cameras.service|${SERVICE_DST}/puma-ip-cameras.service|${FILES_DIR}/puma-ip-cameras.sh|${SCRIPT_DST}/puma-ip-cameras.sh"
 )
 
 mostrar_menu() {
